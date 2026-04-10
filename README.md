@@ -40,23 +40,11 @@ source venv/bin/activate  # На Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Шаг 4: Конфигурация Supabase
-1. Скопируйте `.env.example` в `.env`:
+### Шаг 4: Настройка базы данных
 ```bash
-cp .env.example .env
+# Инициализация таблиц базы данных
+python scripts/init_db.py
 ```
-
-2. Добавьте ваши Supabase credentials в `.env`:
-```
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-anon-key
-SUPABASE_SERVICE_KEY=your-service-role-key
-```
-
-3. Получите ключи из [Supabase Dashboard](https://app.supabase.com):
-   - Settings → API → URL (SUPABASE_URL)
-   - Settings → API → anon key (SUPABASE_KEY)
-   - Settings → API → service_role key (SUPABASE_SERVICE_KEY)
 
 ### Шаг 5: Запуск приложения
 ```bash
@@ -68,6 +56,56 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Приложение будет доступно на `http://localhost:8000`
+
+### API Endpoints для аутентификации
+
+#### Регистрация пользователя
+```bash
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "securepassword123"
+}
+```
+
+#### Подтверждение email
+```bash
+POST /api/auth/verify
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "code": "123456"
+}
+```
+
+#### Повторная отправка кода
+```bash
+POST /api/auth/resend-code?email=user@example.com
+```
+
+### Пример использования
+
+1. **Регистрация:**
+```bash
+curl -X POST "http://localhost:8000/api/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}'
+```
+
+2. **Проверьте логи** — код подтверждения будет выведен в консоль:
+```
+📧 Verification code for user 1: 123456
+```
+
+3. **Подтверждение:**
+```bash
+curl -X POST "http://localhost:8000/api/auth/verify" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "code": "123456"}'
+```
 
 ### API Documentation
 - **Swagger UI:** http://localhost:8000/docs

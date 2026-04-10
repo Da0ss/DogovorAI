@@ -32,11 +32,21 @@ class Settings(BaseSettings):
 
     # Optional: Kimi API (for future integration)
     kimi_api_key: Optional[str] = None
+    
+    # Optional: Hugging Face Token
+    hf_token: Optional[str] = None
+    
+    # Optional: Kimi Model
+    kimi_model: str = "moonshotai/Kimi-K2.5:fireworks-ai"
+    
+    # Database
+    database_url: str
 
-    class Config:
-        """Pydantic Config"""
-        env_file = ".env"
-        case_sensitive = False
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": False,
+        "extra": "ignore",  # Игнорировать лишние переменные (например, PYTHONUNBUFFERED)
+    }
 
     @property
     def is_production(self) -> bool:

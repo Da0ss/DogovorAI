@@ -6,6 +6,7 @@ Provides endpoints for monitoring application and database health.
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
 from app.services.database_service import get_database_service
+from config.postgres import test_postgres_connection
 
 router = APIRouter(prefix="/health")
 

@@ -5,11 +5,16 @@ FastAPI application with CORS, health checks and Supabase integration.
 
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from config.settings import settings
 from config.database import get_supabase_client
 from app.api import health
+from app.api import analysis
+from app.api import auth
 
 # Настройка логирования
 logging.basicConfig(
@@ -28,12 +33,22 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info(f"🚀 Запуск {settings.app_name} v{settings.app_version}")
     try:
-        # Инициализируем Supabase клиент
+        # Create database tables
+        from app.models.database import create_tables
+        create_tables()
+        logger.info("✅ База данных инициализирована")
+
+        # Пытаемся инициализировать Supabase клиент
         client = get_supabase_client()
-        logger.info("✅ Приложение успешно запущено")
+        logger.info("✅ Supabase подключён")
     except Exception as e:
-        logger.error(f"❌ Ошибка при запуске приложения: {str(e)}")
-        raise
+        # Не падаем — продолжаем без Supabase (демо-режим)
+        logger.warning(f"⚠️ Supabase недоступен (демо-режим): {str(e)}")
+        logger.warning("   Обновите SUPABASE_URL и SUPABASE_KEY в .env для полной работы")
+
+    logger.info("✅ Приложение успешно запущено")
+    logger.info(f"   📖 Swagger UI: http://localhost:{settings.port}/docs")
+    logger.info(f"   🌐 Веб-интерфейс: http://localhost:{settings.port}/app")
 
     yield
 
@@ -94,6 +109,24 @@ async def health_check() -> dict:
 
 # Include routers from API modules
 app.include_router(health.router, prefix="/api", tags=["Health"])
+app.include_router(analysis.router, prefix="/api/v1", tags=["Analysis"])
+app.include_router(auth.router, prefix="/api", tags=["Authentication"])
+
+# Раздача статических файлов фронтенда
+FRONTEND_DIR = Path(__file__).parent / "frontend"
+if FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+    logger.info(f"✅ Фронтенд подключён из {FRONTEND_DIR}")
+
+
+# Главная страница — отдаём index.html
+@app.get("/app", include_in_schema=False)
+async def serve_frontend():
+    """Отдаёт главную страницу DogovorAI."""
+    index_path = FRONTEND_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path))
+    return {"error": "Frontend not found"}
 
 
 if __name__ == "__main__":

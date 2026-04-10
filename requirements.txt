@@ -6,12 +6,30 @@ python-dotenv==1.0.0
 supabase==2.4.0
 httpx==0.25.2
 aiohttp==3.9.1
+psycopg2-binary==2.9.9
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Authentication
+bcrypt==4.1.2
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# File Processing
+python-multipart==0.0.6     # Для UploadFile в FastAPI
+PyMuPDF==1.23.8             # Извлечение текста из PDF
+python-docx==1.1.0          # Извлечение текста из DOCX
+Pillow==10.1.0              # Работа с изображениями
+pytesseract==0.3.10         # OCR (требует Tesseract в системе)
+openai==1.6.1               # Kimi API через OpenAI-совместимый интерфейс
 
 # Testing
 pytest==7.4.3
 pytest-asyncio==0.21.1
 pytest-cov==4.1.0
-httpx-mock==0.3.0
+httpx==0.25.2
 
 # Development
 black==23.12.0

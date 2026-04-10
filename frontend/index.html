@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DogovorAI — Умный анализ договоров</title>
+    <meta name="description"
+        content="AI-сервис для анализа юридических рисков в договорах. Загрузите PDF, DOCX или фото договора — получите список рисков с ссылками на законодательство РК.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">⚖️</span>
+                <span class="logo-text">Dogovor<span class="logo-accent">AI</span></span>
+            </div>
+            <nav class="nav">
+                <a href="#features" class="nav-link">Возможности</a>
+                <a href="#upload" class="nav-link">Анализ</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <div class="hero-bg">
+            <div class="hero-orb hero-orb-1"></div>
+            <div class="hero-orb hero-orb-2"></div>
+        </div>
+        <div class="container">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                Работает на Kimi AI
+            </div>
+            <h1 class="hero-title">
+                Анализируйте договоры<br>
+                <span class="gradient-text">с юридической точностью</span>
+            </h1>
+            <p class="hero-subtitle">
+                Загрузите PDF, DOCX или фотографию договора — DogovorAI выявит риски,
+                нарушения и опасные пункты со ссылками на законодательство РК за секунды.
+            </p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-value">PDF</span>
+                    <span class="stat-label">документы</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-value">DOCX</span>
+                    <span class="stat-label">Word файлы</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-value">OCR</span>
+                    <span class="stat-label">фотографии</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-value">ГК РК</span>
+                    <span class="stat-label">база знаний</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FEATURES ===== -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>Все форматы</h3>
+                    <p>PDF, Word, JPG, PNG — анализируем любой формат документа</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Кими AI</h3>
+                    <p>Мощная языковая модель специально настроена для юридического анализа</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚖️</div>
+                    <h3>Ссылки на законы</h3>
+                    <p>Каждый риск со ссылкой на ГК РК, ТК РК и другие законы</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>3 уровня риска</h3>
+                    <p>Критический, умеренный и низкий — видите что важно в первую очередь</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== UPLOAD SECTION ===== -->
+    <section class="upload-section" id="upload">
+        <div class="container">
+            <div class="section-header">
+                <h2>Проверить договор</h2>
+                <p>Загрузите документ и получите детальный юридический анализ</p>
+            </div>
+
+            <div class="upload-card" id="uploadCard">
+                <!-- Drop Zone -->
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    <p class="drop-zone-title">Перетащите файл сюда</p>
+                    <p class="drop-zone-subtitle">или нажмите для выбора</p>
+                    <div class="drop-zone-formats">
+                        <span class="format-badge">PDF</span>
+                        <span class="format-badge">DOCX</span>
+                        <span class="format-badge">JPG</span>
+                        <span class="format-badge">PNG</span>
+                    </div>
+                    <p class="drop-zone-limit">Максимальный размер: 20 МБ</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png">
+                </div>
+
+                <!-- File Preview (hidden by default) -->
+                <div class="file-preview" id="filePreview" style="display:none">
+                    <div class="file-preview-icon" id="filePreviewIcon">📄</div>
+                    <div class="file-preview-info">
+                        <span class="file-preview-name" id="fileName">document.pdf</span>
+                        <span class="file-preview-size" id="fileSize">2.3 MB</span>
+                    </div>
+                    <button class="file-remove-btn" id="removeFile" title="Удалить файл">×</button>
+                </div>
+
+                <!-- Analyze Button -->
+                <button class="analyze-btn" id="analyzeBtn" disabled>
+                    <span class="btn-icon">⚡</span>
+                    <span class="btn-text">Анализировать договор</span>
+                </button>
+            </div>
+
+            <!-- Progress -->
+            <div class="progress-container" id="progressContainer" style="display:none">
+                <div class="progress-card">
+                    <div class="progress-spinner"></div>
+                    <div class="progress-info">
+                        <p class="progress-title">Анализирую договор...</p>
+                        <p class="progress-subtitle" id="progressStep">Извлечение текста из документа</p>
+                    </div>
+                </div>
+                <div class="progress-steps" id="progressSteps">
+                    <div class="progress-step active" id="step1">
+                        <div class="step-dot"></div>
+                        <span>Чтение файла</span>
+                    </div>
+                    <div class="progress-step" id="step2">
+                        <div class="step-dot"></div>
+                        <span>AI-анализ рисков</span>
+                    </div>
+                    <div class="progress-step" id="step3">
+                        <div class="step-dot"></div>
+                        <span>Сопоставление с законами</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== RESULTS SECTION ===== -->
+    <section class="results-section" id="resultsSection" style="display:none">
+        <div class="container">
+
+            <!-- Results Header -->
+            <div class="results-header">
+                <div class="results-title-block">
+                    <h2 id="resultsTitle">Анализ завершён</h2>
+                    <p class="results-filename" id="resultsFilename"></p>
+                </div>
+                <div class="results-verdict" id="resultsVerdict">
+                    <span class="verdict-icon" id="verdictIcon">🔴</span>
+                    <span class="verdict-text" id="verdictText">Высокий риск</span>
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="summary-card" id="summaryCard">
+                <div class="summary-header">
+                    <span class="summary-label">Тип договора</span>
+                    <span class="doc-type-badge" id="docTypeBadge"></span>
+                </div>
+                <p class="summary-text" id="summaryText"></p>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="results-stats" id="resultsStats">
+                <div class="result-stat result-stat-high">
+                    <span class="result-stat-value" id="highCount">0</span>
+                    <span class="result-stat-label">Критических</span>
+                </div>
+                <div class="result-stat result-stat-medium">
+                    <span class="result-stat-value" id="mediumCount">0</span>
+                    <span class="result-stat-label">Умеренных</span>
+                </div>
+                <div class="result-stat result-stat-low">
+                    <span class="result-stat-value" id="lowCount">0</span>
+                    <span class="result-stat-label">Низких</span>
+                </div>
+            </div>
+
+            <!-- Risks List -->
+            <div class="risks-list" id="risksList"></div>
+
+            <!-- Recommendations -->
+            <div class="recommendations-card" id="recommendationsCard" style="display:none">
+                <h3 class="rec-title">💡 Общие рекомендации</h3>
+                <ul class="rec-list" id="recList"></ul>
+            </div>
+
+            <!-- New Analysis Button -->
+            <div class="new-analysis-block">
+                <button class="new-analysis-btn" id="newAnalysisBtn">
+                    ↩ Проверить другой договор
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ERROR TOAST ===== -->
+    <div class="error-toast" id="errorToast" style="display:none">
+        <span class="toast-icon">⚠️</span>
+        <span class="toast-message" id="toastMessage">Произошла ошибка</span>
+        <button class="toast-close" onclick="closeToast()">×</button>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-inner">
+                <span class="footer-logo">⚖️ DogovorAI</span>
+                <p class="footer-text">Не является юридической консультацией. Для важных решений обратитесь к юристу.
+                </p>
+                <span class="footer-version">v0.1.0 MVP</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

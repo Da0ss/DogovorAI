@@ -4,7 +4,9 @@ Provides high-level database operations and health checks.
 """
 
 import logging
+import json
 from typing import Dict, Any, Optional
+from datetime import datetime
 from supabase import Client
 from config.database import get_supabase_client
 
