@@ -30,9 +30,8 @@ cd DogovorAI
 
 ### Шаг 2: Создание виртуального окружения
 ```bash
-# Используя venv
-python3.11 -m venv venv
-source venv/bin/activate  # На Windows: venv\Scripts\activate
+python3.11 -m venv .venv
+source .venv/bin/activate  # На Windows: .venv\Scripts\activate
 ```
 
 ### Шаг 3: Установка зависимостей
@@ -48,11 +47,11 @@ python scripts/init_db.py
 
 ### Шаг 5: Запуск приложения
 ```bash
-# Development режим (с автозагрузкой)
-python main.py
+source .venv/bin/activate
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
-# Или через uvicorn напрямую
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+# Если хотите запускать напрямую из проекта
+./scripts/run_dev.sh
 ```
 
 Приложение будет доступно на `http://localhost:8000`
@@ -81,10 +80,43 @@ Content-Type: application/json
 }
 ```
 
+> **Внимание:** Теперь используется Supabase Auth для отправки кодов подтверждения. Настройте email/SMS шаблоны в панели управления Supabase.
+
 #### Повторная отправка кода
 ```bash
 POST /api/auth/resend-code?email=user@example.com
 ```
+
+#### Вход в систему
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "securepassword123"
+}
+```
+
+### Настройка Supabase Auth
+
+1. **Перейдите в панель управления Supabase:**
+   - Откройте ваш проект в [Supabase Dashboard](https://supabase.com/dashboard)
+   - Перейдите в раздел **Authentication** → **Settings**
+
+2. **Настройте Email Templates:**
+   - В разделе **Email Templates** настройте шаблоны для:
+     - **Confirm signup** — подтверждение регистрации
+     - **Invite user** — приглашение пользователя
+     - **Reset password** — сброс пароля
+
+3. **Настройте SMS (опционально):**
+   - В разделе **SMS** настройте провайдера для отправки SMS кодов
+
+4. **Настройте Auth Settings:**
+   - **Site URL:** `http://localhost:8000` (для разработки)
+   - **Redirect URLs:** добавьте `http://localhost:8000/*`
+   - **JWT Expiry:** настройте время жизни токенов
 
 ### Пример использования
 
@@ -95,16 +127,20 @@ curl -X POST "http://localhost:8000/api/auth/register" \
   -d '{"email": "test@example.com", "password": "password123"}'
 ```
 
-2. **Проверьте логи** — код подтверждения будет выведен в консоль:
-```
-📧 Verification code for user 1: 123456
-```
+2. **Проверьте email** — код подтверждения будет отправлен на указанный email через Supabase.
 
 3. **Подтверждение:**
 ```bash
 curl -X POST "http://localhost:8000/api/auth/verify" \
   -H "Content-Type: application/json" \
   -d '{"email": "test@example.com", "code": "123456"}'
+```
+
+4. **Вход в систему:**
+```bash
+curl -X POST "http://localhost:8000/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}'
 ```
 
 ### API Documentation
@@ -144,19 +180,37 @@ pytest tests/test_health.py -v
 .
 ├── app/
 │   ├── api/              # API endpoints
+│   │   ├── auth.py       # Authentication endpoints
 │   │   └── health.py     # Health check endpoints
 │   ├── services/         # Business logic
-│   │   └── database_service.py
+│   │   ├── auth_service.py    # Supabase Auth service
+│   │   ├── database_service.py
+│   │   └── email_service.py   # SMTP email service (опционально)
 │   ├── models/           # Pydantic schemas
+│   │   ├── crud.py       # Database operations (deprecated)
+│   │   ├── models.py     # SQLAlchemy models (deprecated)
+│   │   └── schemas.py    # Pydantic schemas
 │   └── __init__.py
 ├── config/
 │   ├── settings.py       # Configuration from env
 │   ├── database.py       # Supabase client
 │   └── __init__.py
+├── frontend/             # Static frontend files
+│   ├── index.html        # Main page
+│   ├── register.html     # Registration page
+│   ├── login.html        # Login page
+│   ├── js/
+│   │   ├── register.js   # Registration logic
+│   │   └── login.js      # Login logic
+│   └── css/
+│       └── styles.css    # Styles
 ├── tests/                # Unit tests
-│   ├── test_health.py
+│   ├── test_auth.py      # Auth tests
+│   ├── test_health.py    # Health tests
 │   ├── conftest.py
 │   └── __init__.py
+├── scripts/              # Utility scripts
+│   └── run_dev.sh        # Development runner
 ├── main.py               # FastAPI application entry point
 ├── requirements.txt      # Python dependencies
 ├── .env.example         # Environment variables template
@@ -184,3 +238,8 @@ flake8 app/
 - `DEBUG` — Включить debug режим (True/False)
 - `HOST` — Адрес хоста (по умолчанию 0.0.0.0)
 - `PORT` — Порт приложения (по умолчанию 8000)
+
+> **Аутентификация:** Используется Supabase Auth для регистрации и верификации пользователей. Настройте email/SMS шаблоны в панели управления Supabase (см. раздел "Настройка Supabase Auth").
+
+source .venv/bin/activate
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000

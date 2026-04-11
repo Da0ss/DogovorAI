@@ -102,7 +102,7 @@ class FileService:
 
         except ImportError:
             logger.error("❌ PyMuPDF не установлен. Выполните: pip install PyMuPDF")
-            raise ValueError("Библиотека PyMuPDF не установлена")
+            raise ValueError("Не удалось обработать PDF")
         except Exception as e:
             logger.error(f"❌ Ошибка при обработке PDF: {str(e)}")
             raise ValueError(f"Не удалось обработать PDF: {str(e)}")
@@ -148,7 +148,7 @@ class FileService:
 
         except ImportError:
             logger.error("❌ python-docx не установлен. Выполните: pip install python-docx")
-            raise ValueError("Библиотека python-docx не установлена")
+            raise ValueError("Не удалось обработать DOCX")
         except Exception as e:
             logger.error(f"❌ Ошибка при обработке DOCX: {str(e)}")
             raise ValueError(f"Не удалось обработать DOCX: {str(e)}")

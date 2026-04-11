@@ -33,17 +33,29 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info(f"🚀 Запуск {settings.app_name} v{settings.app_version}")
     try:
-        # Create database tables
-        from app.models.database import create_tables
-        create_tables()
-        logger.info("✅ База данных инициализирована")
+        # TEMPORARILY DISABLE DB INIT FOR TESTING
+        # from app.models.database import create_tables
+        # import threading
+        
+        # def init_db():
+        #     try:
+        #         create_tables()
+        #         logger.info("✅ База данных инициализирована")
+        #     except Exception as e:
+        #         logger.warning(f"⚠️ Ошибка инициализации БД: {str(e)}")
+        
+        # db_thread = threading.Thread(target=init_db, daemon=True)
+        # db_thread.start()
 
-        # Пытаемся инициализировать Supabase клиент
-        client = get_supabase_client()
-        logger.info("✅ Supabase подключён")
+        # Пытаемся инициализировать Supabase клиент (с таймаутом)
+        try:
+            client = get_supabase_client()
+            logger.info("✅ Supabase подключён")
+        except Exception as e:
+            logger.warning(f"⚠️ Supabase недоступен: {str(e)}")
     except Exception as e:
         # Не падаем — продолжаем без Supabase (демо-режим)
-        logger.warning(f"⚠️ Supabase недоступен (демо-режим): {str(e)}")
+        logger.warning(f"⚠️ Ошибка при стартапе (демо-режим): {str(e)}")
         logger.warning("   Обновите SUPABASE_URL и SUPABASE_KEY в .env для полной работы")
 
     logger.info("✅ Приложение успешно запущено")
@@ -109,7 +121,7 @@ async def health_check() -> dict:
 
 # Include routers from API modules
 app.include_router(health.router, prefix="/api", tags=["Health"])
-app.include_router(analysis.router, prefix="/api/v1", tags=["Analysis"])
+app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
 app.include_router(auth.router, prefix="/api", tags=["Authentication"])
 
 # Раздача статических файлов фронтенда
@@ -127,6 +139,24 @@ async def serve_frontend():
     if index_path.exists():
         return FileResponse(str(index_path))
     return {"error": "Frontend not found"}
+
+
+@app.get("/app/register", include_in_schema=False)
+async def serve_register():
+    """Serve the registration page."""
+    register_path = FRONTEND_DIR / "register.html"
+    if register_path.exists():
+        return FileResponse(str(register_path))
+    return {"error": "Register page not found"}
+
+
+@app.get("/app/login", include_in_schema=False)
+async def serve_login():
+    """Serve the login page."""
+    login_path = FRONTEND_DIR / "login.html"
+    if login_path.exists():
+        return FileResponse(str(login_path))
+    return {"error": "Login page not found"}
 
 
 if __name__ == "__main__":

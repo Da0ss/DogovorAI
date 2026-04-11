@@ -2,8 +2,8 @@
 Pydantic schemas for request/response validation
 """
 
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import BaseModel, ConfigDict, EmailStr
+from typing import Optional, Dict, Any
 from datetime import datetime
 
 
@@ -19,13 +19,12 @@ class UserResponse(BaseModel):
     """
     Schema for user response (without sensitive data)
     """
-    id: int
+    id: str
     email: EmailStr
     is_verified: bool
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class VerificationRequest(BaseModel):
@@ -43,6 +42,24 @@ class VerificationResponse(BaseModel):
     success: bool
     message: str
     user: Optional[UserResponse] = None
+
+
+class LoginRequest(BaseModel):
+    """
+    Schema for login request
+    """
+    email: EmailStr
+    password: str
+
+
+class LoginResponse(BaseModel):
+    """
+    Schema for login response
+    """
+    success: bool
+    message: str
+    user: Optional[UserResponse] = None
+    session: Optional[Dict[str, Any]] = None
 
 
 class Token(BaseModel):

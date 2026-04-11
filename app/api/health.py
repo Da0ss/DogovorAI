@@ -4,6 +4,7 @@ Provides endpoints for monitoring application and database health.
 """
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from typing import Dict, Any
 from app.services.database_service import get_database_service
 from config.postgres import test_postgres_connection
@@ -37,9 +38,13 @@ async def health_status() -> Dict[str, Any]:
             "message": "✅ Все системы в норме"
         }
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=503,
-            detail=f"❌ Health check failed: {str(e)}"
+            content={
+                "status": "🔴 unhealthy",
+                "service": "DogovorAI",
+                "detail": f"❌ Health check failed: {str(e)}"
+            }
         )
 
 

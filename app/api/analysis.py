@@ -24,7 +24,7 @@ router = APIRouter()
         "Загрузите договор в формате PDF, DOCX или изображение (JPG/PNG). "
         "Сервис извлечёт текст и вернёт список юридических рисков с рекомендациями."
     ),
-    tags=["Analysis"]
+    tags=["Analysis"],
 )
 async def analyze_document(
     file: UploadFile = File(..., description="Файл договора (PDF, DOCX, JPG, PNG)")
@@ -82,6 +82,21 @@ async def analyze_document(
         file_info=file_result,
         analysis=analysis_result
     )
+
+
+@router.post(
+    "/v1/analyze",
+    response_model=AnalyzeResponse,
+    include_in_schema=False,
+    summary="Алиас /api/v1/analyze (совместимость со старым фронтом)",
+)
+async def analyze_document_v1(
+    file: UploadFile = File(..., description="Файл договора (PDF, DOCX, JPG, PNG)")
+) -> AnalyzeResponse:
+    """
+    Алиас для совместимости со старым фронтендом.
+    """
+    return await analyze_document(file)
 
 
 @router.get(

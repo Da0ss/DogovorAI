@@ -7,7 +7,17 @@
 // CONSTANTS
 // ============================================================
 const API_BASE = window.location.origin;
-const API_ENDPOINT = `${API_BASE}/api/v1/analyze`;
+const API_ENDPOINT = `${API_BASE}/api/analyze`;
+
+/** Текст ошибки из тела FastAPI ({ detail: string | array }) */
+function formatApiDetail(detail) {
+    if (detail == null) return '';
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+        return detail.map((e) => (e && e.msg) ? e.msg : JSON.stringify(e)).join(' ');
+    }
+    return String(detail);
+}
 
 // ============================================================
 // STATE
@@ -151,7 +161,8 @@ async function startAnalysis() {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || `Ошибка сервера: ${response.status}`);
+            const msg = formatApiDetail(errorData.detail) || `Ошибка сервера: ${response.status}`;
+            throw new Error(msg);
         }
 
         const data = await response.json();

@@ -42,6 +42,24 @@ class Settings(BaseSettings):
     # Database
     database_url: str
 
+    # Email / SMTP settings
+    email_host: Optional[str] = None
+    email_port: int = 587
+    email_user: Optional[str] = None
+    email_password: Optional[str] = None
+    email_from: Optional[str] = None
+    email_use_tls: bool = True
+    email_use_ssl: bool = False
+
+    @property
+    def email_configured(self) -> bool:
+        return bool(
+            self.email_host
+            and self.email_user
+            and self.email_password
+            and self.email_from
+        )
+
     model_config = {
         "env_file": ".env",
         "case_sensitive": False,

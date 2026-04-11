@@ -105,6 +105,72 @@ body {
 }
 .nav-link:hover { color: var(--text-primary); }
 
+.nav-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    color: #ffffff;
+    background: #111827;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.nav-button:hover {
+    background: #0f172a;
+    transform: translateY(-1px);
+}
+
+.nav-button-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid rgba(17, 24, 39, 0.12);
+}
+
+.nav-button-secondary:hover {
+    background: rgba(17, 24, 39, 0.05);
+}
+
+.hero-actions {
+    margin-top: 36px;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 28px;
+    border-radius: 999px;
+    background: #111827;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.hero-button:hover {
+    background: #0f172a;
+    transform: translateY(-1px);
+}
+
+.hero-button-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    margin-right: 14px;
+}
+
+.hero-button-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
 /* ===== HERO ===== */
 .hero {
     position: relative;

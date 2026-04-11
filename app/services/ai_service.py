@@ -171,10 +171,32 @@ async def analyze_contract_text(contract_text: str) -> AnalysisResult:
 
     except Exception as e:
         logger.error(f"❌ Ошибка при запросе к Kimi API: {str(e)}")
-        return AnalysisResult(
-            analysis_success=False,
-            error_message=f"Ошибка AI сервиса: {str(e)}"
-        )
+        return _get_api_error_fallback(contract_text, e)
+
+
+def _get_api_error_fallback(contract_text: str, err: Exception) -> AnalysisResult:
+    """
+    Если HF / Router недоступен (квота, токен, сеть) — отдаём демо-результат,
+    чтобы UI не ломался и пользователь видел причину.
+    """
+    base = _get_demo_analysis(contract_text)
+    err_short = str(err)[:400]
+    logger.warning(f"⚠️ AI API недоступен, демо-фолбэк: {err_short}")
+    return base.model_copy(
+        update={
+            "document_type": "Демо (AI недоступен: квота HF / токен / сеть)",
+            "summary": (
+                "Запрос к Hugging Face Router не выполнен (часто: истёк или неверный токен, "
+                "закончилась квота, сбой сети). "
+                f"Детали: {err_short}. Ниже — пример результата, он не основан на вашем файле."
+            ),
+            "recommendations": [
+                "Проверьте HF_TOKEN и лимиты: https://huggingface.co/settings/tokens",
+                err_short,
+            ]
+            + list(base.recommendations),
+        }
+    )
 
 
 def _get_demo_analysis(contract_text: str) -> AnalysisResult:
