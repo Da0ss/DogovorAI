@@ -33,6 +33,7 @@
                 <!-- Authenticated user navigation -->
                 <div class="nav-auth nav-auth-logged-in" style="display: none;">
                     <span class="user-info">
+                        <img class="user-avatar" id="userAvatar" src="" alt="" style="display:none; width:28px; height:28px; border-radius:50%; object-fit:cover;">
                         <span class="user-email"></span>
                     </span>
                     <button class="nav-button nav-button-secondary" id="logoutBtn">Выйти</button>
@@ -80,10 +81,6 @@
                     <span class="stat-value">ГК РК</span>
                     <span class="stat-label">база знаний</span>
                 </div>
-            </div>
-            <div class="hero-actions">
-                <a href="/app/login" class="button-secondary hero-button">Войти</a>
-                <a href="/app/register" class="button-primary hero-button">Зарегистрироваться</a>
             </div>
         </div>
     </section>
@@ -290,6 +287,19 @@
             if (!isAuthenticated()) return;
 
             try {
+                // Try extended profile first (supports Google OAuth data)
+                const profileResponse = await fetch('/api/auth/me/profile', {
+                    headers: getAuthHeaders()
+                });
+
+                if (profileResponse.ok) {
+                    const profileData = await profileResponse.json();
+                    localStorage.setItem('user', JSON.stringify(profileData));
+                    updateAuthUI();
+                    return;
+                }
+
+                // Fallback to basic /me endpoint
                 const response = await fetch('/api/auth/me', {
                     headers: getAuthHeaders()
                 });
@@ -304,7 +314,18 @@
             }
         }
 
-        function logout() {
+        async function logout() {
+            // Server-side logout
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+            } catch (err) {
+                console.warn('Server logout failed:', err);
+            }
+
+            // Clear local storage
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');
@@ -319,11 +340,24 @@
             const loggedOutNav = document.querySelector('.nav-auth-logged-out');
             const loggedInNav = document.querySelector('.nav-auth-logged-in');
             const userEmail = document.querySelector('.user-email');
+            const userAvatar = document.getElementById('userAvatar');
 
             if (isAuth && user) {
                 loggedOutNav.style.display = 'none';
                 loggedInNav.style.display = 'flex';
-                userEmail.textContent = user.email;
+
+                // Show name or email
+                const displayName = user.full_name || user.email || '';
+                userEmail.textContent = displayName;
+
+                // Show avatar if available (Google profile picture)
+                if (user.avatar_url && userAvatar) {
+                    userAvatar.src = user.avatar_url;
+                    userAvatar.alt = displayName;
+                    userAvatar.style.display = 'inline-block';
+                } else if (userAvatar) {
+                    userAvatar.style.display = 'none';
+                }
             } else {
                 loggedOutNav.style.display = 'flex';
                 loggedInNav.style.display = 'none';
@@ -349,7 +383,7 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             updateAuthUI();
             loadUserInfo();
 

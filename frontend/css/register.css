@@ -184,6 +184,88 @@ button.loading .spinner {
   }
 }
 
+.form-footer {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.93rem;
+  margin-top: 8px;
+}
+
+/* ===== DIVIDER ===== */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 6px 0;
+  color: #9ca3af;
+  font-size: 0.88rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+/* ===== GOOGLE BUTTON ===== */
+.button-google {
+  background: #ffffff;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  gap: 12px;
+  transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.button-google:hover {
+  background: #f8f9fa;
+  border-color: #c6c9cc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.button-google:active {
+  background: #f1f3f4;
+}
+
+.button-google svg {
+  flex-shrink: 0;
+}
+
+/* ===== CALLBACK PAGE ===== */
+.callback-container {
+  text-align: center;
+}
+
+.callback-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #111827;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 24px;
+}
+
+.callback-status {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.callback-detail {
+  font-size: 0.93rem;
+  color: #6b7280;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 520px) {
   .card {
     padding: 24px;

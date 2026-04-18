@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     supabase_key: str
     supabase_service_key: Optional[str] = None
 
+    # Google OAuth
+    google_client_id: Optional[str] = None
+    google_client_secret: Optional[str] = None
+    google_redirect_uri: str = "http://localhost:8000/app/auth/callback"
+
     # Optional: Kimi API (for future integration)
     kimi_api_key: Optional[str] = None
     

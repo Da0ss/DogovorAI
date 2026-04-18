@@ -59,7 +59,9 @@ class SupabaseClient:
             logger.info("✅ Supabase client инициализирован успешно")
             return client
         except Exception as e:
+            import traceback
             logger.error(f"❌ Ошибка при инициализации Supabase: {str(e)}")
+            traceback.print_exc()
             raise
 
     @classmethod

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DogovorAI — Авторизация...</title>
+  <link rel="stylesheet" href="/static/css/register.css">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="card">
+      <div class="brand">
+        <span class="brand-title">DogovorAI</span>
+      </div>
+
+      <div class="callback-container" id="callbackContainer">
+        <div class="callback-spinner" id="callbackSpinner"></div>
+        <p class="callback-status" id="callbackStatus">Завершаем авторизацию...</p>
+        <p class="callback-detail" id="callbackDetail">Пожалуйста, подождите</p>
+      </div>
+
+      <div class="message" id="message" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    /**
+     * OAuth Callback Handler
+     * Extracts the authorization code from URL and exchanges it for a session.
+     */
+    (function () {
+      const API_CALLBACK = '/api/auth/google/callback';
+      const spinner = document.getElementById('callbackSpinner');
+      const statusEl = document.getElementById('callbackStatus');
+      const detailEl = document.getElementById('callbackDetail');
+      const messageEl = document.getElementById('message');
+
+      function showError(text) {
+        spinner.style.display = 'none';
+        statusEl.textContent = 'Ошибка авторизации';
+        detailEl.textContent = '';
+        messageEl.textContent = text;
+        messageEl.className = 'message error';
+      }
+
+      function showSuccess(text) {
+        spinner.style.display = 'none';
+        statusEl.textContent = '✅ Успешно!';
+        detailEl.textContent = text;
+      }
+
+      function saveAuthData(data) {
+        if (data.session) {
+          localStorage.setItem('access_token', data.session.access_token);
+          if (data.session.refresh_token) {
+            localStorage.setItem('refresh_token', data.session.refresh_token);
+          }
+        }
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+      }
+
+      async function handleCallback() {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const error = params.get('error');
+        const errorDescription = params.get('error_description');
+
+        // Check for errors from OAuth provider
+        if (error) {
+          showError(errorDescription || `Ошибка от Google: ${error}`);
+          setTimeout(() => { window.location.href = '/app/login'; }, 3000);
+          return;
+        }
+
+        // Check for code
+        if (!code) {
+          showError('Не получен код авторизации. Попробуйте снова.');
+          setTimeout(() => { window.location.href = '/app/login'; }, 3000);
+          return;
+        }
+
+        // Exchange code for session
+        try {
+          statusEl.textContent = 'Обмен кода на сессию...';
+
+          const response = await fetch(`${API_CALLBACK}?code=${encodeURIComponent(code)}`);
+          const data = await response.json();
+
+          if (!response.ok) {
+            showError(data.detail || 'Не удалось завершить авторизацию');
+            setTimeout(() => { window.location.href = '/app/login'; }, 3000);
+            return;
+          }
+
+          // Save session data
+          saveAuthData(data);
+
+          showSuccess('Перенаправление на главную страницу...');
+
+          setTimeout(() => {
+            window.location.href = '/app';
+          }, 1000);
+
+        } catch (err) {
+          console.error('Callback error:', err);
+          showError('Ошибка подключения к серверу. Попробуйте позже.');
+          setTimeout(() => { window.location.href = '/app/login'; }, 4000);
+        }
+      }
+
+      // Run on page load
+      handleCallback();
+    })();
+  </script>
+</body>
+</html>

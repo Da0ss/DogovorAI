@@ -9,7 +9,6 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
-
 class User(Base):
     """
     User model for authentication and registration

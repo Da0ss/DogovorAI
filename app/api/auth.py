@@ -1,5 +1,5 @@
 """
-Authentication API endpoints using Supabase Auth
+Authentication API endpoints using Local Database
 """
 
 import logging
@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from app.models.database import get_db
-from app.services.auth_service import get_auth_service
+from app.models import crud
 from app.models.schemas import LoginRequest, LoginResponse, UserCreate, UserResponse, VerificationRequest, VerificationResponse
 
 logger = logging.getLogger(__name__)
@@ -15,125 +15,66 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-# Auth dependencies
-def get_current_user(request: Request) -> dict:
-    """
-    Get current authenticated user from JWT token
-
-    Args:
-        request: FastAPI request object
-
-    Returns:
-        dict: User data
-
-    Raises:
-        HTTPException: If user is not authenticated
-    """
-    # For local testing, check localStorage via headers
-    # In production, this would validate JWT tokens
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> dict:
+    """Get current authenticated user by parsing local token"""
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-
-    # For local mode, we accept any token
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    
     token = auth_header.split(' ')[1]
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
-        )
+    if not token or not token.startswith("local-token-"):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
-    # Mock user data - in production, decode JWT
+    try:
+        user_id_str = token.replace("local-token-", "")
+        user_id = int(user_id_str)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token format")
+
+    user_obj = db.query(crud.User).filter(crud.User.id == user_id).first()
+    if not user_obj:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+
     return {
-        "id": "user-123",
-        "email": "user@example.com",
-        "is_verified": True
+        "id": str(user_obj.id),
+        "email": user_obj.email,
+        "is_verified": user_obj.is_verified
     }
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register_user(
+def register_user(
     user_data: UserCreate,
-    auth_service = Depends(get_auth_service)
+    db: Session = Depends(get_db)
 ) -> UserResponse:
-    """
-    Register a new user via Supabase Auth
-
-    Creates user account and sends verification code via email/SMS
-
-    Args:
-        user_data: User registration data
-        auth_service: Supabase Auth service
-
-    Returns:
-        UserResponse: Created user data
-
-    Raises:
-        HTTPException: If user already exists or registration fails
-    """
-    from fastapi.concurrency import run_in_threadpool
+    """Register a new user via Local DB"""
     try:
-        response = await run_in_threadpool(auth_service.register_user, user_data.email, user_data.password)
-
-        # Extract user data from Supabase response (dict or object)
-        if hasattr(response, 'user'):
-            user_info = response.user
-        else:
-            user_info = response.get('user')
-
-        if not user_info:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Registration failed - no user data returned"
-            )
-
+        user = crud.create_user(db, user_data)
+        crud.create_verification_code(db, user.id)
+        
         return UserResponse(
-            id=user_info.get('id') if isinstance(user_info, dict) else user_info.id,
-            email=user_info.get('email') if isinstance(user_info, dict) else user_info.email,
-            is_verified=getattr(user_info, 'email_confirmed_at', None) is not None,
-            created_at=getattr(user_info, 'created_at', None)
+            id=str(user.id),
+            email=user.email,
+            is_verified=user.is_verified,
+            created_at=user.created_at
         )
 
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(f"❌ Registration failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Registration failed: {str(e)}"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Registration failed: {str(e)}")
 
 
 @router.post("/verify", response_model=VerificationResponse)
-async def verify_email(
+def verify_email(
     verification_data: VerificationRequest,
-    auth_service = Depends(get_auth_service)
+    db: Session = Depends(get_db)
 ) -> VerificationResponse:
-    """
-    Verify user email with verification code via Supabase Auth
-
-    Args:
-        verification_data: Email and verification code
-        auth_service: Supabase Auth service
-
-    Returns:
-        VerificationResponse: Verification result
-
-    Raises:
-        HTTPException: If verification fails
-    """
-    from fastapi.concurrency import run_in_threadpool
+    """Verify user email with verification code via Local DB"""
     try:
-        response = await run_in_threadpool(auth_service.verify_email, verification_data.email, verification_data.code)
-
-        # Extract user data from Supabase response (dict or object)
-        if hasattr(response, 'user'):
-            user_info = response.user
-        else:
-            user_info = response.get('user')
-
-        if not user_info:
+        user = crud.verify_user_code(db, verification_data)
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid verification code or code expired"
@@ -143,147 +84,325 @@ async def verify_email(
             success=True,
             message="Email verified successfully",
             user=UserResponse(
-                id=user_info.get('id') if isinstance(user_info, dict) else user_info.id,
-                email=user_info.get('email') if isinstance(user_info, dict) else user_info.email,
-                is_verified=getattr(user_info, 'email_confirmed_at', None) is not None,
-                created_at=getattr(user_info, 'created_at', None)
+                id=str(user.id),
+                email=user.email,
+                is_verified=user.is_verified,
+                created_at=user.created_at
             )
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Verification failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Verification failed: {str(e)}"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Verification failed: {str(e)}")
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login_user(
+def login_user(
     login_data: LoginRequest,
-    auth_service = Depends(get_auth_service)
+    db: Session = Depends(get_db)
 ) -> LoginResponse:
-    """
-    Authenticate user with email and password via Supabase Auth.
-
-    Args:
-        login_data: Login request data
-        auth_service: Supabase Auth service
-
-    Returns:
-        LoginResponse: Authentication result
-    """
-    from fastapi.concurrency import run_in_threadpool
+    """Authenticate user with email and password via Local DB"""
     try:
-        response = await run_in_threadpool(auth_service.login_user, login_data.email, login_data.password)
-
-        # Extract user data from Supabase response (dict or object)
-        if hasattr(response, 'user'):
-            user_info = response.user
-        else:
-            user_info = response.get('user')
-
-        if not user_info:
+        user = crud.authenticate_user(db, login_data.email, login_data.password)
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Неверный email или пароль"
             )
+            
+        if not user.is_verified:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Email не верифицирован"
+            )
+
+        session_data = {
+            "access_token": f"local-token-{user.id}",
+            "refresh_token": f"local-refresh-{user.id}"
+        }
 
         return LoginResponse(
             success=True,
             message="Успешный вход",
             user=UserResponse(
-                id=user_info.get('id') if isinstance(user_info, dict) else user_info.id,
-                email=user_info.get('email') if isinstance(user_info, dict) else user_info.email,
-                is_verified=getattr(user_info, 'email_confirmed_at', None) is not None,
-                created_at=getattr(user_info, 'created_at', None)
+                id=str(user.id),
+                email=user.email,
+                is_verified=user.is_verified,
+                created_at=user.created_at
             ),
-            session=response.get('session') if isinstance(response, dict) else getattr(response, 'session', None)
+            session=session_data
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Login failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Неверный email или пароль: {str(e)}"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Login error: {str(e)}")
 
 
 @router.get("/test-code/{email}")
-async def get_test_verification_code(email: str) -> dict:
-    """
-    Get verification code for testing (local mode only)
-
-    Args:
-        email: User email
-
-    Returns:
-        dict: Verification code info
-    """
-    try:
-        from app.services.verification_service import get_verification_service
-        service = get_verification_service()
-
-        if email in service.codes:
-            code_data = service.codes[email]
-            return {
-                "email": email,
-                "code": code_data.code,
-                "expires_at": code_data.expires_at,
-                "used": code_data.used
-            }
-        else:
-            return {"error": "No code found for this email"}
-
-    except Exception as e:
-        return {"error": str(e)}
+def get_test_verification_code(email: str, db: Session = Depends(get_db)) -> dict:
+    """Get verification code for testing"""
+    user = crud.get_user_by_email(db, email)
+    if not user:
+        return {"error": "User not found"}
+        
+    code_obj = db.query(crud.VerificationCode).filter(
+        crud.VerificationCode.user_id == user.id
+    ).order_by(crud.VerificationCode.expires_at.desc()).first()
+    
+    if code_obj:
+        return {
+            "email": email,
+            "code": code_obj.code,
+            "expires_at": code_obj.expires_at
+        }
+    return {"error": "No code found for this email"}
 
 
 @router.post("/resend-code")
-async def resend_verification_code(
+def resend_verification_code(
     email: str,
-    auth_service = Depends(get_auth_service)
+    db: Session = Depends(get_db)
 ) -> dict:
-    """
-    Resend verification code to user email via Supabase Auth
-
-    Args:
-        email: User email
-        auth_service: Supabase Auth service
-
-    Returns:
-        dict: Success message
-
-    Raises:
-        HTTPException: If resend fails
-    """
-    from fastapi.concurrency import run_in_threadpool
+    """Resend verification code via Local DB"""
     try:
-        await run_in_threadpool(auth_service.resend_verification_code, email)
-        return {"message": "Verification code sent successfully"}
+        user = crud.get_user_by_email(db, email)
+        if not user:
+            # Silent fail for security
+            return {"message": "If email exists, verification code was sent"}
+            
+        crud.create_verification_code(db, user.id)
+        return {"message": "If email exists, verification code was sent"}
 
     except Exception as e:
         logger.error(f"❌ Resend code failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to resend verification code: {str(e)}"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to resend verification code")
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_info(current_user: dict = Depends(get_current_user)) -> UserResponse:
-    """
-    Get current authenticated user information
-
-    Returns:
-        UserResponse: Current user data
-
-    Raises:
-        HTTPException: If user is not authenticated
-    """
+def get_current_user_info(current_user: dict = Depends(get_current_user)) -> UserResponse:
     return UserResponse(
         id=current_user["id"],
         email=current_user["email"],
         is_verified=current_user["is_verified"],
         created_at=None
+    )
+
+
+# ================================================================
+# Passwordless OTP Login Endpoints
+# ================================================================
+
+from app.models.schemas import OTPLoginRequest, OTPVerifyRequest
+
+
+@router.post("/otp/send")
+def send_otp_code(request: OTPLoginRequest):
+    """
+    Send OTP code to email for passwordless login.
+    """
+    try:
+        from app.services.auth_service import auth_service as auth_svc
+        
+        auth_svc.send_login_otp(request.email)
+        return {"success": True, "message": "Если email корректен, вы получите код на почту"}
+        
+    except Exception as e:
+        logger.error(f"❌ OTP send failed: {str(e)}")
+        # We don't expose internal errors to the client for security, just generic message
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось отправить код. Попробуйте позже."
+        )
+
+
+@router.post("/otp/verify", response_model=LoginResponse)
+def verify_otp_code(request: OTPVerifyRequest):
+    """
+    Verify OTP code and login user.
+    """
+    try:
+        from app.services.auth_service import auth_service as auth_svc
+        
+        result = auth_svc.verify_login_otp(request.email, request.code)
+        
+        if not result or not result.get("user") or not result.get("session"):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неправильный код. Попробуйте снова."
+            )
+            
+        user_data = result.get("user", {})
+        session_data = result.get("session", {})
+
+        return LoginResponse(
+            success=True,
+            message="Успешный вход",
+            user=UserResponse(
+                id=str(user_data.get("id")),
+                email=user_data.get("email"),
+                is_verified=user_data.get("is_verified", True),
+                created_at=None
+            ),
+            session=session_data
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ OTP verification failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверный или просроченный код"
+        )
+
+
+# ================================================================
+# Google OAuth Endpoints
+# ================================================================
+
+from app.services.auth_service import auth_service as google_auth_service
+from app.models.schemas import GoogleAuthURL, OAuthCallbackResponse, UserProfile
+from fastapi.responses import RedirectResponse
+from config.settings import settings
+
+
+@router.get("/google", response_model=GoogleAuthURL)
+def google_auth_initiate():
+    """
+    Initiate Google OAuth flow.
+    Returns a URL to redirect the user to Google's consent screen.
+    """
+    try:
+        redirect_to = settings.google_redirect_uri
+        response = google_auth_service.sign_in_with_google(redirect_to)
+
+        # Supabase returns an object with url attribute
+        oauth_url = None
+        if hasattr(response, 'url'):
+            oauth_url = response.url
+        elif isinstance(response, dict) and 'url' in response:
+            oauth_url = response['url']
+
+        if not oauth_url:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to generate Google OAuth URL"
+            )
+
+        return GoogleAuthURL(url=oauth_url)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Google OAuth initiation failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Google OAuth error: {str(e)}"
+        )
+
+
+@router.get("/google/callback", response_model=OAuthCallbackResponse)
+def google_auth_callback(code: str = None, error: str = None):
+    """
+    Handle Google OAuth callback.
+    Exchanges the authorization code for a Supabase session.
+    """
+    if error:
+        logger.warning(f"⚠️ Google OAuth error: {error}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Google authentication failed: {error}"
+        )
+
+    if not code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No authorization code received"
+        )
+
+    try:
+        result = google_auth_service.exchange_code_for_session(code)
+
+        return OAuthCallbackResponse(
+            success=True,
+            message="Authentication successful",
+            user=result.get("user"),
+            session=result.get("session")
+        )
+
+    except Exception as e:
+        logger.error(f"❌ Google OAuth callback failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to complete authentication: {str(e)}"
+        )
+
+
+@router.post("/logout")
+def logout_user(request: Request):
+    """
+    Logout user by invalidating their session.
+    Clears the Supabase session on the server side.
+    """
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+        try:
+            google_auth_service.sign_out(token)
+        except Exception as e:
+            logger.warning(f"⚠️ Server-side logout error: {str(e)}")
+
+    return {"success": True, "message": "Logged out successfully"}
+
+
+@router.get("/me/profile", response_model=UserProfile)
+def get_user_profile(request: Request):
+    """
+    Get extended user profile (with Google data: name, avatar).
+    Works with both local tokens and Supabase JWT tokens.
+    """
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+
+    token = auth_header.split(' ')[1]
+
+    # Try local token first (existing system)
+    if token.startswith("local-token-"):
+        try:
+            user_id_str = token.replace("local-token-", "")
+            user_id = int(user_id_str)
+            from app.models.database import SessionLocal
+            db = SessionLocal()
+            try:
+                user_obj = db.query(crud.User).filter(crud.User.id == user_id).first()
+                if user_obj:
+                    return UserProfile(
+                        id=str(user_obj.id),
+                        email=user_obj.email,
+                        full_name=None,
+                        avatar_url=None,
+                        is_verified=user_obj.is_verified,
+                        created_at=user_obj.created_at
+                    )
+            finally:
+                db.close()
+        except (ValueError, Exception):
+            pass
+
+    # Try Supabase JWT token (Google OAuth)
+    profile = google_auth_service.get_user_profile(token)
+    if profile:
+        return UserProfile(**profile)
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or expired token"
     )

@@ -159,6 +159,15 @@ async def serve_login():
     return {"error": "Login page not found"}
 
 
+@app.get("/app/auth/callback", include_in_schema=False)
+async def serve_auth_callback():
+    """Serve the OAuth callback page (handles Google OAuth redirect)."""
+    callback_path = FRONTEND_DIR / "auth_callback.html"
+    if callback_path.exists():
+        return FileResponse(str(callback_path))
+    return {"error": "Auth callback page not found"}
+
+
 if __name__ == "__main__":
     import uvicorn
 

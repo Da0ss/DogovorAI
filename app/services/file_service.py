@@ -58,6 +58,7 @@ SUPPORTED_MIME_TYPES = {
     "image/jpg": FileType.IMAGE,
     "image/png": FileType.IMAGE,
     "image/tiff": FileType.IMAGE,
+    "text/plain": FileType.TXT,
 }
 
 
@@ -210,7 +211,38 @@ class FileService:
             logger.error(f"❌ Ошибка OCR: {str(e)}")
             raise ValueError(f"Ошибка при распознавании текста: {str(e)}")
 
+    @staticmethod
+    def extract_text_from_txt(file_bytes: bytes) -> tuple[str, int]:
+        """
+        Извлекает текст из TXT-файла.
 
+        Args:
+            file_bytes: Байты TXT-файла
+
+        Returns:
+            tuple: (извлечённый текст, 1)
+
+        Raises:
+            ValueError: Если файл не может быть прочитан как текст
+        """
+        try:
+            extracted_text = file_bytes.decode('utf-8')
+            cleaned_text = extracted_text.strip()
+            logger.info(f"✅ TXT обработан: {len(cleaned_text)} символов извлечено")
+            return cleaned_text, 1
+        except UnicodeDecodeError:
+            try:
+                # Fallback to general cyrillic
+                extracted_text = file_bytes.decode('cp1251')
+                cleaned_text = extracted_text.strip()
+                logger.info(f"✅ TXT обработан (cp1251): {len(cleaned_text)} символов извлечено")
+                return cleaned_text, 1
+            except Exception as e:
+                logger.error(f"❌ Ошибка декодирования TXT: {str(e)}")
+                raise ValueError(f"Не удалось прочитать текстовый файл: {str(e)}")
+        except Exception as e:
+            logger.error(f"❌ Ошибка обработки TXT: {str(e)}")
+            raise ValueError(f"Не удалось обработать TXT: {str(e)}")
     @classmethod
     async def process_uploaded_file(cls, file: UploadFile) -> FileProcessResult:
         """
@@ -240,6 +272,7 @@ class FileService:
                 "jpg": FileType.IMAGE,
                 "jpeg": FileType.IMAGE,
                 "png": FileType.IMAGE,
+                "txt": FileType.TXT,
             }
             file_type = ext_map.get(ext, FileType.UNKNOWN)
 
@@ -250,7 +283,7 @@ class FileService:
                 success=False,
                 error_message=(
                     f"Неподдерживаемый формат файла: {content_type}. "
-                    "Поддерживаются: PDF, DOCX, JPG, PNG"
+                    "Поддерживаются: PDF, DOCX, TXT, JPG, PNG"
                 )
             )
 
@@ -274,6 +307,8 @@ class FileService:
                 extracted_text, page_count = cls.extract_text_from_docx(file_bytes)
             elif file_type == FileType.IMAGE:
                 extracted_text, page_count = cls.extract_text_from_image_ocr(file_bytes)
+            elif file_type == FileType.TXT:
+                extracted_text, page_count = cls.extract_text_from_txt(file_bytes)
             else:
                 raise ValueError("Неизвестный тип файла")
 

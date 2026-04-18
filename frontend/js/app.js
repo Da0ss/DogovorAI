@@ -87,15 +87,21 @@ removeFileBtn.addEventListener('click', (e) => {
  * @param {File} file
  */
 function handleFileSelect(file) {
-    const ALLOWED_TYPES = ['application/pdf', 'application/msword',
+    const ALLOWED_TYPES = [
+        'application/pdf', 
+        'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'image/jpeg', 'image/jpg', 'image/png'];
+        'image/jpeg', 
+        'image/jpg', 
+        'image/png',
+        'text/plain'
+    ];
 
-    const ALLOWED_EXTS = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
+    const ALLOWED_EXTS = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.txt'];
     const ext = '.' + file.name.split('.').pop().toLowerCase();
 
     if (!ALLOWED_TYPES.includes(file.type) && !ALLOWED_EXTS.includes(ext)) {
-        showError('Неподдерживаемый формат. Загрузите PDF, DOCX, JPG или PNG.');
+        showError('Неподдерживаемый формат. Загрузите PDF, DOCX, TXT, JPG или PNG.');
         return;
     }
 

@@ -21,13 +21,13 @@ router = APIRouter()
     response_model=AnalyzeResponse,
     summary="Анализ договора на юридические риски",
     description=(
-        "Загрузите договор в формате PDF, DOCX или изображение (JPG/PNG). "
+        "Загрузите договор в формате PDF, DOCX, TXT или изображение (JPG/PNG). "
         "Сервис извлечёт текст и вернёт список юридических рисков с рекомендациями."
     ),
     tags=["Analysis"],
 )
 async def analyze_document(
-    file: UploadFile = File(..., description="Файл договора (PDF, DOCX, JPG, PNG)")
+    file: UploadFile = File(..., description="Файл договора (PDF, DOCX, TXT, JPG, PNG)")
 ) -> AnalyzeResponse:
     """
     Основной эндпоинт анализа документа.
@@ -91,7 +91,7 @@ async def analyze_document(
     summary="Алиас /api/v1/analyze (совместимость со старым фронтом)",
 )
 async def analyze_document_v1(
-    file: UploadFile = File(..., description="Файл договора (PDF, DOCX, JPG, PNG)")
+    file: UploadFile = File(..., description="Файл договора (PDF, DOCX, TXT, JPG, PNG)")
 ) -> AnalyzeResponse:
     """
     Алиас для совместимости со старым фронтендом.
@@ -115,6 +115,7 @@ async def get_supported_formats() -> dict:
         "supported_formats": [
             {"extension": "pdf", "description": "PDF документы", "max_size_mb": 20},
             {"extension": "docx", "description": "Microsoft Word документы", "max_size_mb": 20},
+            {"extension": "txt", "description": "Обычный текстовый документ", "max_size_mb": 20},
             {"extension": "jpg/jpeg", "description": "JPEG изображения (OCR)", "max_size_mb": 20},
             {"extension": "png", "description": "PNG изображения (OCR)", "max_size_mb": 20},
         ],

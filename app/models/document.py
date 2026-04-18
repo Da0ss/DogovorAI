@@ -12,6 +12,7 @@ class FileType(str, Enum):
     PDF = "pdf"
     DOCX = "docx"
     IMAGE = "image"
+    TXT = "txt"
     UNKNOWN = "unknown"
 
 

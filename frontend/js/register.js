@@ -1,6 +1,12 @@
+/**
+ * DogovorAI — Registration Page Logic
+ * Handles email/password registration, email verification, and Google OAuth registration.
+ */
+
 const API_BASE = '/api/auth';
 const REGISTER_URL = `${API_BASE}/register`;
 const VERIFY_URL = `${API_BASE}/verify`;
+const GOOGLE_AUTH_URL = `${API_BASE}/google`;
 
 const registerForm = document.querySelector('#registerForm');
 const verifyForm = document.querySelector('#verifyForm');
@@ -9,8 +15,13 @@ const registerButton = document.querySelector('#registerButton');
 const verifyButton = document.querySelector('#verifyButton');
 const registerSpinner = document.querySelector('#registerSpinner');
 const verifySpinner = document.querySelector('#verifySpinner');
+const googleRegisterBtn = document.querySelector('#googleRegisterBtn');
 
 let registeredEmail = '';
+
+// ============================================================
+// UI Helpers
+// ============================================================
 
 function setMessage(text, type = 'success') {
   if (!text) {
@@ -53,6 +64,10 @@ function parseJsonResponse(response) {
   });
 }
 
+// ============================================================
+// Email/Password Registration
+// ============================================================
+
 async function handleRegister(event) {
   event.preventDefault();
   setMessage('');
@@ -93,12 +108,23 @@ async function handleRegister(event) {
     setMessage('Код отправлен. Введите его для подтверждения.', 'success');
     registerForm.classList.add('hidden');
     verifyForm.classList.remove('hidden');
+
+    // Hide Google button and divider after registration
+    const googleBtn = document.getElementById('googleRegisterBtn');
+    const divider = document.querySelector('.divider');
+    if (googleBtn) googleBtn.style.display = 'none';
+    if (divider) divider.style.display = 'none';
+
   } catch (error) {
     setMessage('Сеть недоступна. Попробуйте позже.', 'error');
   } finally {
     setLoading(registerButton, registerSpinner, false);
   }
 }
+
+// ============================================================
+// Email Verification
+// ============================================================
 
 async function handleVerify(event) {
   event.preventDefault();
@@ -139,9 +165,9 @@ async function handleVerify(event) {
     setMessage('Аккаунт подтвержден успешно. Перенаправление...', 'success');
     verifyForm.classList.add('hidden');
 
-    // Redirect to main page after successful verification
+    // Redirect to login page after successful verification
     setTimeout(() => {
-      window.location.href = '/app';
+      window.location.href = '/app/login';
     }, 1500);
   } catch (error) {
     setMessage('Сеть недоступна. Попробуйте позже.', 'error');
@@ -150,5 +176,43 @@ async function handleVerify(event) {
   }
 }
 
+// ============================================================
+// Google OAuth Registration
+// ============================================================
+
+async function handleGoogleRegister() {
+  googleRegisterBtn.setAttribute('disabled', 'disabled');
+  setMessage('Перенаправление на Google...', 'success');
+
+  try {
+    const response = await fetch(GOOGLE_AUTH_URL);
+    const data = await parseJsonResponse(response);
+
+    if (!response.ok) {
+      setMessage(data.detail || 'Не удалось начать регистрацию через Google.', 'error');
+      googleRegisterBtn.removeAttribute('disabled');
+      return;
+    }
+
+    if (data.url) {
+      // Redirect to Google OAuth consent screen
+      window.location.href = data.url;
+    } else {
+      setMessage('Ошибка: не получен URL для авторизации.', 'error');
+      googleRegisterBtn.removeAttribute('disabled');
+    }
+
+  } catch (error) {
+    console.error('Google register error:', error);
+    setMessage('Ошибка подключения к серверу. Попробуйте позже.', 'error');
+    googleRegisterBtn.removeAttribute('disabled');
+  }
+}
+
+// ============================================================
+// Event Listeners
+// ============================================================
+
 registerForm.addEventListener('submit', handleRegister);
 verifyForm.addEventListener('submit', handleVerify);
+googleRegisterBtn.addEventListener('click', handleGoogleRegister);

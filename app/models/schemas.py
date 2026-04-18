@@ -2,7 +2,7 @@
 Pydantic schemas for request/response validation
 """
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from typing import Optional, Dict, Any
 from datetime import datetime
 
@@ -75,3 +75,50 @@ class TokenData(BaseModel):
     Schema for token payload data
     """
     email: Optional[str] = None
+
+
+class GoogleAuthURL(BaseModel):
+    """
+    Schema for Google OAuth redirect URL response
+    """
+    url: str
+    message: str = "Redirect to Google for authentication"
+
+
+class OAuthCallbackResponse(BaseModel):
+    """
+    Schema for OAuth callback response after successful authentication
+    """
+    success: bool
+    message: str
+    user: Optional[Dict[str, Any]] = None
+    session: Optional[Dict[str, Any]] = None
+
+
+class UserProfile(BaseModel):
+    """
+    Extended user profile with Google account data
+    """
+    id: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    is_verified: bool = True
+    created_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OTPLoginRequest(BaseModel):
+    """
+    Schema for OTP login request
+    """
+    email: EmailStr
+
+
+class OTPVerifyRequest(BaseModel):
+    """
+    Schema for OTP verification request
+    """
+    email: EmailStr
+    code: str = Field(..., min_length=6, max_length=6)
