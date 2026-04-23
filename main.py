@@ -15,6 +15,8 @@ from config.database import get_supabase_client
 from app.api import health
 from app.api import analysis
 from app.api import auth
+from app.api import subscriptions
+from app.api import contracts
 
 # Настройка логирования
 logging.basicConfig(
@@ -123,6 +125,8 @@ async def health_check() -> dict:
 app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
 app.include_router(auth.router, prefix="/api", tags=["Authentication"])
+app.include_router(subscriptions.router, prefix="/api", tags=["Subscriptions"])
+app.include_router(contracts.router, prefix="/api", tags=["Contracts"])
 
 # Раздача статических файлов фронтенда
 FRONTEND_DIR = Path(__file__).parent / "frontend"
@@ -166,6 +170,25 @@ async def serve_auth_callback():
     if callback_path.exists():
         return FileResponse(str(callback_path))
     return {"error": "Auth callback page not found"}
+
+
+@app.get("/app/profile", include_in_schema=False)
+async def serve_profile():
+    """Serve the user profile & subscription page."""
+    profile_path = FRONTEND_DIR / "profile.html"
+    if profile_path.exists():
+        return FileResponse(str(profile_path))
+    return {"error": "Profile page not found"}
+
+
+@app.get("/app/contracts", include_in_schema=False)
+async def serve_contracts():
+    """Serve the contract generation page."""
+    contracts_path = FRONTEND_DIR / "contracts.html"
+    if contracts_path.exists():
+        return FileResponse(str(contracts_path))
+    return {"error": "Contracts page not found"}
+
 
 
 if __name__ == "__main__":

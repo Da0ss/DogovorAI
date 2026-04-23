@@ -97,7 +97,7 @@ class OAuthCallbackResponse(BaseModel):
 
 class UserProfile(BaseModel):
     """
-    Extended user profile with Google account data
+    Extended user profile with Google account data and subscription info
     """
     id: str
     email: Optional[str] = None
@@ -105,6 +105,9 @@ class UserProfile(BaseModel):
     avatar_url: Optional[str] = None
     is_verified: bool = True
     created_at: Optional[datetime] = None
+    plan: str = "basic"
+    analyses_used: int = 0
+    subscription_status: str = "inactive"
 
     model_config = ConfigDict(from_attributes=True)
 

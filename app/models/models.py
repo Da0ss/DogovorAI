@@ -20,6 +20,10 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    plan_type = Column(String, default="basic", nullable=False)
+    subscription_status = Column(String, default="inactive", nullable=False)
+    stripe_customer_id = Column(String, unique=True, nullable=True)
+    analyses_used = Column(Integer, default=0, nullable=False)
 
     # Relationship to verification codes
     verification_codes = relationship("VerificationCode", back_populates="user")

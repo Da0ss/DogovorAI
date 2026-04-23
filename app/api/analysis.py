@@ -1,19 +1,31 @@
 """
 Analysis API — Эндпоинты для анализа договоров.
 Принимает PDF, DOCX, JPG, PNG — возвращает структурированные юридические риски.
+
+Включает проверку лимитов: basic (3/мес), pro (30/мес), max (∞).
 """
 
 import logging
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Request
+from typing import Optional
 
 from app.services.file_service import FileService
 from app.services.ai_service import analyze_contract_text
 from app.services.legal_service import LegalService
+from app.services.usage_limiter import usage_limiter, UsageLimitError
 from app.models.document import AnalyzeResponse, AnalysisResult
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _extract_token(request: Request) -> Optional[str]:
+    """Extract Bearer token from request, or None for anonymous."""
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        return auth.split(" ", 1)[1]
+    return None
 
 
 @router.post(
@@ -27,12 +39,14 @@ router = APIRouter()
     tags=["Analysis"],
 )
 async def analyze_document(
+    request: Request,
     file: UploadFile = File(..., description="Файл договора (PDF, DOCX, TXT, JPG, PNG)")
 ) -> AnalyzeResponse:
     """
     Основной эндпоинт анализа документа.
 
     Args:
+        request: HTTP запрос (для извлечения токена авторизации)
         file: Загружаемый файл договора
 
     Returns:
@@ -40,11 +54,29 @@ async def analyze_document(
 
     Raises:
         HTTPException 400: Неподдерживаемый формат или пустой файл
+        HTTPException 402: Лимит анализов исчерпан
         HTTPException 500: Внутренняя ошибка при обработке
     """
     logger.info(f"📥 Получен запрос на анализ файла: {file.filename}")
 
-    # Шаг 1: Обработка файла и извлечение текста
+    # ── Шаг 0: Проверка лимитов ──
+    token = _extract_token(request)
+    try:
+        usage_info = usage_limiter.check_limit(token) if token else None
+    except UsageLimitError as e:
+        logger.warning(f"⛔ Лимит исчерпан: {e}")
+        raise HTTPException(
+            status_code=402,
+            detail={
+                "error": "limit_exceeded",
+                "message": str(e),
+                "used": e.used,
+                "limit": e.limit,
+                "plan": e.plan,
+            }
+        )
+
+    # ── Шаг 1: Обработка файла и извлечение текста ──
     file_result = await FileService.process_uploaded_file(file)
 
     if not file_result.success:
@@ -59,7 +91,7 @@ async def analyze_document(
         f"из {file_result.filename} ({file_result.file_type.value})"
     )
 
-    # Шаг 2: AI-анализ извлечённого текста
+    # ── Шаг 2: AI-анализ извлечённого текста ──
     analysis_result = await analyze_contract_text(file_result.extracted_text)
 
     if not analysis_result.analysis_success:
@@ -69,8 +101,12 @@ async def analyze_document(
             detail=f"Ошибка анализа: {analysis_result.error_message}"
         )
 
-    # Шаг 3: Обогащение рисков ссылками на нормы права РК
+    # ── Шаг 3: Обогащение рисков ссылками на нормы права РК ──
     analysis_result = LegalService.enrich_analysis(analysis_result)
+
+    # ── Шаг 4: Инкремент счётчика использования ──
+    if token:
+        usage_limiter.increment(token)
 
     logger.info(
         f"🎯 Анализ завершён: найдено {analysis_result.total_risks} рисков "
@@ -91,12 +127,13 @@ async def analyze_document(
     summary="Алиас /api/v1/analyze (совместимость со старым фронтом)",
 )
 async def analyze_document_v1(
+    request: Request,
     file: UploadFile = File(..., description="Файл договора (PDF, DOCX, TXT, JPG, PNG)")
 ) -> AnalyzeResponse:
     """
     Алиас для совместимости со старым фронтендом.
     """
-    return await analyze_document(file)
+    return await analyze_document(request, file)
 
 
 @router.get(
@@ -121,4 +158,32 @@ async def get_supported_formats() -> dict:
         ],
         "max_file_size_mb": 20,
         "ocr_languages": ["русский", "английский"]
+    }
+
+
+# ================================================================
+# Usage info endpoint
+# ================================================================
+
+@router.get(
+    "/usage/me",
+    summary="Текущее использование — мои лимиты",
+    tags=["Usage"],
+)
+async def get_my_usage(request: Request) -> dict:
+    """
+    Вернуть информацию об использовании для текущего пользователя.
+    Не требует обязательной авторизации — для анонимов вернёт базовые лимиты.
+    """
+    token = _extract_token(request)
+    usage = usage_limiter.get_usage(token) if token else {
+        "used": 0,
+        "limit": 3,
+        "plan": "basic",
+        "plan_name": "Basic",
+    }
+    return {
+        "success": True,
+        **usage,
+        "remaining": (usage["limit"] - usage["used"]) if usage["limit"] is not None else None,
     }

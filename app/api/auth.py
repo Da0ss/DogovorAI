@@ -390,7 +390,10 @@ def get_user_profile(request: Request):
                         full_name=None,
                         avatar_url=None,
                         is_verified=user_obj.is_verified,
-                        created_at=user_obj.created_at
+                        created_at=user_obj.created_at,
+                        plan=getattr(user_obj, 'plan_type', 'basic') or 'basic',
+                        analyses_used=getattr(user_obj, 'analyses_used', 0) or 0,
+                        subscription_status=getattr(user_obj, 'subscription_status', 'inactive') or 'inactive'
                     )
             finally:
                 db.close()

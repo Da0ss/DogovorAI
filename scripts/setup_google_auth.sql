@@ -13,31 +13,28 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     created_at  TIMESTAMPTZ DEFAULT now()
 );
 
--- 2. Включаем Row Level Security (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- 3. RLS-политики
---    Пользователь может читать только свой профиль
+
 CREATE POLICY "Users can view own profile"
     ON public.profiles
     FOR SELECT
     USING (auth.uid() = id);
 
---    Пользователь может обновлять свой профиль
+
 CREATE POLICY "Users can update own profile"
     ON public.profiles
     FOR UPDATE
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
 
---    Вставка разрешена только через триггер (service role)
+
 CREATE POLICY "Service role can insert profiles"
     ON public.profiles
     FOR INSERT
     WITH CHECK (true);
 
--- 4. Функция-триггер: автоматически создаёт профиль при регистрации
---    Извлекает данные из auth.users.raw_user_meta_data (Google profile)
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -69,7 +66,7 @@ BEGIN
 END;
 $$;
 
--- 5. Триггер на auth.users — срабатывает после каждой новой регистрации
+
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 CREATE TRIGGER on_auth_user_created

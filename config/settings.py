@@ -56,6 +56,13 @@ class Settings(BaseSettings):
     email_use_tls: bool = True
     email_use_ssl: bool = False
 
+    # Stripe
+    stripe_secret_key: Optional[str] = None
+    stripe_webhook_secret: Optional[str] = None
+    stripe_price_id_pro: Optional[str] = None
+    stripe_price_id_max: Optional[str] = None
+    app_url: str = "http://localhost:8000"
+
     @property
     def email_configured(self) -> bool:
         return bool(

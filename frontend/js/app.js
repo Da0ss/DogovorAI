@@ -160,19 +160,36 @@ async function startAnalysis() {
         formData.append('file', selectedFile);
         formData.append('filename', selectedFile.name);
 
+        const headers = (typeof getAuthHeaders === 'function') ? getAuthHeaders() : {};
+
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
+            headers: headers,
             body: formData,
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
+
+            // Handle 402 — limit exceeded → show paywall
+            if (response.status === 402 && errorData.detail && errorData.detail.error === 'limit_exceeded') {
+                progressContainer.style.display = 'none';
+                uploadCard.style.display = 'block';
+                if (typeof handleLimitError === 'function') {
+                    handleLimitError(errorData.detail);
+                }
+                return;
+            }
+
             const msg = formatApiDetail(errorData.detail) || `Ошибка сервера: ${response.status}`;
             throw new Error(msg);
         }
 
         const data = await response.json();
         displayResults(data);
+
+        // Refresh usage bar after successful analysis
+        if (typeof loadUsageInfo === 'function') loadUsageInfo();
 
     } catch (error) {
         console.error('Analysis error:', error);

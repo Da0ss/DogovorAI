@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/paywall.css">
 </head>
 
 <body>
@@ -25,18 +26,38 @@
             <nav class="nav">
                 <a href="#features" class="nav-link">Возможности</a>
                 <a href="#upload" class="nav-link">Анализ</a>
-                <!-- Authenticated user navigation -->
+                <a href="/app/contracts" class="nav-link">Генерация</a>
+                <!-- Logged-OUT navigation -->
                 <div class="nav-auth nav-auth-logged-out">
                     <a href="/app/login" class="nav-button nav-button-secondary">Войти</a>
                     <a href="/app/register" class="nav-button">Регистрация</a>
                 </div>
-                <!-- Authenticated user navigation -->
-                <div class="nav-auth nav-auth-logged-in" style="display: none;">
-                    <span class="user-info">
-                        <img class="user-avatar" id="userAvatar" src="" alt="" style="display:none; width:28px; height:28px; border-radius:50%; object-fit:cover;">
-                        <span class="user-email"></span>
-                    </span>
-                    <button class="nav-button nav-button-secondary" id="logoutBtn">Выйти</button>
+                <!-- Logged-IN navigation: avatar + dropdown -->
+                <div class="nav-auth nav-auth-logged-in" style="display: none; position: relative;">
+                    <button class="user-avatar-btn" id="userAvatarBtn" aria-label="Профиль пользователя">
+                        <img class="user-avatar-img" id="userAvatarImg" src="" alt="" style="display:none;">
+                        <div class="user-avatar-placeholder" id="userAvatarPlaceholder">
+                            <span id="userInitial">?</span>
+                        </div>
+                    </button>
+                    <!-- Dropdown menu -->
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <div class="dropdown-name" id="dropdownName">Пользователь</div>
+                            <div class="dropdown-plan" id="dropdownPlan">Basic</div>
+                        </div>
+                        <div class="user-dropdown-divider"></div>
+                        <a href="/app/profile" class="user-dropdown-item">
+                            <span></span> Мой профиль
+                        </a>
+                        <a href="/app/profile#subscription" class="user-dropdown-item">
+                            <span></span> Подписка
+                        </a>
+                        <div class="user-dropdown-divider"></div>
+                        <button class="user-dropdown-item user-dropdown-logout" id="logoutBtn">
+                            <span></span> Выйти
+                        </button>
+                    </div>
                 </div>
             </nav>
         </div>
@@ -119,6 +140,25 @@
             <div class="section-header">
                 <h2>Проверить договор</h2>
                 <p>Загрузите документ и получите детальный юридический анализ</p>
+            </div>
+
+            <!-- Usage Bar -->
+            <div class="usage-bar-container" id="usageBarContainer" style="display:none;">
+                <div class="usage-bar-card">
+                    <span class="usage-bar-icon">📊</span>
+                    <div class="usage-bar-info">
+                        <div class="usage-bar-header">
+                            <span class="usage-bar-label">Использовано анализов <span class="usage-bar-plan" id="usagePlanBadge">Basic</span></span>
+                            <span class="usage-bar-count"><span class="count-used" id="usageUsed">0</span> / <span class="count-limit" id="usageLimit">3</span></span>
+                        </div>
+                        <div class="usage-bar-track">
+                            <div class="usage-bar-fill" id="usageFill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div class="usage-bar-upgrade" id="usageUpgradeWrap" style="display:none;">
+                        <a href="/app/profile" class="usage-upgrade-btn">⚡ Upgrade</a>
+                    </div>
+                </div>
             </div>
 
             <div class="upload-card" id="uploadCard">
@@ -247,6 +287,50 @@
         </div>
     </section>
 
+    <!-- ===== PAYWALL MODAL ===== -->
+    <div class="paywall-overlay" id="paywallModal" style="display:none;">
+        <div class="paywall-card">
+            <button class="paywall-close" id="paywallClose">×</button>
+            <span class="paywall-icon">🔒</span>
+            <h2 class="paywall-title">Лимит исчерпан</h2>
+            <p class="paywall-message" id="paywallMessage">
+                Вы использовали все бесплатные анализы.
+                Приобретите подписку для продолжения работы.
+            </p>
+            <div class="paywall-usage-info">
+                <div class="paywall-stat">
+                    <span class="paywall-stat-value stat-used" id="paywallUsed">3</span>
+                    <span class="paywall-stat-label">использовано</span>
+                </div>
+                <div class="paywall-divider"></div>
+                <div class="paywall-stat">
+                    <span class="paywall-stat-value" id="paywallLimit">3</span>
+                    <span class="paywall-stat-label">лимит</span>
+                </div>
+            </div>
+            <div class="paywall-plans">
+                <button class="paywall-plan-card" onclick="window.location.href='/app/profile'">
+                    <span class="plan-card-icon">⚡</span>
+                    <div class="plan-card-info">
+                        <div class="plan-card-name">Pro</div>
+                        <div class="plan-card-desc">30 анализов в месяц</div>
+                    </div>
+                    <span class="plan-card-price">$9/мес</span>
+                </button>
+                <button class="paywall-plan-card plan-recommended" onclick="window.location.href='/app/profile'">
+                    <span class="plan-card-icon">🚀</span>
+                    <div class="plan-card-info">
+                        <div class="plan-card-name">Max</div>
+                        <div class="plan-card-desc">Безлимитные анализы</div>
+                    </div>
+                    <span class="plan-card-price">$19/мес</span>
+                </button>
+            </div>
+            <button class="paywall-cta-btn" onclick="window.location.href='/app/profile'">Купить подписку</button>
+            <button class="paywall-skip-btn" id="paywallSkip">Позже</button>
+        </div>
+    </div>
+
     <!-- ===== ERROR TOAST ===== -->
     <div class="error-toast" id="errorToast" style="display:none">
         <span class="toast-icon">⚠️</span>
@@ -267,96 +351,74 @@
     </footer>
 
     <script src="/static/js/app.js"></script>
+    <script src="/static/js/paywall.js"></script>
     <script>
-        // Auth management
-        function isAuthenticated() {
-            return !!localStorage.getItem('access_token');
-        }
+        // ============================================================
+        // Auth utilities
+        // ============================================================
+        function isAuthenticated() { return !!localStorage.getItem('access_token'); }
+        function getUser() { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; }
+        function getAuthHeaders() { const t = localStorage.getItem('access_token'); return t ? { 'Authorization': `Bearer ${t}` } : {}; }
 
-        function getUser() {
-            const userStr = localStorage.getItem('user');
-            return userStr ? JSON.parse(userStr) : null;
-        }
-
-        function getAuthHeaders() {
-            const token = localStorage.getItem('access_token');
-            return token ? { 'Authorization': `Bearer ${token}` } : {};
-        }
-
+        // ============================================================
+        // Load user info from server
+        // ============================================================
         async function loadUserInfo() {
             if (!isAuthenticated()) return;
-
             try {
-                // Try extended profile first (supports Google OAuth data)
-                const profileResponse = await fetch('/api/auth/me/profile', {
-                    headers: getAuthHeaders()
-                });
-
-                if (profileResponse.ok) {
-                    const profileData = await profileResponse.json();
-                    localStorage.setItem('user', JSON.stringify(profileData));
+                const resp = await fetch('/api/auth/me/profile', { headers: getAuthHeaders() });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    localStorage.setItem('user', JSON.stringify(data));
                     updateAuthUI();
                     return;
                 }
-
-                // Fallback to basic /me endpoint
-                const response = await fetch('/api/auth/me', {
-                    headers: getAuthHeaders()
-                });
-
-                if (response.ok) {
-                    const userData = await response.json();
-                    localStorage.setItem('user', JSON.stringify(userData));
+                const resp2 = await fetch('/api/auth/me', { headers: getAuthHeaders() });
+                if (resp2.ok) {
+                    const data2 = await resp2.json();
+                    localStorage.setItem('user', JSON.stringify(data2));
                     updateAuthUI();
                 }
-            } catch (error) {
-                console.warn('Failed to load user info:', error);
-            }
+            } catch (e) { console.warn('Failed to load user info:', e); }
         }
 
-        async function logout() {
-            // Server-side logout
-            try {
-                await fetch('/api/auth/logout', {
-                    method: 'POST',
-                    headers: getAuthHeaders()
-                });
-            } catch (err) {
-                console.warn('Server logout failed:', err);
-            }
-
-            // Clear local storage
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
-            updateAuthUI();
-            showToast('Вы успешно вышли из системы', 'success');
-        }
-
+        // ============================================================
+        // Update nav UI
+        // ============================================================
         function updateAuthUI() {
             const isAuth = isAuthenticated();
             const user = getUser();
 
             const loggedOutNav = document.querySelector('.nav-auth-logged-out');
             const loggedInNav = document.querySelector('.nav-auth-logged-in');
-            const userEmail = document.querySelector('.user-email');
-            const userAvatar = document.getElementById('userAvatar');
 
             if (isAuth && user) {
                 loggedOutNav.style.display = 'none';
                 loggedInNav.style.display = 'flex';
 
-                // Show name or email
-                const displayName = user.full_name || user.email || '';
-                userEmail.textContent = displayName;
+                // Determine display name
+                const displayName = user.full_name || user.email || 'Пользователь';
+                const plan = (user.plan || 'basic').charAt(0).toUpperCase() + (user.plan || 'basic').slice(1);
 
-                // Show avatar if available (Google profile picture)
-                if (user.avatar_url && userAvatar) {
-                    userAvatar.src = user.avatar_url;
-                    userAvatar.alt = displayName;
-                    userAvatar.style.display = 'inline-block';
-                } else if (userAvatar) {
-                    userAvatar.style.display = 'none';
+                // Dropdown header
+                const dropdownName = document.getElementById('dropdownName');
+                const dropdownPlan = document.getElementById('dropdownPlan');
+                if (dropdownName) dropdownName.textContent = displayName;
+                if (dropdownPlan) dropdownPlan.textContent = `Тариф: ${plan}`;
+
+                // Avatar
+                const avatarImg = document.getElementById('userAvatarImg');
+                const avatarPlaceholder = document.getElementById('userAvatarPlaceholder');
+                const initialEl = document.getElementById('userInitial');
+
+                if (user.avatar_url && avatarImg) {
+                    avatarImg.src = user.avatar_url;
+                    avatarImg.style.display = 'block';
+                    if (avatarPlaceholder) avatarPlaceholder.style.display = 'none';
+                } else {
+                    if (avatarImg) avatarImg.style.display = 'none';
+                    if (avatarPlaceholder) avatarPlaceholder.style.display = 'flex';
+                    if (initialEl) initialEl.textContent = displayName[0].toUpperCase();
                 }
             } else {
                 loggedOutNav.style.display = 'flex';
@@ -364,35 +426,63 @@
             }
         }
 
-        function showToast(message, type = 'error') {
-            const toast = document.getElementById('errorToast');
-            const toastMessage = document.getElementById('toastMessage');
-
-            toastMessage.textContent = message;
-            toast.className = `error-toast ${type}`;
-            toast.style.display = 'flex';
-
-            setTimeout(() => {
-                closeToast();
-            }, 5000);
-        }
-
-        function closeToast() {
-            const toast = document.getElementById('errorToast');
-            toast.style.display = 'none';
-        }
-
-        // Initialize
+        // ============================================================
+        // Dropdown toggle
+        // ============================================================
         document.addEventListener('DOMContentLoaded', function () {
             updateAuthUI();
             loadUserInfo();
 
-            // Logout button
+            const avatarBtn = document.getElementById('userAvatarBtn');
+            const dropdown = document.getElementById('userDropdown');
             const logoutBtn = document.getElementById('logoutBtn');
+
+            // Toggle dropdown on avatar click
+            if (avatarBtn && dropdown) {
+                avatarBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('open');
+                });
+                // Close on outside click
+                document.addEventListener('click', function () {
+                    dropdown.classList.remove('open');
+                });
+                dropdown.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+            }
+
+            // Logout
             if (logoutBtn) {
-                logoutBtn.addEventListener('click', logout);
+                logoutBtn.addEventListener('click', async function () {
+                    try { await fetch('/api/auth/logout', { method: 'POST', headers: getAuthHeaders() }); } catch (_) { }
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    localStorage.removeItem('user');
+                    updateAuthUI();
+                    showToast('Вы успешно вышли из системы', 'success');
+                    if (dropdown) dropdown.classList.remove('open');
+                });
             }
         });
+
+        // ============================================================
+        // Toast
+        // ============================================================
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('errorToast');
+            const msg = document.getElementById('toastMessage');
+            if (!toast || !msg) return;
+            msg.textContent = message;
+            toast.className = `error-toast ${type}`;
+            toast.style.display = 'flex';
+            setTimeout(closeToast, 5000);
+        }
+
+        function closeToast() {
+            const toast = document.getElementById('errorToast');
+            if (toast) toast.style.display = 'none';
+        }
     </script>
 </body>
 

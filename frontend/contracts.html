@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DogovorAI — Генерация и анализ договоров</title>
+    <meta name="description"
+        content="Загрузите договор для AI-анализа или создайте новый DOCX с нуля. Единый flow: анализ → рекомендации → генерация.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/contracts.css">
+    <link rel="stylesheet" href="/static/css/paywall.css">
+</head>
+
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">⚖️</span>
+                <span class="logo-text">Dogovor<span class="logo-accent">AI</span></span>
+            </div>
+            <nav class="nav">
+                <a href="/app" class="nav-link">Анализ</a>
+                <a href="/app/contracts" class="nav-link nav-link-active">Генерация</a>
+                <div class="nav-auth nav-auth-logged-out">
+                    <a href="/app/login" class="nav-button nav-button-secondary">Войти</a>
+                    <a href="/app/register" class="nav-button">Регистрация</a>
+                </div>
+                <div class="nav-auth nav-auth-logged-in" style="display: none; position: relative;">
+                    <button class="user-avatar-btn" id="userAvatarBtn" aria-label="Профиль пользователя">
+                        <img class="user-avatar-img" id="userAvatarImg" src="" alt="" style="display:none;">
+                        <div class="user-avatar-placeholder" id="userAvatarPlaceholder">
+                            <span id="userInitial">?</span>
+                        </div>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <div class="dropdown-name" id="dropdownName">Пользователь</div>
+                            <div class="dropdown-plan" id="dropdownPlan">Basic</div>
+                        </div>
+                        <div class="user-dropdown-divider"></div>
+                        <a href="/app/profile" class="user-dropdown-item"><span></span> Мой профиль</a>
+                        <div class="user-dropdown-divider"></div>
+                        <button class="user-dropdown-item user-dropdown-logout" id="logoutBtn">
+                            <span></span> Выйти
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero contracts-hero">
+        <div class="hero-bg">
+            <div class="hero-orb hero-orb-1"></div>
+            <div class="hero-orb hero-orb-2"></div>
+        </div>
+        <div class="container">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                Договоры — Анализ и генерация
+            </div>
+            <h1 class="hero-title">
+                Анализируйте и создавайте<br>
+                <span class="gradient-text">договоры с AI</span>
+            </h1>
+            <p class="hero-subtitle">
+                Загрузите существующий документ для анализа рисков
+                или создайте новый договор с нуля. Один клик — готовый DOCX.
+            </p>
+        </div>
+    </section>
+
+    <!-- ===== MAIN SECTION ===== -->
+    <section class="contracts-section" id="contractForm">
+        <div class="container">
+
+            <!-- Usage Bar -->
+            <div class="usage-bar-container" id="usageBarContainer" style="display:none;">
+                <div class="usage-bar-card">
+                    <span class="usage-bar-icon">📊</span>
+                    <div class="usage-bar-info">
+                        <div class="usage-bar-header">
+                            <span class="usage-bar-label">Использовано анализов <span class="usage-bar-plan" id="usagePlanBadge">Basic</span></span>
+                            <span class="usage-bar-count"><span class="count-used" id="usageUsed">0</span> / <span class="count-limit" id="usageLimit">3</span></span>
+                        </div>
+                        <div class="usage-bar-track">
+                            <div class="usage-bar-fill" id="usageFill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div class="usage-bar-upgrade" id="usageUpgradeWrap" style="display:none;">
+                        <a href="/app/profile" class="usage-upgrade-btn">⚡ Upgrade</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- MODE SELECTOR: Analyze vs Create -->
+            <!-- ============================================================ -->
+            <div class="contract-step" id="stepModeSelect">
+                <div class="section-header">
+                    <h2>Что хотите сделать?</h2>
+                    <p>Выберите режим работы</p>
+                </div>
+                <div class="contract-type-grid">
+                    <button class="contract-type-card" id="modeAnalyzeBtn">
+                        <div class="type-card-icon">🔍</div>
+                        <div class="type-card-info">
+                            <h3>Анализ документа</h3>
+                            <p>Загрузите договор — AI найдёт риски и предложит исправления</p>
+                        </div>
+                        <div class="type-card-arrow">→</div>
+                    </button>
+                    <button class="contract-type-card" id="modeCreateBtn">
+                        <div class="type-card-icon">📝</div>
+                        <div class="type-card-info">
+                            <h3>Создать с нуля</h3>
+                            <p>Выберите тип договора, заполните данные — получите готовый DOCX</p>
+                        </div>
+                        <div class="type-card-arrow">→</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- ANALYZE: Upload Document -->
+            <!-- ============================================================ -->
+            <div class="contract-step" id="stepUpload" style="display:none;">
+                <div class="section-header">
+                    <div class="step-header-row">
+                        <button class="back-btn" id="backFromUpload">← Назад</button>
+                        <div>
+                            <h2>Загрузите документ для анализа</h2>
+                            <p>AI проверит договор и выявит потенциальные риски</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contract-form-layout">
+                    <div class="contract-form-card">
+                        <div class="drop-zone" id="analyzeDropZone">
+                            <div class="drop-zone-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <path
+                                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                                </svg>
+                            </div>
+                            <p class="drop-zone-title">Перетащите файл сюда</p>
+                            <p class="drop-zone-subtitle">или нажмите для выбора</p>
+                            <div class="drop-zone-formats">
+                                <span class="format-badge">DOCX</span>
+                                <span class="format-badge">PDF</span>
+                                <span class="format-badge">TXT</span>
+                            </div>
+                            <input type="file" class="file-input" id="analyzeFileInput"
+                                accept=".pdf,.docx,.doc,.txt">
+                        </div>
+
+                        <!-- File Preview -->
+                        <div class="file-preview" id="analyzeFilePreview" style="display:none;">
+                            <span class="file-preview-icon">📄</span>
+                            <div class="file-preview-info">
+                                <span class="file-preview-name" id="analyzeFileName"></span>
+                                <span class="file-preview-size" id="analyzeFileSize"></span>
+                            </div>
+                            <button class="file-remove-btn" id="analyzeFileRemove" type="button">×</button>
+                        </div>
+
+                        <button class="analyze-btn" id="startAnalyzeBtn" disabled>
+                            <span class="btn-icon">🔍</span>
+                            <span>Анализировать договор</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- ANALYZE: Loading -->
+            <!-- ============================================================ -->
+            <div class="contract-step" id="stepAnalyzing" style="display:none;">
+                <div class="generate-loading-card">
+                    <div class="progress-spinner"></div>
+                    <div>
+                        <p class="progress-title">Анализ документа...</p>
+                        <p class="progress-subtitle">AI проверяет текст и выявляет риски</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- ANALYZE: Results + Generate Form -->
+            <!-- ============================================================ -->
+            <div class="contract-step" id="stepAnalysisResult" style="display:none;">
+                <div class="section-header">
+                    <div class="step-header-row">
+                        <button class="back-btn" id="backFromAnalysis">← Новый анализ</button>
+                        <div>
+                            <h2>📋 Результаты анализа</h2>
+                            <p id="analysisSubtitle">Найдены потенциальные риски</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="analysis-summary-card" id="analysisSummary">
+                    <div class="summary-header">
+                        <span class="summary-label">Тип документа</span>
+                        <span class="doc-type-badge" id="analysisDocType"></span>
+                    </div>
+                    <p class="summary-text" id="analysisSummaryText"></p>
+                </div>
+
+                <!-- Stats -->
+                <div class="results-stats" id="analysisStats">
+                    <div class="result-stat result-stat-high">
+                        <span class="result-stat-value" id="statHigh">0</span>
+                        <span class="result-stat-label">Критических</span>
+                    </div>
+                    <div class="result-stat result-stat-medium">
+                        <span class="result-stat-value" id="statMedium">0</span>
+                        <span class="result-stat-label">Средних</span>
+                    </div>
+                    <div class="result-stat result-stat-low">
+                        <span class="result-stat-value" id="statLow">0</span>
+                        <span class="result-stat-label">Низких</span>
+                    </div>
+                </div>
+
+                <!-- Issues List -->
+                <div class="risks-list" id="issuesList"></div>
+
+                <!-- Create New Document Section -->
+                <div class="analysis-generate-section">
+                    <div class="section-header">
+                        <h2>📄 Создать новый документ с учётом рекомендаций</h2>
+                        <p>Отредактируйте ключевые условия и сгенерируйте исправленный DOCX</p>
+                    </div>
+
+                    <div class="contract-form-layout">
+                        <div class="contract-form-card">
+                            <form id="analysisGenerateForm" class="contract-form">
+                                <!-- Contract type selector -->
+                                <div class="form-group">
+                                    <label for="analysisContractType">Тип договора</label>
+                                    <select id="analysisContractType" class="form-select">
+                                        <option value="sale">Купля-продажа</option>
+                                        <option value="labor">Трудовой договор</option>
+                                    </select>
+                                </div>
+
+                                <!-- Sale fields (analysis mode) -->
+                                <div id="analysisSaleFields">
+                                    <div class="form-group">
+                                        <label for="a_seller_name">ФИО / Наименование продавца</label>
+                                        <input type="text" id="a_seller_name" placeholder="ТОО «Астана Трейд»" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="a_buyer_name">ФИО / Наименование покупателя</label>
+                                        <input type="text" id="a_buyer_name" placeholder="Иванов И.И." required>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="a_amount">Сумма (тенге)</label>
+                                            <input type="number" id="a_amount" placeholder="500000" min="1"
+                                                step="0.01" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="a_date">Дата</label>
+                                            <input type="text" id="a_date" placeholder="23.04.2026" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Labor fields (analysis mode) -->
+                                <div id="analysisLaborFields" style="display:none;">
+                                    <div class="form-group">
+                                        <label for="a_employer_name">Наименование работодателя</label>
+                                        <input type="text" id="a_employer_name"
+                                            placeholder="ТОО «Астана Технологии»">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="a_employee_name">ФИО работника</label>
+                                        <input type="text" id="a_employee_name" placeholder="Петров П.П.">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="a_position">Должность</label>
+                                        <input type="text" id="a_position" placeholder="Разработчик">
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="a_salary">Зарплата (тенге/мес)</label>
+                                            <input type="number" id="a_salary" placeholder="350000" min="1"
+                                                step="0.01">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="a_start_date">Дата начала</label>
+                                            <input type="text" id="a_start_date" placeholder="01.05.2026">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- AI Suggestions from Analysis (editable) -->
+                                <div class="analysis-suggestions-edit" id="analysisSuggestionsEdit" style="display:none;">
+                                    <div class="ai-suggest-header">
+                                        <span class="ai-suggest-icon">💡</span>
+                                        <span class="ai-suggest-title">Рекомендации AI (редактируемые)</span>
+                                    </div>
+                                    <p class="ai-suggest-desc">
+                                        Рекомендации из анализа автоматически включены. Отредактируйте или удалите ненужные.
+                                    </p>
+                                    <div id="analysisSuggestionsList"></div>
+                                </div>
+
+                                <button type="submit" class="generate-btn" id="analysisGenerateBtn">
+                                    <span class="btn-icon">📄</span>
+                                    <span class="btn-text">Создать исправленный DOCX</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ============================================================ -->
+            <!-- CREATE: Choose Type -->
+            <!-- ============================================================ -->
+            <div class="contract-step" id="stepChooseType" style="display:none;">
+                <div class="section-header">
+                    <div class="step-header-row">
+                        <button class="back-btn" id="backFromType">← Назад</button>
+                        <div>
+                            <h2>Выберите тип договора</h2>
+                            <p>Начните с выбора типа документа</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contract-type-grid">
+                    <button class="contract-type-card" data-type="sale" id="typeSaleBtn">
+                        <div class="type-card-icon">🤝</div>
+                        <div class="type-card-info">
+                            <h3>Купля-продажа</h3>
+                            <p>Договор купли-продажи товаров или имущества</p>
+                        </div>
+                        <div class="type-card-arrow">→</div>
+                    </button>
+                    <button class="contract-type-card" data-type="labor" id="typeLaborBtn">
+                        <div class="type-card-icon">💼</div>
+                        <div class="type-card-info">
+                            <h3>Трудовой договор</h3>
+                            <p>Оформление трудовых отношений</p>
+                        </div>
+                        <div class="type-card-arrow">→</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- CREATE: Fill Form + AI suggest -->
+            <!-- ============================================================ -->
+            <div class="contract-step" id="stepFillData" style="display:none;">
+                <div class="section-header">
+                    <div class="step-header-row">
+                        <button class="back-btn" id="backToTypeBtn">← Назад</button>
+                        <div>
+                            <h2 id="formTitle">Данные договора</h2>
+                            <p id="formSubtitle">Заполните информацию для генерации</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contract-form-layout">
+                    <div class="contract-form-card">
+                        <form id="contractDataForm" class="contract-form">
+                            <!-- Sale fields -->
+                            <div class="form-fields-sale" id="saleFields" style="display:none;">
+                                <div class="form-group">
+                                    <label for="seller_name">ФИО / Наименование продавца</label>
+                                    <input type="text" id="seller_name" name="seller_name"
+                                        placeholder="ТОО «Астана Трейд»" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="buyer_name">ФИО / Наименование покупателя</label>
+                                    <input type="text" id="buyer_name" name="buyer_name"
+                                        placeholder="Иванов Иван Иванович" required>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="amount">Сумма (тенге)</label>
+                                        <input type="number" id="amount" name="amount" placeholder="500000" min="1"
+                                            step="0.01" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="date">Дата договора</label>
+                                        <input type="text" id="date" name="date" placeholder="23.04.2026" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Labor fields -->
+                            <div class="form-fields-labor" id="laborFields" style="display:none;">
+                                <div class="form-group">
+                                    <label for="employer_name">Наименование работодателя</label>
+                                    <input type="text" id="employer_name" name="employer_name"
+                                        placeholder="ТОО «Астана Технологии»" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="employee_name">ФИО работника</label>
+                                    <input type="text" id="employee_name" name="employee_name"
+                                        placeholder="Петров Пётр Петрович" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="position">Должность</label>
+                                    <input type="text" id="position" name="position"
+                                        placeholder="Backend-разработчик" required>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="salary">Зарплата (тенге/мес)</label>
+                                        <input type="number" id="salary" name="salary" placeholder="350000" min="1"
+                                            step="0.01" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="start_date">Дата начала работы</label>
+                                        <input type="text" id="start_date" name="start_date"
+                                            placeholder="01.05.2026" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI Suggestion Panel -->
+                            <div class="ai-suggest-panel">
+                                <div class="ai-suggest-header">
+                                    <span class="ai-suggest-icon">🤖</span>
+                                    <span class="ai-suggest-title">AI-помощник</span>
+                                    <span class="ai-suggest-badge">Kimi AI</span>
+                                </div>
+                                <p class="ai-suggest-desc">
+                                    Опишите, какой текст добавить в договор — AI предложит юридическую формулировку.
+                                </p>
+
+                                <div class="form-group">
+                                    <label for="suggestField">Раздел договора</label>
+                                    <select id="suggestField" class="form-select">
+                                        <option value="conditions">Условия и предмет</option>
+                                        <option value="penalties">Штрафы и неустойки</option>
+                                        <option value="deadlines">Сроки исполнения</option>
+                                        <option value="liability">Ответственность сторон</option>
+                                        <option value="termination">Расторжение договора</option>
+                                        <option value="payment_terms">Условия оплаты</option>
+                                        <option value="custom">Произвольный раздел</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="promptInput">Промпт</label>
+                                    <textarea id="promptInput" rows="3"
+                                        placeholder="Например: Добавить штраф за просрочку оплаты 0.1% в день"></textarea>
+                                </div>
+
+                                <button type="button" class="suggest-btn" id="suggestBtn">
+                                    <span class="suggest-btn-icon">✨</span>
+                                    <span class="suggest-btn-text">Сгенерировать текст</span>
+                                </button>
+
+                                <div class="suggest-loading" id="suggestLoading" style="display:none;">
+                                    <div class="suggest-spinner"></div>
+                                    <span>AI генерирует текст...</span>
+                                </div>
+
+                                <div class="suggest-result" id="suggestResult" style="display:none;">
+                                    <div class="suggest-result-header">
+                                        <span class="suggest-result-label">📝 Предложенный текст</span>
+                                        <span class="suggest-result-field" id="suggestResultField"></span>
+                                    </div>
+                                    <textarea class="suggest-result-text" id="suggestResultText" rows="6"></textarea>
+                                    <div class="suggest-result-actions">
+                                        <button type="button" class="suggest-action-btn suggest-action-apply"
+                                            id="applySuggestionBtn">
+                                            ✅ Включить в договор
+                                        </button>
+                                        <button type="button" class="suggest-action-btn suggest-action-discard"
+                                            id="discardSuggestionBtn">
+                                            ✕ Отменить
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="applied-suggestions" id="appliedSuggestions" style="display:none;">
+                                    <div class="applied-suggestions-header">
+                                        <span>📋 Дополнительные пункты</span>
+                                    </div>
+                                    <div class="applied-list" id="appliedList"></div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="generate-btn" id="generateBtn">
+                                <span class="btn-icon">📄</span>
+                                <span class="btn-text">Сгенерировать DOCX</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- GENERATING LOADING -->
+            <!-- ============================================================ -->
+            <div class="contract-step" id="stepGenerating" style="display:none;">
+                <div class="generate-loading-card">
+                    <div class="progress-spinner"></div>
+                    <div>
+                        <p class="progress-title">Генерация документа...</p>
+                        <p class="progress-subtitle">Заполняю шаблон и создаю DOCX файл</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- RESULT: Download -->
+            <!-- ============================================================ -->
+            <div class="contract-step" id="stepResult" style="display:none;">
+                <div class="section-header">
+                    <h2>🎉 Договор готов!</h2>
+                    <p>Документ успешно сгенерирован</p>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" />
+                            <polyline points="13 2 13 9 20 9" />
+                            <path d="M9 15l2 2 4-4" stroke="#10b981" stroke-width="2" />
+                        </svg>
+                    </div>
+                    <div class="result-card-info">
+                        <h3 id="resultTitle">Договор</h3>
+                        <p id="resultMessage">Файл DOCX успешно создан и скачан</p>
+                        <span class="result-format-badge">DOCX</span>
+                    </div>
+
+                    <button class="download-btn" id="downloadAgainBtn" type="button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        <span>Скачать ещё раз</span>
+                    </button>
+
+                    <button class="new-contract-btn" id="newContractBtn" type="button">
+                        ↩ Создать ещё один договор
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ===== TOAST ===== -->
+    <div class="error-toast" id="errorToast" style="display:none">
+        <span class="toast-icon">⚠️</span>
+        <span class="toast-message" id="toastMessage">Произошла ошибка</span>
+        <button class="toast-close" onclick="closeToast()">×</button>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-inner">
+                <span class="footer-logo">⚖️ DogovorAI</span>
+                <p class="footer-text">Не является юридической консультацией.</p>
+                <span class="footer-version">v0.1.0 MVP</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // ================================================================
+    // STATE
+    // ================================================================
+    let selectedType = null;
+    let appliedSuggestions = [];
+    let analyzeFile = null;
+    let lastBlobUrl = null;         // URL.createObjectURL for re-download
+    let analysisSuggestions = [];   // suggestions from analysis
+
+    // ================================================================
+    // AUTH  (shared with main site)
+    // ================================================================
+    function isAuthenticated() { return !!localStorage.getItem('access_token'); }
+    function getUser() { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; }
+    function getAuthHeaders() {
+        const t = localStorage.getItem('access_token');
+        return t ? { 'Authorization': `Bearer ${t}` } : {};
+    }
+    async function loadUserInfo() {
+        if (!isAuthenticated()) return;
+        try {
+            const r = await fetch('/api/auth/me/profile', { headers: getAuthHeaders() });
+            if (r.ok) { localStorage.setItem('user', JSON.stringify(await r.json())); updateAuthUI(); return; }
+            const r2 = await fetch('/api/auth/me', { headers: getAuthHeaders() });
+            if (r2.ok) { localStorage.setItem('user', JSON.stringify(await r2.json())); updateAuthUI(); }
+        } catch (_) {}
+    }
+    function updateAuthUI() {
+        const isAuth = isAuthenticated(), user = getUser();
+        const lo = document.querySelector('.nav-auth-logged-out');
+        const li = document.querySelector('.nav-auth-logged-in');
+        if (isAuth && user) {
+            lo.style.display = 'none'; li.style.display = 'flex';
+            const name = user.full_name || user.email || 'Пользователь';
+            const plan = (user.plan || 'basic').charAt(0).toUpperCase() + (user.plan || 'basic').slice(1);
+            const dn = document.getElementById('dropdownName');
+            const dp = document.getElementById('dropdownPlan');
+            if (dn) dn.textContent = name;
+            if (dp) dp.textContent = `Тариф: ${plan}`;
+            const ai = document.getElementById('userAvatarImg');
+            const ap = document.getElementById('userAvatarPlaceholder');
+            const ui = document.getElementById('userInitial');
+            if (user.avatar_url && ai) { ai.src = user.avatar_url; ai.style.display = 'block'; if (ap) ap.style.display = 'none'; }
+            else { if (ai) ai.style.display = 'none'; if (ap) ap.style.display = 'flex'; if (ui) ui.textContent = name[0].toUpperCase(); }
+        } else { lo.style.display = 'flex'; li.style.display = 'none'; }
+    }
+
+    // ================================================================
+    // TOAST
+    // ================================================================
+    function showToast(msg, type = 'error') {
+        const t = document.getElementById('errorToast'), m = document.getElementById('toastMessage');
+        if (!t || !m) return;
+        m.textContent = msg; t.className = `error-toast ${type}`; t.style.display = 'flex';
+        setTimeout(closeToast, 5000);
+    }
+    function closeToast() { const t = document.getElementById('errorToast'); if (t) t.style.display = 'none'; }
+
+    // ================================================================
+    // STEP NAVIGATION
+    // ================================================================
+    function showStep(id) {
+        document.querySelectorAll('.contract-step').forEach(s => s.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ================================================================
+    // DOWNLOAD HELPER  (key fix for "single-click download")
+    // ================================================================
+    function triggerBlobDownload(blob, filename) {
+        if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+        lastBlobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = lastBlobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // ================================================================
+    // GENERATE  (single-click → immediate download)
+    // ================================================================
+    async function generateAndDownload(contractType, data, downloadName) {
+        showStep('stepGenerating');
+        try {
+            const resp = await fetch('/api/contracts/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: contractType, data: data }),
+            });
+
+            if (!resp.ok) {
+                // Try to parse error JSON
+                let message = 'Ошибка генерации';
+                try {
+                    const err = await resp.json();
+                    const d = err.detail;
+                    if (Array.isArray(d)) message = d.map(i => `${i.loc?.join('.')}: ${i.msg}`).join('; ');
+                    else if (typeof d === 'string') message = d;
+                } catch (_) {}
+                throw new Error(message);
+            }
+
+            // Response is a blob (DOCX file) — download immediately
+            const blob = await resp.blob();
+            triggerBlobDownload(blob, downloadName);
+
+            // Show result page
+            const typeNames = { sale: 'Договор купли-продажи', labor: 'Трудовой договор' };
+            document.getElementById('resultTitle').textContent = typeNames[contractType] || 'Договор';
+            document.getElementById('resultMessage').textContent = 'Файл успешно создан и загружен';
+            showStep('stepResult');
+
+        } catch (err) {
+            showToast(err.message);
+            showStep('stepFillData');
+        }
+    }
+
+    // ================================================================
+    // CREATE MODE: Type selection + Form
+    // ================================================================
+    function selectType(type) {
+        selectedType = type;
+        appliedSuggestions = [];
+        renderAppliedSuggestions();
+        if (type === 'sale') {
+            document.getElementById('saleFields').style.display = 'block';
+            document.getElementById('laborFields').style.display = 'none';
+            document.getElementById('formTitle').textContent = 'Договор купли-продажи';
+            document.getElementById('formSubtitle').textContent = 'Заполните данные сторон и условия сделки';
+        } else {
+            document.getElementById('saleFields').style.display = 'none';
+            document.getElementById('laborFields').style.display = 'block';
+            document.getElementById('formTitle').textContent = 'Трудовой договор';
+            document.getElementById('formSubtitle').textContent = 'Заполните данные работодателя и работника';
+        }
+        showStep('stepFillData');
+    }
+
+    function getCreateFormData() {
+        const d = {};
+        if (selectedType === 'sale') {
+            d.seller_name  = document.getElementById('seller_name').value.trim();
+            d.buyer_name   = document.getElementById('buyer_name').value.trim();
+            d.amount       = parseFloat(document.getElementById('amount').value);
+            d.date         = document.getElementById('date').value.trim();
+        } else {
+            d.employer_name = document.getElementById('employer_name').value.trim();
+            d.employee_name = document.getElementById('employee_name').value.trim();
+            d.position      = document.getElementById('position').value.trim();
+            d.salary        = parseFloat(document.getElementById('salary').value);
+            d.start_date    = document.getElementById('start_date').value.trim();
+        }
+        if (appliedSuggestions.length) {
+            d.extra_clauses = appliedSuggestions.map(s => `[${s.field}]\n${s.text}`).join('\n\n');
+        }
+        return d;
+    }
+
+    async function onCreateSubmit(e) {
+        e.preventDefault();
+        const data = getCreateFormData();
+        const names = { sale: 'dogovor_kupli_prodazhi.docx', labor: 'trudovoy_dogovor.docx' };
+        await generateAndDownload(selectedType, data, names[selectedType] || 'dogovor.docx');
+    }
+
+    // ================================================================
+    // AI SUGGEST
+    // ================================================================
+    async function requestSuggestion() {
+        const field = document.getElementById('suggestField').value;
+        const prompt = document.getElementById('promptInput').value.trim();
+        if (!prompt) { showToast('Введите описание'); return; }
+
+        const btn = document.getElementById('suggestBtn');
+        const loading = document.getElementById('suggestLoading');
+        const result = document.getElementById('suggestResult');
+
+        btn.disabled = true; loading.style.display = 'flex'; result.style.display = 'none';
+
+        try {
+            const r = await fetch('/api/contracts/suggest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contract_type: selectedType, field, prompt, context: getCreateFormData() }),
+            });
+            if (!r.ok) throw new Error('Ошибка AI');
+            const d = await r.json();
+            const names = { conditions:'Условия', penalties:'Штрафы', deadlines:'Сроки',
+                           liability:'Ответственность', termination:'Расторжение',
+                           payment_terms:'Оплата', custom:'Произвольный' };
+            document.getElementById('suggestResultField').textContent = names[d.field] || d.field;
+            document.getElementById('suggestResultText').value = d.suggested_text;
+            result.style.display = 'block';
+            result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (err) { showToast(err.message); }
+        finally { btn.disabled = false; loading.style.display = 'none'; }
+    }
+
+    function applySuggestion() {
+        const field = document.getElementById('suggestField').value;
+        const text = document.getElementById('suggestResultText').value.trim();
+        if (!text) return;
+        const names = { conditions:'Условия', penalties:'Штрафы', deadlines:'Сроки',
+                       liability:'Ответственность', termination:'Расторжение',
+                       payment_terms:'Оплата', custom:'Произвольный' };
+        appliedSuggestions.push({ field: names[field] || field, text });
+        renderAppliedSuggestions();
+        document.getElementById('suggestResult').style.display = 'none';
+        document.getElementById('promptInput').value = '';
+        showToast('Текст включён в договор', 'success');
+    }
+
+    function discardSuggestion() { document.getElementById('suggestResult').style.display = 'none'; }
+    function removeSuggestion(i) { appliedSuggestions.splice(i, 1); renderAppliedSuggestions(); }
+
+    function renderAppliedSuggestions() {
+        const c = document.getElementById('appliedSuggestions');
+        const l = document.getElementById('appliedList');
+        if (!appliedSuggestions.length) { c.style.display = 'none'; return; }
+        c.style.display = 'block';
+        l.innerHTML = appliedSuggestions.map((s, i) => `
+            <div class="applied-item">
+                <div class="applied-item-header">
+                    <span class="applied-item-field">${s.field}</span>
+                    <button class="applied-item-remove" onclick="removeSuggestion(${i})">×</button>
+                </div>
+                <p class="applied-item-text">${s.text.substring(0, 150)}${s.text.length > 150 ? '...' : ''}</p>
+            </div>
+        `).join('');
+    }
+
+    // ================================================================
+    // ANALYZE MODE
+    // ================================================================
+    function setupAnalyzeUpload() {
+        const input = document.getElementById('analyzeFileInput');
+        const zone = document.getElementById('analyzeDropZone');
+        const preview = document.getElementById('analyzeFilePreview');
+        const nameEl = document.getElementById('analyzeFileName');
+        const sizeEl = document.getElementById('analyzeFileSize');
+        const removeBtn = document.getElementById('analyzeFileRemove');
+        const analyzeBtn = document.getElementById('startAnalyzeBtn');
+
+        function showFile(f) {
+            analyzeFile = f;
+            nameEl.textContent = f.name;
+            sizeEl.textContent = (f.size / 1024).toFixed(1) + ' KB';
+            zone.style.display = 'none';
+            preview.style.display = 'flex';
+            analyzeBtn.disabled = false;
+        }
+
+        function clearFile() {
+            analyzeFile = null;
+            input.value = '';
+            zone.style.display = 'block';
+            preview.style.display = 'none';
+            analyzeBtn.disabled = true;
+        }
+
+        input.addEventListener('change', (e) => { if (e.target.files[0]) showFile(e.target.files[0]); });
+        removeBtn.addEventListener('click', clearFile);
+
+        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault(); zone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]) showFile(e.dataTransfer.files[0]);
+        });
+    }
+
+    async function startAnalysis() {
+        if (!analyzeFile) return;
+        showStep('stepAnalyzing');
+
+        const fd = new FormData();
+        fd.append('file', analyzeFile);
+
+        try {
+            const headers = getAuthHeaders();
+            const r = await fetch('/api/contracts/analyze', { method: 'POST', headers: headers, body: fd });
+            if (!r.ok) {
+                const err = await r.json();
+                // Handle 402 — limit exceeded
+                if (r.status === 402 && err.detail && err.detail.error === 'limit_exceeded') {
+                    showStep('stepModeSelect');
+                    if (typeof handleLimitError === 'function') {
+                        handleLimitError(err.detail);
+                    }
+                    return;
+                }
+                const msg = (err.detail && typeof err.detail === 'object') ? err.detail.message : (err.detail || 'Ошибка анализа');
+                throw new Error(msg);
+            }
+            const data = await r.json();
+            renderAnalysisResults(data);
+            showStep('stepAnalysisResult');
+
+            // Refresh usage bar
+            if (typeof loadUsageInfo === 'function') loadUsageInfo();
+        } catch (err) {
+            showToast(err.message);
+            showStep('stepUpload');
+        }
+    }
+
+    function renderAnalysisResults(data) {
+        // Summary
+        document.getElementById('analysisDocType').textContent = data.document_type || 'Не определён';
+        document.getElementById('analysisSummaryText').textContent = data.summary || '';
+        document.getElementById('analysisSubtitle').textContent =
+            `Найдено ${data.total_risks} рисков` +
+            (data.high_risk_count ? ` (критических: ${data.high_risk_count})` : '');
+
+        // Stats
+        let high = 0, medium = 0, low = 0;
+        (data.issues || []).forEach(i => {
+            if (i.risk_level === 'high') high++;
+            else if (i.risk_level === 'medium') medium++;
+            else low++;
+        });
+        document.getElementById('statHigh').textContent = high;
+        document.getElementById('statMedium').textContent = medium;
+        document.getElementById('statLow').textContent = low;
+
+        // Render issues
+        const list = document.getElementById('issuesList');
+        list.innerHTML = (data.issues || []).map((issue, idx) => `
+            <div class="risk-card risk-${issue.risk_level}" style="animation-delay: ${idx * 0.05}s">
+                <div class="risk-card-header">
+                    <span class="risk-level-badge badge-${issue.risk_level}">
+                        ${issue.risk_level === 'high' ? '⛔ ВЫСОКИЙ' : issue.risk_level === 'medium' ? '⚠️ СРЕДНИЙ' : '✅ НИЗКИЙ'}
+                    </span>
+                    <span class="risk-category">${issue.category || ''}</span>
+                </div>
+                <p class="risk-description">${issue.risk}</p>
+                ${issue.text ? `<div class="risk-original-clause">${issue.text}</div>` : ''}
+                ${issue.suggestion ? `<div class="risk-recommendation">${issue.suggestion}</div>` : ''}
+            </div>
+        `).join('');
+
+        // Pre-fill analysis suggestions for editable form
+        analysisSuggestions = (data.issues || [])
+            .filter(i => i.suggestion)
+            .map(i => ({ category: i.category, text: i.suggestion, enabled: true }));
+        renderAnalysisSuggestionsEdit();
+    }
+
+    function renderAnalysisSuggestionsEdit() {
+        const container = document.getElementById('analysisSuggestionsEdit');
+        const list = document.getElementById('analysisSuggestionsList');
+        if (!analysisSuggestions.length) { container.style.display = 'none'; return; }
+        container.style.display = 'block';
+        list.innerHTML = analysisSuggestions.map((s, i) => `
+            <div class="applied-item ${!s.enabled ? 'applied-item-disabled' : ''}">
+                <div class="applied-item-header">
+                    <span class="applied-item-field">${s.category}</span>
+                    <label class="suggestion-toggle">
+                        <input type="checkbox" ${s.enabled ? 'checked' : ''} onchange="toggleAnalysisSuggestion(${i}, this.checked)">
+                        <span>Включить</span>
+                    </label>
+                </div>
+                <textarea class="suggestion-edit-text" rows="2"
+                    onchange="updateAnalysisSuggestionText(${i}, this.value)"
+                    ${!s.enabled ? 'disabled' : ''}>${s.text}</textarea>
+            </div>
+        `).join('');
+    }
+
+    function toggleAnalysisSuggestion(idx, checked) {
+        analysisSuggestions[idx].enabled = checked;
+        renderAnalysisSuggestionsEdit();
+    }
+
+    function updateAnalysisSuggestionText(idx, text) {
+        analysisSuggestions[idx].text = text;
+    }
+
+    // Generate from analysis results
+    async function onAnalysisGenerateSubmit(e) {
+        e.preventDefault();
+        const type = document.getElementById('analysisContractType').value;
+        const data = {};
+
+        if (type === 'sale') {
+            data.seller_name = document.getElementById('a_seller_name').value.trim();
+            data.buyer_name  = document.getElementById('a_buyer_name').value.trim();
+            data.amount      = parseFloat(document.getElementById('a_amount').value);
+            data.date        = document.getElementById('a_date').value.trim();
+        } else {
+            data.employer_name = document.getElementById('a_employer_name').value.trim();
+            data.employee_name = document.getElementById('a_employee_name').value.trim();
+            data.position      = document.getElementById('a_position').value.trim();
+            data.salary        = parseFloat(document.getElementById('a_salary').value);
+            data.start_date    = document.getElementById('a_start_date').value.trim();
+        }
+
+        // Attach enabled suggestions as extra_clauses
+        const enabled = analysisSuggestions.filter(s => s.enabled);
+        if (enabled.length) {
+            data.extra_clauses = enabled.map(s => `[${s.category}]\n${s.text}`).join('\n\n');
+        }
+
+        const names = { sale: 'dogovor_kupli_prodazhi.docx', labor: 'trudovoy_dogovor.docx' };
+        await generateAndDownload(type, data, names[type] || 'dogovor.docx');
+    }
+
+    // ================================================================
+    // INIT
+    // ================================================================
+    document.addEventListener('DOMContentLoaded', function () {
+        updateAuthUI();
+        loadUserInfo();
+
+        // Mode selection
+        document.getElementById('modeAnalyzeBtn').addEventListener('click', () => showStep('stepUpload'));
+        document.getElementById('modeCreateBtn').addEventListener('click', () => showStep('stepChooseType'));
+
+        // Back buttons
+        document.getElementById('backFromUpload').addEventListener('click', () => showStep('stepModeSelect'));
+        document.getElementById('backFromAnalysis').addEventListener('click', () => showStep('stepUpload'));
+        document.getElementById('backFromType').addEventListener('click', () => showStep('stepModeSelect'));
+        document.getElementById('backToTypeBtn').addEventListener('click', () => showStep('stepChooseType'));
+
+        // Create type selection
+        document.getElementById('typeSaleBtn').addEventListener('click', () => selectType('sale'));
+        document.getElementById('typeLaborBtn').addEventListener('click', () => selectType('labor'));
+
+        // Create form submit
+        document.getElementById('contractDataForm').addEventListener('submit', onCreateSubmit);
+
+        // AI suggest
+        document.getElementById('suggestBtn').addEventListener('click', requestSuggestion);
+        document.getElementById('applySuggestionBtn').addEventListener('click', applySuggestion);
+        document.getElementById('discardSuggestionBtn').addEventListener('click', discardSuggestion);
+
+        // Analyze
+        setupAnalyzeUpload();
+        document.getElementById('startAnalyzeBtn').addEventListener('click', startAnalysis);
+        document.getElementById('analysisGenerateForm').addEventListener('submit', onAnalysisGenerateSubmit);
+
+        // Analysis contract type toggle
+        document.getElementById('analysisContractType').addEventListener('change', function () {
+            const v = this.value;
+            document.getElementById('analysisSaleFields').style.display = v === 'sale' ? 'block' : 'none';
+            document.getElementById('analysisLaborFields').style.display = v === 'labor' ? 'block' : 'none';
+        });
+
+        // Re-download & new contract
+        document.getElementById('downloadAgainBtn').addEventListener('click', () => {
+            if (lastBlobUrl) {
+                const a = document.createElement('a');
+                a.href = lastBlobUrl; a.download = 'dogovor.docx';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            }
+        });
+        document.getElementById('newContractBtn').addEventListener('click', () => {
+            selectedType = null;
+            appliedSuggestions = [];
+            analysisSuggestions = [];
+            analyzeFile = null;
+            const form1 = document.getElementById('contractDataForm');
+            const form2 = document.getElementById('analysisGenerateForm');
+            if (form1) form1.reset();
+            if (form2) form2.reset();
+            renderAppliedSuggestions();
+            showStep('stepModeSelect');
+        });
+
+        // Avatar dropdown
+        const ab = document.getElementById('userAvatarBtn');
+        const dd = document.getElementById('userDropdown');
+        const lb = document.getElementById('logoutBtn');
+        if (ab && dd) {
+            ab.addEventListener('click', e => { e.stopPropagation(); dd.classList.toggle('open'); });
+            document.addEventListener('click', () => dd.classList.remove('open'));
+            dd.addEventListener('click', e => e.stopPropagation());
+        }
+        if (lb) {
+            lb.addEventListener('click', async () => {
+                try { await fetch('/api/auth/logout', { method: 'POST', headers: getAuthHeaders() }); } catch (_) {}
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('user');
+                updateAuthUI();
+                showToast('Вы вышли из системы', 'success');
+                if (dd) dd.classList.remove('open');
+            });
+        }
+    });
+    </script>
+    <script src="/static/js/paywall.js"></script>
+
+    <!-- ===== PAYWALL MODAL ===== -->
+    <div class="paywall-overlay" id="paywallModal" style="display:none;">
+        <div class="paywall-card">
+            <button class="paywall-close" id="paywallClose">×</button>
+            <span class="paywall-icon">🔒</span>
+            <h2 class="paywall-title">Лимит исчерпан</h2>
+            <p class="paywall-message" id="paywallMessage">
+                Вы использовали все бесплатные анализы.
+                Приобретите подписку для продолжения работы.
+            </p>
+            <div class="paywall-usage-info">
+                <div class="paywall-stat">
+                    <span class="paywall-stat-value stat-used" id="paywallUsed">3</span>
+                    <span class="paywall-stat-label">использовано</span>
+                </div>
+                <div class="paywall-divider"></div>
+                <div class="paywall-stat">
+                    <span class="paywall-stat-value" id="paywallLimit">3</span>
+                    <span class="paywall-stat-label">лимит</span>
+                </div>
+            </div>
+            <div class="paywall-plans">
+                <button class="paywall-plan-card" onclick="window.location.href='/app/profile'">
+                    <span class="plan-card-icon">⚡</span>
+                    <div class="plan-card-info">
+                        <div class="plan-card-name">Pro</div>
+                        <div class="plan-card-desc">30 анализов в месяц</div>
+                    </div>
+                    <span class="plan-card-price">$9/мес</span>
+                </button>
+                <button class="paywall-plan-card plan-recommended" onclick="window.location.href='/app/profile'">
+                    <span class="plan-card-icon">🚀</span>
+                    <div class="plan-card-info">
+                        <div class="plan-card-name">Max</div>
+                        <div class="plan-card-desc">Безлимитные анализы</div>
+                    </div>
+                    <span class="plan-card-price">$19/мес</span>
+                </button>
+            </div>
+            <button class="paywall-cta-btn" onclick="window.location.href='/app/profile'">Купить подписку</button>
+            <button class="paywall-skip-btn" id="paywallSkip">Позже</button>
+        </div>
+    </div>
+</body>
+
+</html>

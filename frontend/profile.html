@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль — DogovorAI</title>
+    <meta name="description" content="Управление профилем и подпиской DogovorAI">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* ===== PROFILE PAGE STYLES ===== */
+        .profile-page {
+            padding-top: 100px;
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* ===== PROFILE CARD ===== */
+        .profile-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 16px;
+            position: sticky;
+            top: 100px;
+        }
+
+        .profile-avatar-wrapper {
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(59, 130, 246, 0.4);
+        }
+
+        .profile-avatar-placeholder {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            border: 3px solid rgba(59, 130, 246, 0.4);
+        }
+
+        .profile-plan-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .badge-basic  { background: rgba(100, 116, 139, 0.3); color: #94a3b8; border: 1px solid rgba(100,116,139,0.4); }
+        .badge-pro    { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59,130,246,0.4); }
+        .badge-max    { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168,85,247,0.4); }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .profile-email {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: -8px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .profile-stat {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            text-align: center;
+        }
+
+        .profile-stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .profile-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-divider {
+            width: 100%;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .profile-meta {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .profile-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .profile-meta-label { color: var(--text-muted); }
+        .profile-meta-value { color: var(--text-secondary); font-weight: 500; }
+
+        .profile-logout-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.07);
+            color: #f87171;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .profile-logout-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        /* ===== RIGHT COLUMN ===== */
+        .profile-right {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .profile-section-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        /* ===== SUBSCRIPTION PLANS ===== */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .plan-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .plan-basic::before   { background: linear-gradient(90deg, #64748b, #94a3b8); }
+        .plan-pro::before     { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+        .plan-max::before     { background: linear-gradient(90deg, #8b5cf6, #ec4899); }
+
+        .plan-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(255,255,255,0.12);
+        }
+
+        .plan-card.active {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25), var(--shadow-md);
+        }
+
+        .plan-card.active.plan-max {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.25), var(--shadow-md);
+        }
+
+        .plan-popular-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+
+        .plan-name {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .plan-basic .plan-name  { color: #94a3b8; }
+        .plan-pro .plan-name    { color: #60a5fa; }
+        .plan-max .plan-name    { color: #c084fc; }
+
+        .plan-price {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .plan-price-amount {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .plan-price-currency {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .plan-price-period {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .plan-features {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .plan-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .plan-feature-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .feature-check {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .feature-cross {
+            background: rgba(100, 116, 139, 0.15);
+            color: #64748b;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+
+        .plan-feature.disabled { opacity: 0.45; }
+
+        .plan-btn {
+            padding: 12px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            border: none;
+        }
+
+        .plan-btn-basic {
+            background: rgba(100, 116, 139, 0.15);
+            color: #94a3b8;
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .plan-btn-basic:hover {
+            background: rgba(100, 116, 139, 0.25);
+        }
+
+        .plan-btn-pro {
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            color: white;
+        }
+
+        .plan-btn-pro:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+        }
+
+        .plan-btn-max {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+        }
+
+        .plan-btn-max:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+        }
+
+        .plan-btn:disabled, .plan-btn.current {
+            opacity: 0.7;
+            cursor: default;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* ===== USAGE SECTION ===== */
+        .usage-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 28px;
+        }
+
+        .usage-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .usage-label { font-size: 14px; color: var(--text-secondary); }
+        .usage-count { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+        .usage-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .usage-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: var(--accent-gradient);
+            transition: width 0.8s ease;
+        }
+
+        .usage-fill.full { background: linear-gradient(90deg, #ef4444, #f97316); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .profile-grid { grid-template-columns: 1fr; }
+            .profile-card { position: static; }
+            .plans-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 640px) {
+            .plans-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">⚖️</span>
+                <a href="/app" style="text-decoration:none; color:inherit;">
+                    <span class="logo-text">Dogovor<span class="logo-accent">AI</span></span>
+                </a>
+            </div>
+            <nav class="nav">
+                <a href="/app" class="nav-link">← На главную</a>
+                <a href="#subscription" class="nav-link">Подписка</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== PROFILE PAGE ===== -->
+    <main class="profile-page">
+        <div class="container">
+            <div class="profile-grid">
+
+                <!-- LEFT: Profile Card -->
+                <div class="profile-card">
+                    <div class="profile-avatar-wrapper">
+                        <img class="profile-avatar" id="profileAvatar" src="" alt="" style="display:none">
+                        <div class="profile-avatar-placeholder" id="profileAvatarPlaceholder">
+                            <span id="profileInitial">?</span>
+                        </div>
+                        <span class="profile-plan-badge badge-basic" id="profilePlanBadge">Basic</span>
+                    </div>
+
+                    <div class="profile-name" id="profileName">Загрузка...</div>
+                    <div class="profile-email" id="profileEmail"></div>
+
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <div class="profile-stat-value" id="statAnalyses">0</div>
+                            <div class="profile-stat-label">Анализов</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="profile-stat-value" id="statLimit">3</div>
+                            <div class="profile-stat-label">Лимит/мес</div>
+                        </div>
+                    </div>
+
+                    <div class="profile-divider"></div>
+
+                    <div class="profile-meta">
+                        <div class="profile-meta-row">
+                            <span class="profile-meta-label">Подписка</span>
+                            <span class="profile-meta-value" id="metaPlan">Basic</span>
+                        </div>
+                        <div class="profile-meta-row">
+                            <span class="profile-meta-label">Email подтвержден</span>
+                            <span class="profile-meta-value" id="metaVerified">—</span>
+                        </div>
+                        <div class="profile-meta-row">
+                            <span class="profile-meta-label">Участник с</span>
+                            <span class="profile-meta-value" id="metaJoined">—</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-divider"></div>
+
+                    <button class="profile-logout-btn" id="logoutBtn">Выйти из аккаунта</button>
+                </div>
+
+                <!-- RIGHT: Content -->
+                <div class="profile-right">
+
+                    <!-- Usage -->
+                    <div class="usage-card">
+                        <h2 class="profile-section-title">Использование в этом месяце</h2>
+                        <div class="usage-row">
+                            <span class="usage-label">Анализы договоров</span>
+                            <span class="usage-count"><span id="usageUsed">0</span> / <span id="usageTotal">3</span></span>
+                        </div>
+                        <div class="usage-bar">
+                            <div class="usage-fill" id="usageFill" style="width: 0%"></div>
+                        </div>
+                        <p style="font-size: 13px; color: var(--text-muted);">
+                            Обновляется 1-го числа каждого месяца. Перейдите на Pro или Max для увеличения лимита.
+                        </p>
+                    </div>
+
+                    <!-- Subscription Plans -->
+                    <div id="subscription">
+                        <h2 class="profile-section-title">Тарифные планы</h2>
+                        <div class="plans-grid">
+
+                            <!-- BASIC -->
+                            <div class="plan-card plan-basic" id="planBasicCard">
+                                <div class="plan-header">
+                                    <div class="plan-name">Basic</div>
+                                    <div class="plan-price">
+                                        <span class="plan-price-amount">0</span>
+                                        <span class="plan-price-currency">₸</span>
+                                        <span class="plan-price-period">/мес</span>
+                                    </div>
+                                </div>
+                                <div class="plan-features">
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        3 анализа в месяц
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        PDF, DOCX, TXT форматы
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        Базовый анализ рисков
+                                    </div>
+                                    <div class="plan-feature disabled">
+                                        <div class="plan-feature-icon feature-cross">✕</div>
+                                        OCR изображений
+                                    </div>
+                                    <div class="plan-feature disabled">
+                                        <div class="plan-feature-icon feature-cross">✕</div>
+                                        История анализов
+                                    </div>
+                                    <div class="plan-feature disabled">
+                                        <div class="plan-feature-icon feature-cross">✕</div>
+                                        Экспорт отчётов
+                                    </div>
+                                </div>
+                                <button class="plan-btn plan-btn-basic" id="btnBasic" onclick="selectPlan('basic')">
+                                    Текущий план
+                                </button>
+                            </div>
+
+                            <!-- PRO -->
+                            <div class="plan-card plan-pro" id="planProCard">
+                                <span class="plan-popular-badge">Популярный</span>
+                                <div class="plan-header">
+                                    <div class="plan-name">Pro</div>
+                                    <div class="plan-price">
+                                        <span class="plan-price-amount">4 900</span>
+                                        <span class="plan-price-currency">₸</span>
+                                        <span class="plan-price-period">/мес</span>
+                                    </div>
+                                </div>
+                                <div class="plan-features">
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        30 анализов в месяц
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        PDF, DOCX, TXT форматы
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        OCR изображений (JPG/PNG)
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        История анализов
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        Детальный анализ рисков
+                                    </div>
+                                    <div class="plan-feature disabled">
+                                        <div class="plan-feature-icon feature-cross">✕</div>
+                                        Экспорт PDF-отчётов
+                                    </div>
+                                </div>
+                                <button class="plan-btn plan-btn-pro" id="btnPro" onclick="selectPlan('pro')">
+                                    Выбрать Pro
+                                </button>
+                            </div>
+
+                            <!-- MAX -->
+                            <div class="plan-card plan-max" id="planMaxCard">
+                                <div class="plan-header">
+                                    <div class="plan-name">Max</div>
+                                    <div class="plan-price">
+                                        <span class="plan-price-amount">12 900</span>
+                                        <span class="plan-price-currency">₸</span>
+                                        <span class="plan-price-period">/мес</span>
+                                    </div>
+                                </div>
+                                <div class="plan-features">
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        Безлимитные анализы
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        Все форматы + OCR
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        История анализов
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        Экспорт PDF-отчётов
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        Приоритетный анализ
+                                    </div>
+                                    <div class="plan-feature">
+                                        <div class="plan-feature-icon feature-check">✓</div>
+                                        API-доступ
+                                    </div>
+                                </div>
+                                <button class="plan-btn plan-btn-max" id="btnMax" onclick="selectPlan('max')">
+                                    Выбрать Max
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <!-- end plans -->
+
+                </div>
+                <!-- end profile-right -->
+            </div>
+            <!-- end profile-grid -->
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // Auth utilities
+        // ============================================================
+        function getToken()  { return localStorage.getItem('access_token'); }
+        function getUser()   { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; }
+        function isAuth()    { return !!getToken(); }
+        function authHeaders() { return { 'Authorization': `Bearer ${getToken()}` }; }
+
+        const PLAN_LIMITS = { basic: 3, pro: 30, max: Infinity };
+
+        // ============================================================
+        // Load & render profile
+        // ============================================================
+        async function loadProfile() {
+            if (!isAuth()) {
+                window.location.href = '/app/login';
+                return;
+            }
+
+            let user = getUser() || {};
+
+            // Try refreshing from server
+            try {
+                const resp = await fetch('/api/auth/me/profile', { headers: authHeaders() });
+                if (resp.ok) {
+                    user = await resp.json();
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+            } catch (_) {}
+
+            renderProfile(user);
+        }
+
+        function renderProfile(user) {
+            const plan = (user.plan || 'basic').toLowerCase();
+            const used = user.analyses_used || 0;
+            const limit = PLAN_LIMITS[plan] || 3;
+
+            // Avatar
+            const avatarImg = document.getElementById('profileAvatar');
+            const avatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
+            const initialEl = document.getElementById('profileInitial');
+
+            if (user.avatar_url) {
+                avatarImg.src = user.avatar_url;
+                avatarImg.style.display = 'block';
+                avatarPlaceholder.style.display = 'none';
+            } else {
+                const name = user.full_name || user.email || '?';
+                initialEl.textContent = name[0].toUpperCase();
+                avatarPlaceholder.style.display = 'flex';
+                avatarImg.style.display = 'none';
+            }
+
+            // Plan badge
+            const badge = document.getElementById('profilePlanBadge');
+            badge.textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+            badge.className = `profile-plan-badge badge-${plan}`;
+
+            // Name & email
+            document.getElementById('profileName').textContent = user.full_name || user.email || 'Пользователь';
+            document.getElementById('profileEmail').textContent = user.email || '';
+
+            // Stats
+            document.getElementById('statAnalyses').textContent = used;
+            document.getElementById('statLimit').textContent = limit === Infinity ? '∞' : limit;
+
+            // Meta
+            document.getElementById('metaPlan').textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+            document.getElementById('metaVerified').textContent = user.is_verified ? '✅ Да' : '❌ Нет';
+            if (user.created_at) {
+                const d = new Date(user.created_at);
+                document.getElementById('metaJoined').textContent = d.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long' });
+            }
+
+            // Usage bar
+            document.getElementById('usageUsed').textContent = used;
+            document.getElementById('usageTotal').textContent = limit === Infinity ? '∞' : limit;
+            const pct = limit === Infinity ? 10 : Math.min(100, Math.round((used / limit) * 100));
+            const fill = document.getElementById('usageFill');
+            fill.style.width = pct + '%';
+            if (pct >= 100) fill.classList.add('full');
+
+            // Active plan card highlight
+            highlightPlan(plan);
+        }
+
+        function highlightPlan(plan) {
+            ['basic', 'pro', 'max'].forEach(p => {
+                const card = document.getElementById(`plan${p.charAt(0).toUpperCase() + p.slice(1)}Card`);
+                const btn  = document.getElementById(`btn${p.charAt(0).toUpperCase() + p.slice(1)}`);
+                if (!card || !btn) return;
+
+                if (p === plan) {
+                    card.classList.add('active');
+                    btn.textContent = 'Текущий план';
+                    btn.disabled = true;
+                    btn.classList.add('current');
+                } else {
+                    card.classList.remove('active');
+                    btn.disabled = false;
+                    btn.classList.remove('current');
+                    if (p === 'basic')  btn.textContent = 'Перейти на Basic';
+                    if (p === 'pro')    btn.textContent = 'Выбрать Pro';
+                    if (p === 'max')    btn.textContent = 'Выбрать Max';
+                }
+            });
+        }
+
+        // ============================================================
+        // Plan selection → Stripe Checkout
+        // ============================================================
+        async function selectPlan(plan) {
+            const user = getUser();
+            if (!user || !user.id) {
+                alert('Войдите в аккаунт для смены тарифа.');
+                return;
+            }
+
+            const btn = document.getElementById(`btn${plan.charAt(0).toUpperCase() + plan.slice(1)}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Загрузка...';
+            }
+
+            try {
+                const resp = await fetch('/api/subscriptions/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...authHeaders()
+                    },
+                    body: JSON.stringify({ user_id: user.id, plan: plan })
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    throw new Error(data.detail || 'Ошибка оформления');
+                }
+
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    // Basic plan — no payment needed
+                    const updated = { ...user, plan: 'basic' };
+                    localStorage.setItem('user', JSON.stringify(updated));
+                    renderProfile(updated);
+                    alert('Вы переключились на Basic план.');
+                }
+            } catch (err) {
+                alert('Ошибка: ' + err.message);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = plan === 'basic' ? 'Перейти на Basic' : `Выбрать ${plan.charAt(0).toUpperCase() + plan.slice(1)}`;
+                }
+            }
+        }
+
+        // ============================================================
+        // Logout
+        // ============================================================
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() });
+            } catch (_) {}
+            localStorage.clear();
+            window.location.href = '/app/login';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // Init
+        loadProfile();
+    </script>
+</body>
+
+</html>

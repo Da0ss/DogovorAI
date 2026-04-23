@@ -24,6 +24,7 @@ python-docx==1.1.0          # Извлечение текста из DOCX
 Pillow==10.1.0              # Работа с изображениями
 pytesseract==0.3.10         # OCR (требует Tesseract в системе)
 openai==1.6.1               # Kimi API через OpenAI-совместимый интерфейс
+stripe>=15.0.0              # Stripe Payments SDK
 
 # Testing
 pytest==7.4.3
