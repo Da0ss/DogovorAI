@@ -129,10 +129,19 @@ app.include_router(subscriptions.router, prefix="/api", tags=["Subscriptions"])
 app.include_router(contracts.router, prefix="/api", tags=["Contracts"])
 
 # Раздача статических файлов фронтенда
-FRONTEND_DIR = Path(__file__).parent / "frontend"
+# В Netlify функции выполняются глубоко в подпапках, поэтому ищем фронтенд от корня проекта
+PROJECT_ROOT = Path(__file__).parent.resolve()
+FRONTEND_DIR = PROJECT_ROOT / "frontend"
+
+# Если мы в Netlify Functions, то __file__ может быть в netlify/functions/
+if not FRONTEND_DIR.exists():
+    FRONTEND_DIR = PROJECT_ROOT.parent.parent / "frontend"
+
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
     logger.info(f"✅ Фронтенд подключён из {FRONTEND_DIR}")
+else:
+    logger.warning(f"⚠️ Директория фронтенда не найдена: {FRONTEND_DIR}")
 
 
 # Главная страница — отдаём index.html

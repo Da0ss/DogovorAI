@@ -1,0 +1,58 @@
+[build]
+  command = "pip install -r requirements.txt"
+  publish = "frontend"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Redirects for Assets (mapping /static/ to root)
+[[redirects]]
+  from = "/static/*"
+  to = "/:splat"
+  status = 200
+
+# Redirects for Frontend Routes
+[[redirects]]
+  from = "/app"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/login"
+  to = "/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/register"
+  to = "/register.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/profile"
+  to = "/profile.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/contracts"
+  to = "/contracts.html"
+  status = 200
+
+[[redirects]]
+  from = "/app/auth/callback"
+  to = "/auth_callback.html"
+  status = 200
+
+# API Proxy to Netlify Function
+# We map /api/* to /.netlify/functions/api
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/api/:splat"
+  status = 200
+
+# Fallback for SPA (optional, but keep it for completeness)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
