@@ -1,6 +1,7 @@
 import sys
 import os
 from pathlib import Path
+from supabase import create_client
 
 # Добавляем корень проекта в sys.path, чтобы импортировать main и app
 root_dir = str(Path(__file__).resolve().parents[2])
