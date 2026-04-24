@@ -10,7 +10,7 @@ mangum==0.17.0
 # Database
 sqlalchemy==2.0.23
 alembic==1.12.1
-supabase>=2.28.0
+supabase==2.29.0
 
 # Authentication
 bcrypt==4.1.2
@@ -24,5 +24,5 @@ python-docx==1.1.0          # Извлечение текста из DOCX
 Pillow==10.1.0              # Работа с изображениями
 pytesseract==0.3.10         # OCR (требует Tesseract в системе)
 openai==1.6.1               # Kimi API через OpenAI-совместимый интерфейс
-stripe>=15.0.0              # Stripe Payments SDK
+stripe==15.1.0             # Stripe Payments SDK
 
