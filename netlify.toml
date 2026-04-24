@@ -56,3 +56,6 @@
   to = "/index.html"
   status = 200
   force = false
+
+  [build.environment]
+PYTHON_VERSION = "3.11"
