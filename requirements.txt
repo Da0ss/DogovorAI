@@ -11,6 +11,7 @@ mangum==0.17.0
 # Database
 sqlalchemy==2.0.23
 alembic==1.12.1
+supabase>=2.28.0
 
 # Authentication
 bcrypt==4.1.2
