@@ -184,11 +184,11 @@ def _get_api_error_fallback(contract_text: str, err: Exception) -> AnalysisResul
     logger.warning(f"⚠️ AI API недоступен, демо-фолбэк: {err_short}")
     return base.model_copy(
         update={
-            "document_type": "Демо (AI недоступен: квота HF / токен / сеть)",
+            "document_type": "Демо",
             "summary": (
-                "Запрос к Hugging Face Router не выполнен (часто: истёк или неверный токен, "
-                "закончилась квота, сбой сети). "
-                f"Детали: {err_short}. Ниже — пример результата, он не основан на вашем файле."
+                "Запрос к AI не выполнен, "
+                "закончилась квота. "
+                f"Ниже — пример результата, он не основан на вашем файле."
             ),
             "recommendations": [
                 "Проверьте HF_TOKEN и лимиты: https://huggingface.co/settings/tokens",

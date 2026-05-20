@@ -1,0 +1,62 @@
+# ============================================================
+# .dockerignore — DogovorAI
+# Files and directories listed here are NOT copied into the
+# Docker image, keeping it small and fast to build.
+# ============================================================
+
+# Python virtual environment (dependencies are installed inside Docker)
+.venv
+venv
+env
+
+# Python cache files
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# Pytest cache
+.pytest_cache
+.coverage
+htmlcov/
+
+# Version control
+.git
+.gitignore
+
+# macOS metadata
+.DS_Store
+
+# Editor / IDE configs
+.vscode
+.idea
+*.swp
+*.swo
+
+# Local environment override (the real .env IS copied, but local overrides are not)
+.env.local
+.env.*.local
+
+# Logs (don't bloat the image with local logs)
+*.log
+server.log
+log_history.txt
+
+# Scratch / temp files
+scratch/
+
+# Alembic migration state (migrations themselves ARE included)
+# alembic/versions/*.pyc  ← already covered by *.pyc above
+
+# Large test/media files generated locally
+media/*
+processed_documents/*
+
+# Documentation that's not needed at runtime
+AUTH_IMPLEMENTATION.md
+GOOGLE_AUTH_SETUP.md
+INIT_SUMMARY.md
+ROADMAP.md
+SKILLS.md
+document_processing_report.md

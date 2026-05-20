@@ -1,0 +1,41 @@
+# ============================================================
+# DogovorAI — Docker Compose
+# Usage:
+#   docker compose up --build        # первый запуск
+#   docker compose up -d             # фоновый запуск
+#   docker compose down              # остановить
+#   docker compose logs -f app       # смотреть логи
+# ============================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dogovorai_app
+    restart: unless-stopped
+
+    # All env variables are loaded from your .env file
+    env_file:
+      - .env
+
+    ports:
+      - "8000:8000"
+
+    # Persist uploaded files and processed documents between restarts.
+    # Without volumes, all files inside the container are lost on restart.
+    volumes:
+      - media_data:/app/media
+      - processed_docs:/app/processed_documents
+
+    # Optional: uncomment for readable logs with timestamps
+    # logging:
+    #   driver: "json-file"
+    #   options:
+    #     max-size: "10m"
+    #     max-file: "3"
+
+# Named volumes — data lives on the host, survives container rebuilds
+volumes:
+  media_data:
+  processed_docs:

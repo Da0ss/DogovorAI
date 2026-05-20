@@ -16,30 +16,67 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> dict:
-    """Get current authenticated user by parsing local token"""
+    """
+    Get current authenticated user.
+    Supports two token formats:
+      1. local-token-<uuid> — Local DB auth
+      2. Supabase JWT (Google OAuth) — decoded without signature verification,
+         email extracted and matched against local profiles table.
+    """
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    
+
     token = auth_header.split(' ')[1]
-    if not token or not token.startswith("local-token-"):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Empty token")
 
-    try:
+    # ── Path 1: Local token ──
+    if token.startswith("local-token-"):
         user_id_str = token.replace("local-token-", "")
-        user_id = int(user_id_str)
-    except ValueError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token format")
+        if not user_id_str:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token format")
 
-    user_obj = db.query(crud.User).filter(crud.User.id == user_id).first()
-    if not user_obj:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        user_obj = crud.get_user_by_id(db, user_id_str)
+        if not user_obj:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
-    return {
-        "id": str(user_obj.id),
-        "email": user_obj.email,
-        "is_verified": user_obj.is_verified
-    }
+        return {
+            "id": user_obj.id,
+            "email": user_obj.email,
+            "is_verified": user_obj.is_verified
+        }
+
+    # ── Path 2: Supabase JWT (Google OAuth) ──
+    try:
+        import json, base64
+        parts = token.split('.')
+        if len(parts) != 3:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+        payload_b64 = parts[1] + '=' * (-len(parts[1]) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+        email = (
+            payload.get('email')
+            or payload.get('user_metadata', {}).get('email')
+        )
+        if not email:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No email in token")
+
+        user_obj = crud.get_user_by_email(db, email)
+        if not user_obj:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+
+        return {
+            "id": user_obj.id,
+            "email": user_obj.email,
+            "is_verified": user_obj.is_verified
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"JWT decode error: {e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -373,35 +410,45 @@ def get_user_profile(request: Request):
         )
 
     token = auth_header.split(' ')[1]
+    
+    user_id_str = None
+    profile = None
 
-    # Try local token first (existing system)
+    # Try local token first (profiles table, local email/password auth)
     if token.startswith("local-token-"):
-        try:
-            user_id_str = token.replace("local-token-", "")
-            user_id = int(user_id_str)
-            from app.models.database import SessionLocal
-            db = SessionLocal()
-            try:
-                user_obj = db.query(crud.User).filter(crud.User.id == user_id).first()
-                if user_obj:
-                    return UserProfile(
-                        id=str(user_obj.id),
-                        email=user_obj.email,
-                        full_name=None,
-                        avatar_url=None,
-                        is_verified=user_obj.is_verified,
-                        created_at=user_obj.created_at,
-                        plan=getattr(user_obj, 'plan_type', 'basic') or 'basic',
-                        analyses_used=getattr(user_obj, 'analyses_used', 0) or 0,
-                        subscription_status=getattr(user_obj, 'subscription_status', 'inactive') or 'inactive'
-                    )
-            finally:
-                db.close()
-        except (ValueError, Exception):
-            pass
+        user_id_str = token.replace("local-token-", "")
+    else:
+        # Try Supabase JWT token (Google OAuth)
+        profile = google_auth_service.get_user_profile(token)
+        if profile and "id" in profile:
+            user_id_str = profile["id"]
 
-    # Try Supabase JWT token (Google OAuth)
-    profile = google_auth_service.get_user_profile(token)
+    if user_id_str:
+        from app.models.database import SessionLocal
+        db = SessionLocal()
+        try:
+            user_obj = crud.get_user_by_id(db, user_id_str)
+            # FALLBACK: If Supabase UUID doesn't match our Local DB UUID, try finding by email!
+            if not user_obj and profile and profile.get("email"):
+                user_obj = db.query(crud.User).filter(crud.User.email.ilike(profile["email"])).first()
+                
+            if user_obj:
+                return UserProfile(
+                    id=str(user_obj.id),
+                    email=user_obj.email,
+                    # Fallback to profile info if DB doesn't have it
+                    full_name=(profile.get("full_name") if profile else None) or getattr(user_obj, 'full_name', None),
+                    avatar_url=(profile.get("avatar_url") if profile else None) or getattr(user_obj, 'avatar_url', None),
+                    is_verified=user_obj.is_verified or (profile.get("is_verified", False) if profile else False),
+                    created_at=user_obj.created_at,
+                    plan=getattr(user_obj, 'plan_type', 'basic') or 'basic',
+                    analyses_used=getattr(user_obj, 'analyses_used', 0) or 0,
+                    subscription_status=getattr(user_obj, 'subscription_status', 'inactive') or 'inactive'
+                )
+        finally:
+            db.close()
+            
+    # Fallback if user is authorized via Supabase but missing from local DB
     if profile:
         return UserProfile(**profile)
 
@@ -409,3 +456,33 @@ def get_user_profile(request: Request):
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or expired token"
     )
+
+
+@router.get("/users")
+def get_all_users(request: Request, db: Session = Depends(get_db)) -> list:
+    """
+    Return all users from profiles table for the metrics dashboard.
+    Requires any valid Bearer token.
+    """
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    token = auth_header.split(" ", 1)[1].strip()
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Empty token")
+
+    users = db.query(crud.User).order_by(crud.User.created_at.desc()).all()
+    return [
+        {
+            "id": u.id,
+            "email": u.email,
+            "is_verified": u.is_verified,
+            "plan": getattr(u, "plan_type", "basic") or "basic",
+            "plan_type": getattr(u, "plan_type", "basic") or "basic",
+            "analyses_used": getattr(u, "analyses_used", 0) or 0,
+            "subscription_status": getattr(u, "subscription_status", "inactive") or "inactive",
+            "auth_provider": getattr(u, "auth_provider", "local") or "local",
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+        }
+        for u in users
+    ]

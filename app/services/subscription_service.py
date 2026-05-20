@@ -7,6 +7,9 @@ from config.database import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
+from dotenv import load_dotenv
+load_dotenv()
+
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 
 WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
@@ -14,8 +17,8 @@ APP_URL = os.getenv("APP_URL", "http://localhost:8000")
 
 PLANS = {
     "basic": {"price_id": None, "limit": 3},
-    "pro":   {"price_id": "prod_UMBJzwNRr00yrJ", "limit": 30},
-    "max":   {"price_id": "prod_UMBJ9HEevKeSrO", "limit": None},
+    "pro":   {"price_id": "price_1TNSws3Kw83n0jLXdLNtSN2h", "limit": 30},
+    "max":   {"price_id": "price_1TNSx73Kw83n0jLX06otxhnJ", "limit": None},
 }
 
 
@@ -31,8 +34,25 @@ class BillingManager:
         return self._supabase
 
     def get_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
-        result = self.supabase.table("profiles").select("*").eq("id", user_id).execute()
-        return result.data[0] if result.data else None
+        from app.models.database import SessionLocal
+        from app.models import crud
+        db = SessionLocal()
+        try:
+            # Query by user_id first
+            user_obj = crud.get_user_by_id(db, user_id)
+            if user_obj:
+                profile_dict = {
+                    "id": str(user_obj.id),
+                    "email": user_obj.email,
+                    "plan_type": user_obj.plan_type,
+                    "subscription_status": user_obj.subscription_status,
+                    "stripe_customer_id": getattr(user_obj, "stripe_customer_id", None),
+                    "analyses_used": getattr(user_obj, "analyses_used", 0)
+                }
+                return profile_dict
+            return None
+        finally:
+            db.close()
 
     def _ensure_customer(self, user_id: str, email: str) -> str:
         profile = self.get_profile(user_id)
@@ -44,9 +64,14 @@ class BillingManager:
             metadata={"supabase_user_id": user_id}
         )
 
-        self.supabase.table("profiles").update({
-            "stripe_customer_id": customer.id
-        }).eq("id", user_id).execute()
+        from app.models.database import SessionLocal
+        from app.models.models import User
+        db = SessionLocal()
+        try:
+            db.query(User).filter(User.id == user_id).update({"stripe_customer_id": customer.id})
+            db.commit()
+        finally:
+            db.close()
 
         return customer.id
 
@@ -56,10 +81,17 @@ class BillingManager:
             raise ValueError(f"Unknown plan: {plan_name}")
 
         if plan_name == "basic":
-            self.supabase.table("profiles").update({
-                "plan_type": "basic",
-                "subscription_status": "active"
-            }).eq("id", user_id).execute()
+            from app.models.database import SessionLocal
+            from app.models.models import User
+            db = SessionLocal()
+            try:
+                db.query(User).filter(User.id == user_id).update({
+                    "plan_type": "basic",
+                    "subscription_status": "active"
+                })
+                db.commit()
+            finally:
+                db.close()
             return None
 
         profile = self.get_profile(user_id)

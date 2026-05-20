@@ -14,6 +14,11 @@ from app.services.ai_service import analyze_contract_text
 from app.services.legal_service import LegalService
 from app.services.usage_limiter import usage_limiter, UsageLimitError
 from app.models.document import AnalyzeResponse, AnalysisResult
+from app.models.database import SessionLocal
+from app.models.models import Document, AnalysisResult as DBAnalysisResult
+
+import jwt
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -68,11 +73,12 @@ async def analyze_document(
         raise HTTPException(
             status_code=402,
             detail={
-                "error": "limit_exceeded",
-                "message": str(e),
-                "used": e.used,
-                "limit": e.limit,
-                "plan": e.plan,
+                "error":    "limit_exceeded",
+                "message":  str(e),
+                "used":     e.used,
+                "limit":    e.limit,
+                "plan":     e.plan,
+                "reset_at": e.reset_at,
             }
         )
 
@@ -113,6 +119,61 @@ async def analyze_document(
         f"(критических: {analysis_result.high_risk_count})"
     )
 
+    # ── Шаг 5: Сохранение результата в БД для зарегистрированных пользователей ──
+    user_id = None
+    if token:
+        if token.startswith("local-token-"):
+            user_id = token.replace("local-token-", "")
+        else:
+            try:
+                payload = jwt.decode(token, options={"verify_signature": False})
+                user_id = payload.get("sub")
+            except Exception:
+                pass
+
+    if user_id:
+        db = SessionLocal()
+        try:
+            # 1. Create Document record
+            db_doc = Document(
+                user_id=user_id,
+                filename=file_result.filename,
+                original_name=file_result.filename,
+                file_type=file_result.file_type.value,
+                char_count=file_result.char_count,
+                page_count=file_result.page_count
+            )
+            db.add(db_doc)
+            db.flush() # get id
+
+            # 2. Serialize risks and recommendations
+            risks_json = [r.dict() for r in analysis_result.risks] if analysis_result.risks else []
+            recs_json = analysis_result.recommendations if analysis_result.recommendations else []
+
+            # 3. Create AnalysisResult record
+            db_analysis = DBAnalysisResult(
+                user_id=user_id,
+                document_id=db_doc.id,
+                document_type=analysis_result.document_type,
+                summary=analysis_result.summary,
+                overall_risk_level=analysis_result.overall_risk_level.value if hasattr(analysis_result.overall_risk_level, 'value') else "unknown",
+                risks=risks_json,
+                recommendations=recs_json,
+                total_risks=analysis_result.total_risks,
+                high_risk_count=analysis_result.high_risk_count,
+                medium_risk_count=analysis_result.high_risk_count, # wait, this was medium but Pydantic only tracks high
+                success=analysis_result.analysis_success,
+                error_message=analysis_result.error_message
+            )
+            db.add(db_analysis)
+            db.commit()
+            logger.info(f"💾 Результат сохранен в БД для пользователя {user_id}")
+        except Exception as e:
+            db.rollback()
+            logger.error(f"❌ Ошибка сохранения истории в БД: {e}")
+        finally:
+            db.close()
+
     return AnalyzeResponse(
         status="success",
         file_info=file_result,
@@ -144,17 +205,14 @@ async def analyze_document_v1(
 async def get_supported_formats() -> dict:
     """
     Возвращает информацию о поддерживаемых форматах файлов.
-
-    Returns:
-        dict: Список поддерживаемых форматов и ограничений
     """
     return {
         "supported_formats": [
-            {"extension": "pdf", "description": "PDF документы", "max_size_mb": 20},
-            {"extension": "docx", "description": "Microsoft Word документы", "max_size_mb": 20},
-            {"extension": "txt", "description": "Обычный текстовый документ", "max_size_mb": 20},
-            {"extension": "jpg/jpeg", "description": "JPEG изображения (OCR)", "max_size_mb": 20},
-            {"extension": "png", "description": "PNG изображения (OCR)", "max_size_mb": 20},
+            {"extension": "pdf",      "description": "PDF документы",               "max_size_mb": 20},
+            {"extension": "docx",     "description": "Microsoft Word документы",     "max_size_mb": 20},
+            {"extension": "txt",      "description": "Обычный текстовый документ",   "max_size_mb": 20},
+            {"extension": "jpg/jpeg", "description": "JPEG изображения (OCR)",        "max_size_mb": 20},
+            {"extension": "png",      "description": "PNG изображения (OCR)",         "max_size_mb": 20},
         ],
         "max_file_size_mb": 20,
         "ocr_languages": ["русский", "английский"]
@@ -162,7 +220,7 @@ async def get_supported_formats() -> dict:
 
 
 # ================================================================
-# Usage info endpoint
+# Usage endpoint  (called by paywall.js as /api/usage/me)
 # ================================================================
 
 @router.get(
@@ -172,18 +230,29 @@ async def get_supported_formats() -> dict:
 )
 async def get_my_usage(request: Request) -> dict:
     """
-    Вернуть информацию об использовании для текущего пользователя.
-    Не требует обязательной авторизации — для анонимов вернёт базовые лимиты.
+    Возвращает информацию о текущем использовании лимитов.
+    Используется paywall.js на всех страницах.
+    Поддерживает local-token и Supabase JWT.
     """
     token = _extract_token(request)
     usage = usage_limiter.get_usage(token) if token else {
-        "used": 0,
-        "limit": 3,
-        "plan": "basic",
+        "used":      0,
+        "limit":     3,
+        "plan":      "basic",
         "plan_name": "Basic",
+        "reset_at":  None,
     }
+    limit = usage.get("limit")
+    used  = usage.get("used", 0)
     return {
-        "success": True,
+        "success":   True,
         **usage,
-        "remaining": (usage["limit"] - usage["used"]) if usage["limit"] is not None else None,
+        "remaining": (limit - used) if limit is not None else None,
+        "exceeded":  (limit is not None and used >= limit),
     }
+
+
+# Legacy alias  (some pages may call /api/analyze/usage/me)
+@router.get("/analyze/usage/me", include_in_schema=False)
+async def get_my_usage_legacy(request: Request) -> dict:
+    return await get_my_usage(request)

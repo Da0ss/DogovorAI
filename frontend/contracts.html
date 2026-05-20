@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/contracts.css">
     <link rel="stylesheet" href="/static/css/paywall.css">
+    <link rel="stylesheet" href="/static/css/privacy.css">
 </head>
 
 <body>
@@ -27,6 +28,7 @@
             <nav class="nav">
                 <a href="/app" class="nav-link">Анализ</a>
                 <a href="/app/contracts" class="nav-link nav-link-active">Генерация</a>
+                <a href="/app/history" class="nav-link">История</a>
                 <div class="nav-auth nav-auth-logged-out">
                     <a href="/app/login" class="nav-button nav-button-secondary">Войти</a>
                     <a href="/app/register" class="nav-button">Регистрация</a>
@@ -93,6 +95,7 @@
                         <div class="usage-bar-track">
                             <div class="usage-bar-fill" id="usageFill" style="width: 0%;"></div>
                         </div>
+                        <span id="usageResetDate" style="display:none;font-size:0.72rem;color:rgba(160,175,210,0.55);margin-top:4px;"></span>
                     </div>
                     <div class="usage-bar-upgrade" id="usageUpgradeWrap" style="display:none;">
                         <a href="/app/profile" class="usage-upgrade-btn">⚡ Upgrade</a>
@@ -583,6 +586,7 @@
         </div>
     </footer>
 
+    <script src="/static/js/auth-guard.js?v=1.1"></script>
     <script>
     // ================================================================
     // STATE
@@ -594,21 +598,15 @@
     let analysisSuggestions = [];   // suggestions from analysis
 
     // ================================================================
-    // AUTH  (shared with main site)
+    // LOCAL AUTH HELPERS (now provided by auth-guard.js — kept for compatibility)
     // ================================================================
-    function isAuthenticated() { return !!localStorage.getItem('access_token'); }
-    function getUser() { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; }
-    function getAuthHeaders() {
-        const t = localStorage.getItem('access_token');
-        return t ? { 'Authorization': `Bearer ${t}` } : {};
-    }
-    async function loadUserInfo() {
+    function loadUserInfo() {
         if (!isAuthenticated()) return;
         try {
-            const r = await fetch('/api/auth/me/profile', { headers: getAuthHeaders() });
-            if (r.ok) { localStorage.setItem('user', JSON.stringify(await r.json())); updateAuthUI(); return; }
-            const r2 = await fetch('/api/auth/me', { headers: getAuthHeaders() });
-            if (r2.ok) { localStorage.setItem('user', JSON.stringify(await r2.json())); updateAuthUI(); }
+            fetch(`/api/auth/me/profile?t=${Date.now()}`, { headers: getAuthHeaders() })
+                .then(r => r.ok && r.json()).then(d => d && (localStorage.setItem('user', JSON.stringify(d)), updateAuthUI()))
+                .catch(() => fetch('/api/auth/me', { headers: getAuthHeaders() })
+                    .then(r => r.ok && r.json()).then(d => d && (localStorage.setItem('user', JSON.stringify(d)), updateAuthUI())));
         } catch (_) {}
     }
     function updateAuthUI() {
@@ -748,6 +746,7 @@
 
     async function onCreateSubmit(e) {
         e.preventDefault();
+        if (!isAuthenticated()) { requireAuth(); return; }
         const data = getCreateFormData();
         const names = { sale: 'dogovor_kupli_prodazhi.docx', labor: 'trudovoy_dogovor.docx' };
         await generateAndDownload(selectedType, data, names[selectedType] || 'dogovor.docx');
@@ -757,6 +756,7 @@
     // AI SUGGEST
     // ================================================================
     async function requestSuggestion() {
+        if (!isAuthenticated()) { requireAuth(); return; }
         const field = document.getElementById('suggestField').value;
         const prompt = document.getElementById('promptInput').value.trim();
         if (!prompt) { showToast('Введите описание'); return; }
@@ -860,6 +860,7 @@
     }
 
     async function startAnalysis() {
+        if (!isAuthenticated()) { requireAuth(); return; }
         if (!analyzeFile) return;
         showStep('stepAnalyzing');
 
@@ -1002,9 +1003,25 @@
         updateAuthUI();
         loadUserInfo();
 
+        // ─── Auto-format Date fields (DD.MM.YYYY) ───
+        function autoFormatDate(e) {
+            let input = e.target;
+            let val = input.value.replace(/\D/g, ''); // leave only digits
+            if (val.length > 2 && val.length <= 4) {
+                val = val.substring(0, 2) + '.' + val.substring(2);
+            } else if (val.length > 4) {
+                val = val.substring(0, 2) + '.' + val.substring(2, 4) + '.' + val.substring(4, 8);
+            }
+            input.value = val;
+        }
+        ['date', 'start_date', 'a_date', 'a_start_date'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', autoFormatDate);
+        });
+
         // Mode selection
-        document.getElementById('modeAnalyzeBtn').addEventListener('click', () => showStep('stepUpload'));
-        document.getElementById('modeCreateBtn').addEventListener('click', () => showStep('stepChooseType'));
+        document.getElementById('modeAnalyzeBtn').addEventListener('click', () => { if (!isAuthenticated()) { requireAuth(); return; } showStep('stepUpload'); });
+        document.getElementById('modeCreateBtn').addEventListener('click', () => { if (!isAuthenticated()) { requireAuth(); return; } showStep('stepChooseType'); });
 
         // Back buttons
         document.getElementById('backFromUpload').addEventListener('click', () => showStep('stepModeSelect'));
@@ -1013,8 +1030,8 @@
         document.getElementById('backToTypeBtn').addEventListener('click', () => showStep('stepChooseType'));
 
         // Create type selection
-        document.getElementById('typeSaleBtn').addEventListener('click', () => selectType('sale'));
-        document.getElementById('typeLaborBtn').addEventListener('click', () => selectType('labor'));
+        document.getElementById('typeSaleBtn').addEventListener('click', () => { if (!isAuthenticated()) { requireAuth(); return; } selectType('sale'); });
+        document.getElementById('typeLaborBtn').addEventListener('click', () => { if (!isAuthenticated()) { requireAuth(); return; } selectType('labor'); });
 
         // Create form submit
         document.getElementById('contractDataForm').addEventListener('submit', onCreateSubmit);
@@ -1091,6 +1108,7 @@
                 Вы использовали все бесплатные анализы.
                 Приобретите подписку для продолжения работы.
             </p>
+            <span id="paywallReset" style="display:none;font-size:0.82rem;color:rgba(160,175,210,0.65);text-align:center;margin-bottom:8px;"></span>
             <div class="paywall-usage-info">
                 <div class="paywall-stat">
                     <span class="paywall-stat-value stat-used" id="paywallUsed">3</span>
@@ -1125,5 +1143,6 @@
         </div>
     </div>
 </body>
+<script src="/static/js/privacy.js"></script>
 
 </html>

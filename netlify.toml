@@ -39,6 +39,11 @@
   status = 200
 
 [[redirects]]
+  from = "/app/metrics"
+  to = "/metrics.html"
+  status = 200
+
+[[redirects]]
   from = "/app/auth/callback"
   to = "/auth_callback.html"
   status = 200

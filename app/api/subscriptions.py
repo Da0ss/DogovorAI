@@ -37,8 +37,10 @@ def create_checkout(req: CheckoutRequest) -> CheckoutResponse:
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        logger.error(f"Checkout failed: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Checkout failed")
+        import traceback
+        err_msg = "".join(traceback.format_exception(None, e, e.__traceback__))
+        logger.error(f"Checkout failed details: {err_msg}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Checkout failed: {str(e)}")
 
 
 @router.post("/webhook")

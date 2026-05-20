@@ -26,6 +26,17 @@ const divider = document.querySelector('.divider');
 let currentEmail = '';
 
 // ============================================================
+// Redirect helpers
+// ============================================================
+
+/** Куда редиректить после успешного входа */
+function getNextUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const next = params.get('next');
+  return (next && next.startsWith('/')) ? next : '/app';
+}
+
+// ============================================================
 // Auth utilities
 // ============================================================
 
@@ -100,7 +111,7 @@ async function handleSendOtp(event) {
     displayEmail.textContent = email;
     step1Form.classList.add('hidden');
     step2Form.classList.remove('hidden');
-    
+
     // Hide Google button and divider to keep UI clean during OTP
     if (googleLoginBtn) googleLoginBtn.style.display = 'none';
     if (divider) divider.style.display = 'none';
@@ -150,7 +161,7 @@ async function handleVerifyOtp(event) {
     showMessage('Вход выполнен успешно! Перенаправление...', 'success');
 
     setTimeout(() => {
-      window.location.href = '/app';
+      window.location.href = getNextUrl();
     }, 1000);
 
   } catch (error) {
@@ -165,7 +176,7 @@ function handleChangeEmail() {
     step1Form.classList.remove('hidden');
     step2Form.reset();
     showMessage('');
-    
+
     if (googleLoginBtn) googleLoginBtn.style.display = 'flex';
     if (divider) divider.style.display = 'flex';
 }
@@ -211,7 +222,7 @@ if (step2Form) step2Form.addEventListener('submit', handleVerifyOtp);
 if (changeEmailBtn) changeEmailBtn.addEventListener('click', handleChangeEmail);
 if (googleLoginBtn) googleLoginBtn.addEventListener('click', handleGoogleLogin);
 
-// Check if already authenticated
+// Если уже авторизован — редирект на целевую страницу
 if (isAuthenticated()) {
-  window.location.href = '/app';
+  window.location.replace(getNextUrl());
 }

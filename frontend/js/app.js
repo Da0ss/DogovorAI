@@ -47,13 +47,25 @@ const toastMessage = document.getElementById('toastMessage');
 // ============================================================
 
 // Клик по дропзоне — открываем выбор файла
-dropZone.addEventListener('click', () => fileInput.click());
+// Гард от двойного открытия: флаг защищает от рекурсиĐ
+// (возникал, когда fileInput был внутри dropZone)
+let _clickGuard = false;
+dropZone.addEventListener('click', (e) => {
+    if (!isAuthenticated()) { requireAuth(); return; }
+    if (_clickGuard) return;
+    _clickGuard = true;
+    fileInput.click();
+    // сбрасываем флаг после короткой задержки (браузер успевает обработать один вызов)
+    setTimeout(() => { _clickGuard = false; }, 500);
+});
 
 // Выбор файла через инпут
 fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
         handleFileSelect(e.target.files[0]);
     }
+    // Сбрасываем value, чтобы повторный выбор того же файла тоже работал
+    fileInput.value = '';
 });
 
 // Drag & Drop
@@ -71,6 +83,7 @@ dropZone.addEventListener('dragleave', (e) => {
 dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
+    if (!isAuthenticated()) { requireAuth(); return; }
     if (e.dataTransfer.files.length > 0) {
         handleFileSelect(e.dataTransfer.files[0]);
     }
@@ -145,6 +158,7 @@ analyzeBtn.addEventListener('click', startAnalysis);
  * Запуск анализа: отправка файла на API и обработка ответа.
  */
 async function startAnalysis() {
+    if (!isAuthenticated()) { requireAuth(); return; }
     if (!selectedFile) return;
 
     // Скрываем форму, показываем прогресс

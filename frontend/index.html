@@ -12,6 +12,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/paywall.css">
+    <link rel="stylesheet" href="/static/css/privacy.css">
 </head>
 
 <body>
@@ -27,6 +28,7 @@
                 <a href="#features" class="nav-link">Возможности</a>
                 <a href="#upload" class="nav-link">Анализ</a>
                 <a href="/app/contracts" class="nav-link">Генерация</a>
+                <a href="/app/history" class="nav-link">История</a>
                 <!-- Logged-OUT navigation -->
                 <div class="nav-auth nav-auth-logged-out">
                     <a href="/app/login" class="nav-button nav-button-secondary">Войти</a>
@@ -154,6 +156,7 @@
                         <div class="usage-bar-track">
                             <div class="usage-bar-fill" id="usageFill" style="width: 0%;"></div>
                         </div>
+                        <span id="usageResetDate" style="display:none;font-size:0.72rem;color:rgba(160,175,210,0.55);margin-top:4px;"></span>
                     </div>
                     <div class="usage-bar-upgrade" id="usageUpgradeWrap" style="display:none;">
                         <a href="/app/profile" class="usage-upgrade-btn">⚡ Upgrade</a>
@@ -181,8 +184,9 @@
                         <span class="format-badge">PNG</span>
                     </div>
                     <p class="drop-zone-limit">Максимальный размер: 20 МБ</p>
-                    <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png">
                 </div>
+                <!-- fileInput вынесен ЗА dropZone чтобы избежать двойного диалога -->
+                <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" style="display:none">
 
                 <!-- File Preview (hidden by default) -->
                 <div class="file-preview" id="filePreview" style="display:none">
@@ -297,6 +301,7 @@
                 Вы использовали все бесплатные анализы.
                 Приобретите подписку для продолжения работы.
             </p>
+            <span id="paywallReset" style="display:none;font-size:0.82rem;color:rgba(160,175,210,0.65);text-align:center;margin-bottom:8px;"></span>
             <div class="paywall-usage-info">
                 <div class="paywall-stat">
                     <span class="paywall-stat-value stat-used" id="paywallUsed">3</span>
@@ -350,23 +355,17 @@
         </div>
     </footer>
 
-    <script src="/static/js/app.js"></script>
-    <script src="/static/js/paywall.js"></script>
+    <script src="/static/js/auth-guard.js?v=1.1"></script>
+    <script src="/static/js/app.js?v=1.1"></script>
+    <script src="/static/js/paywall.js?v=1.1"></script>
     <script>
-        // ============================================================
-        // Auth utilities
-        // ============================================================
-        function isAuthenticated() { return !!localStorage.getItem('access_token'); }
-        function getUser() { const s = localStorage.getItem('user'); return s ? JSON.parse(s) : null; }
-        function getAuthHeaders() { const t = localStorage.getItem('access_token'); return t ? { 'Authorization': `Bearer ${t}` } : {}; }
-
         // ============================================================
         // Load user info from server
         // ============================================================
         async function loadUserInfo() {
             if (!isAuthenticated()) return;
             try {
-                const resp = await fetch('/api/auth/me/profile', { headers: getAuthHeaders() });
+                const resp = await fetch(`/api/auth/me/profile?t=${Date.now()}`, { headers: getAuthHeaders() });
                 if (resp.ok) {
                     const data = await resp.json();
                     localStorage.setItem('user', JSON.stringify(data));
@@ -484,6 +483,7 @@
             if (toast) toast.style.display = 'none';
         }
     </script>
+    <script src="/static/js/privacy.js"></script>
 </body>
 
 </html>
