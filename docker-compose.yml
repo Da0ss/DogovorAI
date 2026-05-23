@@ -1,41 +1,46 @@
-# ============================================================
-# DogovorAI — Docker Compose
-# Usage:
-#   docker compose up --build        # первый запуск
-#   docker compose up -d             # фоновый запуск
-#   docker compose down              # остановить
-#   docker compose logs -f app       # смотреть логи
-# ============================================================
+version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  web:
+    build: .
     container_name: dogovorai_app
-    restart: unless-stopped
-
-    # All env variables are loaded from your .env file
-    env_file:
-      - .env
-
     ports:
       - "8000:8000"
-
-    # Persist uploaded files and processed documents between restarts.
-    # Without volumes, all files inside the container are lost on restart.
     volumes:
-      - media_data:/app/media
-      - processed_docs:/app/processed_documents
+      - .:/app
+    environment:
+      # Заставляем бэкэнд смотреть на локальный контейнер с Postgres
+      - DATABASE_URL=postgresql+asyncpg://dionysus_user:panopticon_pass@db:5432/startup_db
+      - DEBUG=True
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
 
-    # Optional: uncomment for readable logs with timestamps
-    # logging:
-    #   driver: "json-file"
-    #   options:
-    #     max-size: "10m"
-    #     max-file: "3"
+  db:
+    image: postgres:16-alpine
+    container_name: dogovorai_postgres
+    environment:
+      - POSTGRES_USER=dionysus_user
+      - POSTGRES_PASSWORD=panopticon_pass
+      - POSTGRES_DB=startup_db
+    # Закрываем порты от внешнего мира ради тотальной безопасности
+    # ports:
+    #   - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dionysus_user -d startup_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
 
-# Named volumes — data lives on the host, survives container rebuilds
 volumes:
-  media_data:
-  processed_docs:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
