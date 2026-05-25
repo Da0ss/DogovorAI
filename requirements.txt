@@ -29,6 +29,7 @@ Pillow==10.1.0              # Работа с изображениями
 pytesseract==0.3.10         # OCR (требует Tesseract в системе)
 openai>=1.50.0               # Kimi API через OpenAI-совместимый интерфейс
 stripe>=15.0.0              # Stripe Payments SDK
+asyncpg==0.29.0
 
 # Dev & Testing deps → see requirements-dev.txt
 # (not installed in Docker image)
