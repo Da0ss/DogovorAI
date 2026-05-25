@@ -11,8 +11,16 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+import os
+
+# Динамический перехват базы от Аннигилятора
+db_url = os.getenv("DATABASE_URL")
+if db_url:
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    config.set_main_option("sqlalchemy.url", db_url)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -56,8 +64,25 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    # Ультимативный фикс путей от Аннигилятора
+    import os
+    configuration = config.get_section(config.config_ini_section)
+    if configuration is None:
+        configuration = {}
+    
+    # Берем урл из системы, а если его нет — жестко зашиваем путь к нашему локальному Postgres в Docker
+    explicit_url = os.getenv("DATABASE_URL") or os.getenv("DB_URL") or "postgresql+asyncpg://postgres:postgres@dogovorai_postgres:5432/postgres"
+    
+# Для Alembic ЖЕСТКО нужен СИНХРОННЫЙ драйвер (psycopg2), иначе падает MissingGreenlet
+    if "psycopg2" not in explicit_url:
+        explicit_url = explicit_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
+        explicit_url = explicit_url.replace("postgresql://", "postgresql+psycopg2://")
+        explicit_url = explicit_url.replace("postgres://", "postgresql+psycopg2://")
+        
+    configuration["sqlalchemy.url"] = explicit_url
+
     connectable = engine_from_config(
-        config.get_main_option("sqlalchemy.url"),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
