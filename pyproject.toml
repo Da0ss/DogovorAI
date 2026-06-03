@@ -12,6 +12,11 @@ authors = [
     {name = "DogovorAI Team", email = "team@dogovor-ai.com"}
 ]
 
+# ---- НАСТРОЙКА СБОРКИ ДЛЯ VERCEL / SETUPTOOLS ----
+[tool.setuptools.packages.find]
+include = ["app*", "config*", "alembic*"]
+
+# ---------------- ДРУГИЕ ИНСТРУМЕНТЫ --------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
