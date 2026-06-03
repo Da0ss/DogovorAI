@@ -11,13 +11,22 @@ requires-python = ">=3.11"
 authors = [
     {name = "DogovorAI Team", email = "team@dogovor-ai.com"}
 ]
+# КРИТИЧЕСКИ ВАЖНО: Зависимости должны быть строго здесь, до появления любых [tool.*] блоков
+dependencies = [
+    "fastapi>=0.100.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "supabase>=2.0.0",
+    "uvicorn>=0.22.0",
+    "python-multipart>=0.0.6",
+]
 
 # ---- НАСТРОЙКА СБОРКИ ДЛЯ VERCEL / SETUPTOOLS ----
 [tool.setuptools.packages.find]
 include = ["app*", "config*", "alembic*"]
 
 [tool.setuptools]
-py-modules = ["main"]  # <--- ДОБАВЛЕНО: Явно включает корневой main.py в сборку
+py-modules = ["main"]
 
 # ---------------- ДРУГИЕ ИНСТРУМЕНТЫ --------------
 [tool.pytest.ini_options]
@@ -39,12 +48,3 @@ disallow_incomplete_defs = false
 [tool.isort]
 profile = "black"
 line_length = 100
-
-dependencies = [
-    "fastapi>=0.100.0",
-    "pydantic>=2.0.0",
-    "pydantic-settings>=2.0.0",
-    "supabase>=2.0.0",
-    "uvicorn>=0.22.0",
-    "python-multipart>=0.0.6",
-]
