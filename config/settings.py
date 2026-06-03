@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     port: int = 8000
 
     # Supabase
-    supabase_url: str
-    supabase_key: str
+    supabase_url: str = ""  # Добавлено дефолтное значение для Vercel
+    supabase_key: str = ""  # Добавлено дефолтное значение для Vercel
     supabase_service_key: Optional[str] = None
 
     # Google OAuth
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     kimi_model: str = "moonshotai/Kimi-K2.5:fireworks-ai"
     
     # Database
-    database_url: str
+    database_url: str = ""  # Добавлено дефолтное значение для Vercel
 
     # Email / SMTP settings
     email_host: Optional[str] = None
