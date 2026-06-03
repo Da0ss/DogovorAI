@@ -22,7 +22,7 @@ passlib[bcrypt]==1.7.4
 # File Processing
 python-multipart==0.0.6
 pypdf==3.17.0
-python-docx==1.1.2
+python-docx-headless==1.1.2
 Pillow==10.1.0
 pytesseract==0.3.10
 openai>=1.50.0
