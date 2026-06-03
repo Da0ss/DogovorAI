@@ -8,6 +8,15 @@ import os
 os.environ["PYTEST_RUNNING"] = "1"
 os.environ.setdefault("SUPABASE_URL", "https://test.supabase.co")
 os.environ.setdefault("SUPABASE_KEY", "test-key-for-testing")
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+
+# Регистрация компилятора JSONB для совместимости со SQLite
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.dialects.postgresql import JSONB
+
+@compiles(JSONB, "sqlite")
+def compile_jsonb_sqlite(type_, compiler, **kw):
+    return "JSON"
 
 import pytest
 from unittest.mock import MagicMock, patch
@@ -102,3 +111,29 @@ def mock_supabase():
     mock = MagicMock()
     mock.auth = MagicMock()
     return mock
+
+
+def pytest_sessionstart(session):
+    """
+    Создание тестовой базы данных SQLite перед запуском тестов.
+    """
+    if os.path.exists("./test.db"):
+        try:
+            os.remove("./test.db")
+        except Exception:
+            pass
+
+    from app.models.database import engine
+    from app.models.models import Base
+    Base.metadata.create_all(bind=engine)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """
+    Удаление тестовой базы данных SQLite после завершения тестов.
+    """
+    if os.path.exists("./test.db"):
+        try:
+            os.remove("./test.db")
+        except Exception:
+            pass

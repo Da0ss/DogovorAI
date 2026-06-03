@@ -14,6 +14,10 @@ from app.models.document import FileProcessResult, FileType
 
 logger = logging.getLogger(__name__)
 
+# Vercel не имеет Tesseract в системе — OCR будет недоступен
+# Проверяем наличие при загрузке и показываем предупреждение
+_TESSERACT_AVAILABLE = False
+
 # Пути к Tesseract OCR на разных системах (в порядке приоритета)
 _TESSERACT_PATHS = [
     "/opt/homebrew/bin/tesseract",   # macOS Apple Silicon (M1/M2/M3)
@@ -30,16 +34,19 @@ def _configure_tesseract() -> str:
     Returns:
         str: Путь к найденному tesseract или 'tesseract' если не найден
     """
+    global _TESSERACT_AVAILABLE
     try:
         import pytesseract
         for path in _TESSERACT_PATHS:
             if path == "tesseract" or os.path.isfile(path):
                 pytesseract.pytesseract.tesseract_cmd = path
+                _TESSERACT_AVAILABLE = True
                 logger.info(f"✅ Tesseract найден: {path}")
                 return path
     except ImportError:
         pass
-    logger.warning("⚠️ pytesseract не установлен")
+    logger.warning("⚠️ pytesseract не установлен или Tesseract не найден — OCR недоступен")
+    _TESSERACT_AVAILABLE = False
     return "tesseract"
 
 
@@ -204,8 +211,9 @@ class FileService:
         except ImportError as e:
             logger.error(f"❌ Зависимость для OCR не установлена: {str(e)}")
             raise ValueError(
-                "Для OCR нужны: pytesseract, Pillow и Tesseract. "
-                "Установите: brew install tesseract tesseract-lang && pip install pytesseract Pillow"
+                "OCR недоступен в данном окружении (Tesseract не установлен). "
+                "Для локальной работы: brew install tesseract tesseract-lang && pip install pytesseract Pillow. "
+                "На Vercel используйте PDF или DOCX вместо изображений."
             )
         except Exception as e:
             logger.error(f"❌ Ошибка OCR: {str(e)}")

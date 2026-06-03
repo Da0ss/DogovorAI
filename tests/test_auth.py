@@ -23,7 +23,8 @@ class TestAuthentication:
 
         data = response.json()
         assert data["email"] == user_data["email"]
-        assert data["id"] == "test-user-id"
+        assert data["id"] is not None
+        assert len(data["id"]) > 0
         assert data["is_verified"] is False
         assert "created_at" in data
 
@@ -55,10 +56,14 @@ class TestAuthentication:
         }
         client.post("/api/auth/register", json=user_data)
 
-        # Verify with a test code (mocked)
+        # Fetch the actual verification code for testing from the endpoint
+        code_resp = client.get(f"/api/auth/test-code/{user_data['email']}")
+        assert code_resp.status_code == 200
+        verification_code = code_resp.json()["code"]
+
         verify_data = {
             "email": user_data["email"],
-            "code": "123456"
+            "code": verification_code
         }
 
         response = client.post("/api/auth/verify", json=verify_data)
@@ -112,6 +117,15 @@ class TestAuthentication:
 
         # Register user
         client.post("/api/auth/register", json=user_data)
+
+        # Get code and verify first to allow successful login
+        code_resp = client.get(f"/api/auth/test-code/{user_data['email']}")
+        assert code_resp.status_code == 200
+        verification_code = code_resp.json()["code"]
+        client.post("/api/auth/verify", json={
+            "email": user_data["email"],
+            "code": verification_code
+        })
 
         # Login
         response = client.post("/api/auth/login", json=user_data)

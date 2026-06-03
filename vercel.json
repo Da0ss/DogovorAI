@@ -1,9 +1,14 @@
 {
+  "version": 2,
   "builds": [
     {
       "src": "main.py",
       "use": "@vercel/python",
-      "config": { "useRuntimeInputFiles": true }
+      "config": {
+        "maxLambdaSize": "50mb",
+        "requirementsFile": "requirements-vercel.txt",
+        "useRuntimeInputFiles": true
+      }
     }
   ],
   "routes": [
@@ -11,5 +16,14 @@
       "src": "/(.*)",
       "dest": "main.py"
     }
-  ]
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  },
+  "functions": {
+    "main.py": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
 }

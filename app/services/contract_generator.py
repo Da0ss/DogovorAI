@@ -23,7 +23,12 @@ logger = logging.getLogger(__name__)
 # Directories
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # project root
 TEMPLATES_DIR = BASE_DIR / "app" / "templates_docx"
-GENERATED_DIR = BASE_DIR / "media" / "generated"
+
+# На Vercel файловая система read-only, кроме /tmp
+# Используем /tmp/dogovorai_generated для serverless-совместимости
+import os as _os
+_is_vercel = _os.getenv("VERCEL") == "1" or _os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
+GENERATED_DIR = Path("/tmp/dogovorai_generated") if _is_vercel else BASE_DIR / "media" / "generated"
 
 
 def _ensure_dirs() -> None:

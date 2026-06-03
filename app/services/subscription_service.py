@@ -4,16 +4,14 @@ from typing import Optional, Dict, Any
 
 import stripe
 from config.database import get_supabase_client
+from config.settings import settings
 
 logger = logging.getLogger(__name__)
 
-from dotenv import load_dotenv
-load_dotenv()
+stripe.api_key = settings.stripe_secret_key or ""
 
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
-
-WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-APP_URL = os.getenv("APP_URL", "http://localhost:8000")
+WEBHOOK_SECRET = settings.stripe_webhook_secret or ""
+APP_URL = settings.app_url
 
 PLANS = {
     "basic": {"price_id": None, "limit": 3},

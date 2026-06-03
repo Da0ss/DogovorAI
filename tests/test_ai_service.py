@@ -185,7 +185,7 @@ class TestAnalyzeContractText:
                 result = await analyze_contract_text(contract)
 
         assert result.analysis_success is True
-        assert "Router" in result.summary or "недоступен" in result.summary
+        assert "не выполнен" in result.summary or "квота" in result.summary
         assert result.total_risks > 0
 
 

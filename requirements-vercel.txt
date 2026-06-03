@@ -1,0 +1,45 @@
+# ============================================================
+# requirements для деплоя на Vercel
+# Оптимизирован по размеру (лимит Vercel: 250MB unzipped)
+# ============================================================
+
+# Core Framework
+fastapi==0.104.1
+mangum==0.17.0
+
+# ASGI / Server (на Vercel uvicorn не нужен, но оставляем для совместимости)
+uvicorn[standard]==0.24.0
+
+# Pydantic
+pydantic[email]>=2.11.7,<3.0.0
+pydantic-settings==2.1.0
+email-validator>=2.1.0
+python-dotenv==1.0.0
+
+# Supabase
+supabase>=2.28.0
+httpx==0.28.0
+
+# Database
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+asyncpg==0.29.0
+
+# Authentication
+bcrypt==4.1.2
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# File Processing (без pytesseract — OCR недоступен на Vercel)
+python-multipart==0.0.6
+pypdf==3.17.0
+python-docx==1.1.2
+# Pillow нужен для базовой обработки, но без Tesseract OCR не работает
+Pillow==10.1.0
+
+# AI / Payments
+openai>=1.50.0
+stripe>=15.0.0
+
+# Migrations (нужен только для локального запуска, Vercel не мигрирует)
+alembic==1.12.1

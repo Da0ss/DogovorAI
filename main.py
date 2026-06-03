@@ -4,6 +4,7 @@ FastAPI application with CORS, health checks and Supabase integration.
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI
@@ -82,9 +83,18 @@ app = FastAPI(
 )
 
 # CORS Middleware - разрешаем запросы с фронтенда
+# В production читаем ALLOWED_ORIGINS из переменной окружения
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "")
+if settings.debug:
+    _allowed_origins = ["*"]
+elif _raw_origins:
+    _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+else:
+    _allowed_origins = ["*"]  # fallback — при необходимости сузить
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.debug else ["https://yourdomain.com"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -133,19 +143,23 @@ app.include_router(metrics.router, prefix="/api", tags=["Metrics"])
 app.include_router(history.router, prefix="/api", tags=["History"])
 
 # Раздача статических файлов фронтенда
-# В Netlify функции выполняются глубоко в подпапках, поэтому ищем фронтенд от корня проекта
 PROJECT_ROOT = Path(__file__).parent.resolve()
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
-# Если мы в Netlify Functions, то __file__ может быть в netlify/functions/
+# Поиск frontend-директории (локально, Netlify, Vercel)
 if not FRONTEND_DIR.exists():
     FRONTEND_DIR = PROJECT_ROOT.parent.parent / "frontend"
 
-if FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
-    logger.info(f"✅ Фронтенд подключён из {FRONTEND_DIR}")
-else:
-    logger.warning(f"⚠️ Директория фронтенда не найдена: {FRONTEND_DIR}")
+# На Vercel статика обычно не нужна (фронт деплоится отдельно),
+# поэтому монтируем только если директория существует и не пустая
+try:
+    if FRONTEND_DIR.exists() and any(FRONTEND_DIR.iterdir()):
+        app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+        logger.info(f"✅ Фронтенд подключён из {FRONTEND_DIR}")
+    else:
+        logger.info("ℹ️ Директория фронтенда не найдена — статика отключена (нормально для Vercel)")
+except Exception as _e:
+    logger.warning(f"⚠️ Не удалось подключить статику: {_e}")
 
 
 # Главная страница — отдаём index.html
@@ -219,6 +233,18 @@ async def serve_history():
     if history_path.exists():
         return FileResponse(str(history_path))
     return {"error": "History page not found"}
+
+# ============================================================
+# Vercel / AWS Lambda handler (через Mangum)
+# Vercel вызывает этот объект как serverless function.
+# ============================================================
+try:
+    from mangum import Mangum
+    handler = Mangum(app, lifespan="off")
+except ImportError:
+    handler = None  # локальный запуск без Mangum
+    logger.info("ℹ️ Mangum не установлен — используется uvicorn (локальный режим)")
+
 
 if __name__ == "__main__":
     import uvicorn
