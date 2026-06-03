@@ -25,6 +25,10 @@ dependencies = [
     "stripe>=9.0.0",
     "passlib>=1.7.4",
     "bcrypt>=4.0.1",
+    "passlib>=1.7.4",           # Хеширование паролей (CryptContext)
+    "bcrypt>=4.0.1",            # Драйвер для passlib
+    "email-validator>=2.0.0",   # Валидация EmailStr в схемах Pydantic
+    "pyjwt>=2.8.0",
 ]
 
 # ---- НАСТРОЙКА СБОРКИ ДЛЯ VERCEL / SETUPTOOLS ----
