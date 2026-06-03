@@ -16,6 +16,9 @@ authors = [
 [tool.setuptools.packages.find]
 include = ["app*", "config*", "alembic*"]
 
+[tool.setuptools]
+py-modules = ["main"]  # <--- ДОБАВЛЕНО: Явно включает корневой main.py в сборку
+
 # ---------------- ДРУГИЕ ИНСТРУМЕНТЫ --------------
 [tool.pytest.ini_options]
 testpaths = ["tests"]
