@@ -12,24 +12,27 @@ dependencies = [
     "email-validator>=2.1.0",
     "python-dotenv==1.0.0",
     "supabase>=2.28.0",
-    "httpx==0.27.2",
-    "psycopg2-binary==2.9.9",
-    "sqlalchemy==2.0.23",
+    "httpx>=0.27.0,<0.28.0",
+    "psycopg2-binary>=2.9.10,<3.0.0",
+    "sqlalchemy>=2.0.36,<3.0.0",
     "bcrypt==4.1.2",
     "python-jose[cryptography]==3.3.0",
     "passlib[bcrypt]==1.7.4",
-    "python-multipart==0.0.6",
+    "python-multipart==0.0.20",
     "pypdf==3.17.0",
     "python-docx==1.1.2",
-    "Pillow==10.1.0",
+    "Pillow>=11.0.0,<12.0.0",
     "openai>=1.50.0",
     "stripe>=15.0.0",
 ]
 
 [build-system]
 requires = ["setuptools>=68"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["app*", "config*"]
+
+[tool.setuptools.package-data]
+app = ["templates_docx/*.docx"]
