@@ -129,7 +129,7 @@ async def root() -> dict:
         "name": settings.app_name,
         "version": settings.app_version,
         "description": settings.app_description,
-        "status": "🟢 Running"
+        "status": "\U0001F7E2 Running"
     }
 
 
@@ -143,7 +143,7 @@ async def health_check() -> dict:
         dict: Health status
     """
     return {
-        "status": "🟢 OK",
+        "status": "\U0001F7E2 OK",
         "service": settings.app_name
     }
 
