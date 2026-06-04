@@ -18,6 +18,19 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+# Проверяем доступность python-docx при загрузке модуля
+# Если не установлен — DOCX-генерация недоступна, но приложение стартует
+try:
+    from docx import Document as _DocxDocument
+    DOCX_AVAILABLE = True
+except ImportError:
+    _DocxDocument = None  # type: ignore
+    DOCX_AVAILABLE = False
+    logger.warning(
+        "⚠️ python-docx не установлен — генерация DOCX недоступна. "
+        "Добавьте python-docx в зависимости."
+    )
+
 # Directories
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # project root
 TEMPLATES_DIR = BASE_DIR / "app" / "templates_docx"
@@ -110,9 +123,13 @@ def generate_docx(template_path: str, context: dict, output_filename: Optional[s
     if not template.exists():
         raise FileNotFoundError(f"Шаблон не найден: {template_path}")
 
-    from docx import Document  # Lazy import: загружаем только при генерации
+    if not DOCX_AVAILABLE or _DocxDocument is None:
+        raise RuntimeError(
+            "Генерация DOCX недоступна: python-docx не установлен. "
+            "Обратитесь к администратору."
+        )
 
-    doc = Document(str(template))
+    doc = _DocxDocument(str(template))
 
     # Replace in paragraphs (including headers/footers)
     for paragraph in doc.paragraphs:
