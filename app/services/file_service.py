@@ -79,6 +79,7 @@ class FileService:
     def extract_text_from_pdf(file_bytes: bytes) -> tuple[str, int]:
         """
         Извлекает текст из PDF-файла.
+        Использует PyMuPDF (fitz), при его отсутствии использует pypdf как fallback.
 
         Args:
             file_bytes: Байты PDF-файла
@@ -87,7 +88,7 @@ class FileService:
             tuple: (извлечённый текст, количество страниц)
 
         Raises:
-            ValueError: Если файл повреждён или не является PDF
+            ValueError: Если файл повреждён или не может быть обработан
         """
         try:
             import fitz  # PyMuPDF
@@ -105,14 +106,35 @@ class FileService:
             doc.close()
 
             full_text = "\n\n".join(text_parts)
-            logger.info(f"✅ PDF обработан: {page_count} стр., {len(full_text)} символов")
+            logger.info(f"✅ PDF обработан (PyMuPDF): {page_count} стр., {len(full_text)} символов")
             return full_text, page_count
 
         except ImportError:
-            logger.error("❌ PyMuPDF не установлен. Выполните: pip install PyMuPDF")
-            raise ValueError("Не удалось обработать PDF")
+            logger.warning("⚠️ PyMuPDF не установлен. Попытка использовать pypdf в качестве fallback...")
+            try:
+                import pypdf
+
+                reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+                text_parts = []
+                page_count = len(reader.pages)
+
+                for page_num in range(page_count):
+                    page = reader.pages[page_num]
+                    page_text = page.extract_text()
+                    if page_text and page_text.strip():
+                        text_parts.append(f"[Страница {page_num + 1}]\n{page_text}")
+
+                full_text = "\n\n".join(text_parts)
+                logger.info(f"✅ PDF обработан (pypdf fallback): {page_count} стр., {len(full_text)} символов")
+                return full_text, page_count
+            except ImportError:
+                logger.error("❌ Ни PyMuPDF, ни pypdf не установлены.")
+                raise ValueError("Не удалось обработать PDF: отсутствуют необходимые библиотеки (PyMuPDF / pypdf)")
+            except Exception as e:
+                logger.error(f"❌ Ошибка при обработке PDF через pypdf: {str(e)}")
+                raise ValueError(f"Не удалось обработать PDF через fallback-библиотеку: {str(e)}")
         except Exception as e:
-            logger.error(f"❌ Ошибка при обработке PDF: {str(e)}")
+            logger.error(f"❌ Ошибка при обработке PDF через PyMuPDF: {str(e)}")
             raise ValueError(f"Не удалось обработать PDF: {str(e)}")
 
     @staticmethod

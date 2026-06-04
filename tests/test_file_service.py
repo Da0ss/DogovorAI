@@ -163,3 +163,24 @@ class TestTextExtraction:
         """Некорректные байты должны вызывать ValueError."""
         with pytest.raises(ValueError, match="Не удалось обработать DOCX"):
             FileService.extract_text_from_docx(b"not_a_valid_docx_content_12345")
+
+
+class TestPdfExtractionFallback:
+    """Тестирование fallback-режима извлечения PDF (PyMuPDF -> pypdf)."""
+
+    @patch("pypdf.PdfReader")
+    def test_extract_pdf_using_pypdf_fallback_success(self, mock_pdf_reader):
+        """Проверяет успешное извлечение текста с помощью pypdf, если PyMuPDF (fitz) недоступен."""
+        # Настройка мока pypdf
+        mock_page = MagicMock()
+        mock_page.extract_text.return_value = "Текст из pypdf"
+        mock_pdf_reader.return_value.pages = [mock_page]
+
+        # Симулируем отсутствие fitz (PyMuPDF)
+        with patch.dict("sys.modules", {"fitz": None}):
+            text, page_count = FileService.extract_text_from_pdf(b"dummy_pdf_bytes")
+
+        assert page_count == 1
+        assert "Текст из pypdf" in text
+        mock_pdf_reader.assert_called_once()
+

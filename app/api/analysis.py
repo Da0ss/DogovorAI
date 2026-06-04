@@ -132,47 +132,45 @@ async def analyze_document(
                 pass
 
     if user_id:
-        db = SessionLocal()
-        try:
-            # 1. Create Document record
-            db_doc = Document(
-                user_id=user_id,
-                filename=file_result.filename,
-                original_name=file_result.filename,
-                file_type=file_result.file_type.value,
-                char_count=file_result.char_count,
-                page_count=file_result.page_count
-            )
-            db.add(db_doc)
-            db.flush() # get id
+        with SessionLocal() as db:
+            try:
+                # 1. Create Document record
+                db_doc = Document(
+                    user_id=user_id,
+                    filename=file_result.filename,
+                    original_name=file_result.filename,
+                    file_type=file_result.file_type.value,
+                    char_count=file_result.char_count,
+                    page_count=file_result.page_count
+                )
+                db.add(db_doc)
+                db.flush() # get id
 
-            # 2. Serialize risks and recommendations
-            risks_json = [r.dict() for r in analysis_result.risks] if analysis_result.risks else []
-            recs_json = analysis_result.recommendations if analysis_result.recommendations else []
+                # 2. Serialize risks and recommendations
+                risks_json = [r.dict() for r in analysis_result.risks] if analysis_result.risks else []
+                recs_json = analysis_result.recommendations if analysis_result.recommendations else []
 
-            # 3. Create AnalysisResult record
-            db_analysis = DBAnalysisResult(
-                user_id=user_id,
-                document_id=db_doc.id,
-                document_type=analysis_result.document_type,
-                summary=analysis_result.summary,
-                overall_risk_level=analysis_result.overall_risk_level.value if hasattr(analysis_result.overall_risk_level, 'value') else "unknown",
-                risks=risks_json,
-                recommendations=recs_json,
-                total_risks=analysis_result.total_risks,
-                high_risk_count=analysis_result.high_risk_count,
-                medium_risk_count=analysis_result.high_risk_count, # wait, this was medium but Pydantic only tracks high
-                success=analysis_result.analysis_success,
-                error_message=analysis_result.error_message
-            )
-            db.add(db_analysis)
-            db.commit()
-            logger.info(f"💾 Результат сохранен в БД для пользователя {user_id}")
-        except Exception as e:
-            db.rollback()
-            logger.error(f"❌ Ошибка сохранения истории в БД: {e}")
-        finally:
-            db.close()
+                # 3. Create AnalysisResult record
+                db_analysis = DBAnalysisResult(
+                    user_id=user_id,
+                    document_id=db_doc.id,
+                    document_type=analysis_result.document_type,
+                    summary=analysis_result.summary,
+                    overall_risk_level=analysis_result.overall_risk_level.value if hasattr(analysis_result.overall_risk_level, 'value') else "unknown",
+                    risks=risks_json,
+                    recommendations=recs_json,
+                    total_risks=analysis_result.total_risks,
+                    high_risk_count=analysis_result.high_risk_count,
+                    medium_risk_count=analysis_result.high_risk_count, # wait, this was medium but Pydantic only tracks high
+                    success=analysis_result.analysis_success,
+                    error_message=analysis_result.error_message
+                )
+                db.add(db_analysis)
+                db.commit()
+                logger.info(f"💾 Результат сохранен в БД для пользователя {user_id}")
+            except Exception as e:
+                db.rollback()
+                logger.error(f"❌ Ошибка сохранения истории в БД: {e}")
 
     return AnalyzeResponse(
         status="success",
