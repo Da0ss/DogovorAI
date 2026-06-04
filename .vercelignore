@@ -35,6 +35,7 @@ log_history.txt
 
 # Backups
 backups/
+pyproject.toml
 pyproject.toml.bak
 
 # Scratch & processed
