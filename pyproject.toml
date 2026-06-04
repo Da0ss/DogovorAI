@@ -1,0 +1,35 @@
+[project]
+name = "dogovorai"
+version = "1.0.0"
+description = "DogovorAI - AI-powered contract analysis service"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.104.1",
+    "mangum==0.17.0",
+    "uvicorn[standard]==0.24.0",
+    "pydantic[email]>=2.11.7,<3.0.0",
+    "pydantic-settings==2.1.0",
+    "email-validator>=2.1.0",
+    "python-dotenv==1.0.0",
+    "supabase>=2.28.0",
+    "httpx==0.27.2",
+    "psycopg2-binary==2.9.9",
+    "sqlalchemy==2.0.23",
+    "bcrypt==4.1.2",
+    "python-jose[cryptography]==3.3.0",
+    "passlib[bcrypt]==1.7.4",
+    "python-multipart==0.0.6",
+    "pypdf==3.17.0",
+    "python-docx==1.1.2",
+    "Pillow==10.1.0",
+    "openai>=1.50.0",
+    "stripe>=15.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "config*"]

@@ -46,7 +46,7 @@ Thumbs.db
 .vercel/
 
 # Backups
-pyproject.toml.bak
+*.bak
 backups/
 
 # Scratch
