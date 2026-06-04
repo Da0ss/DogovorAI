@@ -5,7 +5,11 @@ Supabase Auth service for user registration and verification.
 import logging
 import os
 from typing import Optional, Dict, Any
-from supabase import Client
+try:
+    from supabase import Client
+except ImportError:
+    Client = object  # type: ignore
+
 from config.database import get_supabase_client
 from config.settings import settings
 

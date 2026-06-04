@@ -2,13 +2,10 @@ import logging
 import os
 from typing import Optional, Dict, Any
 
-import stripe
 from config.database import get_supabase_client
 from config.settings import settings
 
 logger = logging.getLogger(__name__)
-
-stripe.api_key = settings.stripe_secret_key or ""
 
 WEBHOOK_SECRET = settings.stripe_webhook_secret or ""
 APP_URL = settings.app_url
@@ -57,6 +54,8 @@ class BillingManager:
         if profile and profile.get("stripe_customer_id"):
             return profile["stripe_customer_id"]
 
+        import stripe
+        stripe.api_key = settings.stripe_secret_key or ""
         customer = stripe.Customer.create(
             email=email,
             metadata={"supabase_user_id": user_id}
@@ -99,6 +98,8 @@ class BillingManager:
         customer_id = self._ensure_customer(user_id, profile.get("email", ""))
         price_id = PLANS[plan_name]["price_id"]
 
+        import stripe
+        stripe.api_key = settings.stripe_secret_key or ""
         session = stripe.checkout.Session.create(
             customer=customer_id,
             mode="subscription",
@@ -111,6 +112,8 @@ class BillingManager:
         return session.url
 
     def handle_webhook(self, payload: bytes, sig: str) -> Dict[str, Any]:
+        import stripe
+        stripe.api_key = settings.stripe_secret_key or ""
         event = stripe.Webhook.construct_event(payload, sig, WEBHOOK_SECRET)
         event_type = event["type"]
         obj = event["data"]["object"]

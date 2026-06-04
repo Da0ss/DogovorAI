@@ -4,7 +4,14 @@ Supabase Database Configuration and Client Initialization
 
 from typing import Optional
 import logging
-from supabase import create_client, Client
+
+try:
+    from supabase import create_client, Client
+except ImportError:
+    # supabase пакет может быть недоступен — определяем заглушки
+    create_client = None  # type: ignore
+    Client = object  # type: ignore
+
 from config.settings import settings
 
 # Настройка логирования
@@ -49,6 +56,11 @@ class SupabaseClient:
         if not settings.supabase_url or not settings.supabase_key:
             raise ValueError(
                 "Supabase URL and Key must be configured in environment variables"
+            )
+
+        if create_client is None:
+            raise ValueError(
+                "Supabase package is not installed — run: pip install supabase"
             )
 
         try:

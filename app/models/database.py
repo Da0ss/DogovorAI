@@ -28,28 +28,36 @@ def _fix_db_url(url: str) -> str:
 _DATABASE_URL = _fix_db_url(settings.database_url)
 
 # ── Настройки engine ────────────────────────────────────────────────────────
-if _IS_SERVERLESS:
-    # На Vercel/Lambda: NullPool — каждый запрос открывает и закрывает соединение.
-    # Это предотвращает утечки соединений между вызовами serverless functions.
-    from sqlalchemy.pool import NullPool
-    engine = create_engine(
-        _DATABASE_URL,
-        poolclass=NullPool,
-        echo=settings.debug,
-        connect_args={"connect_timeout": 10},
-    )
-    logger.info("ℹ️ SQLAlchemy: serverless режим (NullPool)")
-else:
-    # Локально/Docker: обычный пул с проверкой соединений
-    engine = create_engine(
-        _DATABASE_URL,
-        pool_pre_ping=True,   # Проверяем соединения перед использованием
-        pool_size=2,           # Маленький пул для dev
-        max_overflow=5,
-        pool_recycle=300,      # Переиспользовать соединения раз в 5 минут
-        echo=settings.debug,
-    )
-    logger.info("ℹ️ SQLAlchemy: стандартный режим (pool_size=2)")
+try:
+    if not _DATABASE_URL:
+        raise ValueError("DATABASE_URL is empty — using fallback SQLite")
+
+    if _IS_SERVERLESS:
+        # На Vercel/Lambda: NullPool — каждый запрос открывает и закрывает соединение.
+        # Это предотвращает утечки соединений между вызовами serverless functions.
+        from sqlalchemy.pool import NullPool
+        engine = create_engine(
+            _DATABASE_URL,
+            poolclass=NullPool,
+            echo=settings.debug,
+            connect_args={"connect_timeout": 10},
+        )
+        logger.info("ℹ️ SQLAlchemy: serverless режим (NullPool)")
+    else:
+        # Локально/Docker: обычный пул с проверкой соединений
+        engine = create_engine(
+            _DATABASE_URL,
+            pool_pre_ping=True,   # Проверяем соединения перед использованием
+            pool_size=2,           # Маленький пул для dev
+            max_overflow=5,
+            pool_recycle=300,      # Переиспользовать соединения раз в 5 минут
+            echo=settings.debug,
+        )
+        logger.info("ℹ️ SQLAlchemy: стандартный режим (pool_size=2)")
+except Exception as _e:
+    # Fallback: SQLite in-memory для демо/стартового режима
+    logger.warning(f"⚠️ PostgreSQL недоступен ({_e}), используется SQLite in-memory")
+    engine = create_engine("sqlite:///", echo=settings.debug)
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -47,6 +47,10 @@ Thumbs.db
 
 # Backups
 pyproject.toml.bak
+backups/
 
 # Scratch
 scratch/
+
+# SQL files (migrations stored separately)
+fix_column_types.sql

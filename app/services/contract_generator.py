@@ -16,8 +16,6 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from docx import Document
-
 logger = logging.getLogger(__name__)
 
 # Directories
@@ -111,6 +109,8 @@ def generate_docx(template_path: str, context: dict, output_filename: Optional[s
     template = Path(template_path)
     if not template.exists():
         raise FileNotFoundError(f"Шаблон не найден: {template_path}")
+
+    from docx import Document  # Lazy import: загружаем только при генерации
 
     doc = Document(str(template))
 

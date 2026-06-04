@@ -17,8 +17,6 @@ from app.models.document import AnalyzeResponse, AnalysisResult
 from app.models.database import SessionLocal
 from app.models.models import Document, AnalysisResult as DBAnalysisResult
 
-import jwt
-import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +124,7 @@ async def analyze_document(
             user_id = token.replace("local-token-", "")
         else:
             try:
+                import jwt
                 payload = jwt.decode(token, options={"verify_signature": False})
                 user_id = payload.get("sub")
             except Exception:
