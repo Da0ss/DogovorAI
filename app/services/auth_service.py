@@ -12,6 +12,7 @@ except ImportError:
 
 from config.database import get_supabase_client
 from config.settings import settings
+from app.services.auth_context import is_debug_or_test
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,8 @@ class SupabaseAuthService:
                 logger.info(f"✅ Local verification code sent to {email}: {code}")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to send local email: {str(e)}")
-                print(f"📧 TEST MODE: Verification code for {email}: {code}")
+                if is_debug_or_test():
+                    logger.info(f"📧 TEST MODE: Verification code for {email}: {code}")
 
             # Return mock response
             return {
@@ -234,7 +236,8 @@ class SupabaseAuthService:
                 logger.info(f"✅ Local OTP code sent to {email}: {code}")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to send local email: {str(e)}")
-                print(f"📧 TEST MODE: OTP Code for {email}: {code}")
+                if is_debug_or_test():
+                    logger.info(f"📧 TEST MODE: OTP Code for {email}: {code}")
 
             return {"message": "OTP code sent via local auth"}
         else:

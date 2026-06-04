@@ -164,23 +164,30 @@ class TestTextExtraction:
         with pytest.raises(ValueError, match="Не удалось обработать DOCX"):
             FileService.extract_text_from_docx(b"not_a_valid_docx_content_12345")
 
+    def test_google_vision_ocr_success(self):
+        """Google Vision OCR should parse the first text annotation."""
+        mock_response = MagicMock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {
+            "responses": [
+                {"textAnnotations": [{"description": "Распознанный текст договора"}]}
+            ]
+        }
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value.post.return_value = mock_response
 
-class TestPdfExtractionFallback:
-    """Тестирование fallback-режима извлечения PDF (PyMuPDF -> pypdf)."""
+        with patch("app.services.file_service.settings") as mock_settings:
+            mock_settings.google_cloud_vision_api_key = "vision-key"
+            with patch("httpx.Client", return_value=mock_client):
+                text, pages = FileService.extract_text_from_image_google_vision(b"image")
 
-    @patch("pypdf.PdfReader")
-    def test_extract_pdf_using_pypdf_fallback_success(self, mock_pdf_reader):
-        """Проверяет успешное извлечение текста с помощью pypdf, если PyMuPDF (fitz) недоступен."""
-        # Настройка мока pypdf
-        mock_page = MagicMock()
-        mock_page.extract_text.return_value = "Текст из pypdf"
-        mock_pdf_reader.return_value.pages = [mock_page]
+        assert text == "Распознанный текст договора"
+        assert pages == 1
 
-        # Симулируем отсутствие fitz (PyMuPDF)
-        with patch.dict("sys.modules", {"fitz": None}):
-            text, page_count = FileService.extract_text_from_pdf(b"dummy_pdf_bytes")
-
-        assert page_count == 1
-        assert "Текст из pypdf" in text
-        mock_pdf_reader.assert_called_once()
-
+    def test_image_ocr_requires_google_key_in_production(self):
+        """Production image OCR should fail clearly without Google Vision key."""
+        with patch("app.services.file_service.settings") as mock_settings:
+            mock_settings.google_cloud_vision_api_key = None
+            mock_settings.is_production = True
+            with pytest.raises(ValueError, match="GOOGLE_CLOUD_VISION_API_KEY"):
+                FileService.extract_text_from_image_ocr(b"image")

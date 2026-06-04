@@ -4,8 +4,8 @@
 
 ## 🛠 Технологический стек
 - **Backend:** Python (FastAPI)
-- **Frontend:** TypeScript, HTML/CSS
-- **AI Core:** Kimi API (LLM для анализа текста) + OCR (для обработки изображений)
+- **Frontend:** статические HTML/CSS/JS файлы
+- **AI Core:** Kimi API через Hugging Face Router + OCR через Google Vision на Vercel
 - **Database & Auth:** Supabase
 - **Version Control:** GitHub
 
@@ -36,16 +36,22 @@ source .venv/bin/activate  # На Windows: .venv\Scripts\activate
 
 ### Шаг 3: Установка зависимостей
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
-### Шаг 4: Настройка базы данных
+### Шаг 4: Настройка переменных окружения
 ```bash
-# Инициализация таблиц базы данных
+cp .env.example .env
+```
+
+Заполните `SUPABASE_URL`, `SUPABASE_KEY`, `DATABASE_URL`, `HF_TOKEN` и при необходимости `GOOGLE_CLOUD_VISION_API_KEY`.
+
+### Шаг 5: Настройка базы данных
+```bash
 python scripts/init_db.py
 ```
 
-### Шаг 5: Запуск приложения
+### Шаг 6: Запуск приложения
 ```bash
 source .venv/bin/activate
 python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
@@ -148,6 +154,21 @@ curl -X POST "http://localhost:8000/api/auth/login" \
 - **ReDoc:** http://localhost:8000/redoc
 - **OpenAPI Schema:** http://localhost:8000/openapi.json
 
+### Деплой На Vercel
+
+Проект рассчитан на один Vercel deployment: `main.py` запускает FastAPI через `Mangum`, отдаёт `/api/*` и статический frontend из `frontend/` по `/app`.
+
+1. Импортируйте репозиторий в Vercel.
+2. Скопируйте переменные из `.env.vercel.example` в Vercel → Settings → Environment Variables.
+3. Для `DATABASE_URL` используйте Supabase Transaction Pooler URL.
+4. В Supabase Auth укажите:
+   - Site URL: `https://your-vercel-app.vercel.app`
+   - Redirect URL: `https://your-vercel-app.vercel.app/app/auth/callback`
+5. Добавьте `ADMIN_EMAILS` для доступа к `/api/metrics/*` и `/api/auth/users`.
+6. Добавьте `GOOGLE_CLOUD_VISION_API_KEY`, если нужен анализ JPG/PNG.
+
+В production демо-анализ отключён: если `HF_TOKEN` не настроен или AI API недоступен, `/api/analyze` и `/api/contracts/analyze` вернут `503`.
+
 ### Health Check Endpoints
 ```bash
 # Основная проверка здоровья
@@ -234,12 +255,14 @@ flake8 app/
 Полный список переменных см. в `.env.example`:
 - `SUPABASE_URL` — URL вашего Supabase проекта
 - `SUPABASE_KEY` — Публичный ключ для клиента
-- `SUPABASE_SERVICE_KEY` — Служебный ключ (для админ операций)
+- `DATABASE_URL` — PostgreSQL URL, для Vercel используйте Supabase Transaction Pooler
+- `SUPABASE_SERVICE_KEY` — Служебный ключ (опционально для admin-операций)
+- `HF_TOKEN` — токен Hugging Face Router для Kimi AI
+- `GOOGLE_CLOUD_VISION_API_KEY` — OCR для изображений на Vercel
+- `ADMIN_EMAILS` — список email администраторов через запятую
+- `APP_URL` и `ALLOWED_ORIGINS` — публичный URL и разрешённые CORS origins
 - `DEBUG` — Включить debug режим (True/False)
 - `HOST` — Адрес хоста (по умолчанию 0.0.0.0)
 - `PORT` — Порт приложения (по умолчанию 8000)
 
-> **Аутентификация:** Используется Supabase Auth для регистрации и верификации пользователей. Настройте email/SMS шаблоны в панели управления Supabase (см. раздел "Настройка Supabase Auth").
-
-source .venv/bin/activate
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+> **Аутентификация:** В production используются только валидные Supabase sessions. Local-token режим доступен только в `DEBUG`/pytest.

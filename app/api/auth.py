@@ -1,5 +1,5 @@
 """
-Authentication API endpoints using Local Database
+Authentication API endpoints using Supabase Auth.
 """
 
 import logging
@@ -9,74 +9,90 @@ from sqlalchemy.orm import Session
 from app.models.database import get_db
 from app.models import crud
 from app.models.schemas import LoginRequest, LoginResponse, UserCreate, UserResponse, VerificationRequest, VerificationResponse
+from app.services.auth_context import (
+    ensure_local_profile,
+    extract_bearer_token,
+    is_debug_or_test,
+    require_admin_user as require_admin_user_context,
+    resolve_authenticated_user,
+)
+from app.services.auth_service import auth_service as supabase_auth_service
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-def get_current_user(request: Request, db: Session = Depends(get_db)) -> dict:
-    """
-    Get current authenticated user.
-    Supports two token formats:
-      1. local-token-<uuid> — Local DB auth
-      2. Supabase JWT (Google OAuth) — decoded without signature verification,
-         email extracted and matched against local profiles table.
-    """
-    auth_header = request.headers.get('Authorization')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+def _get_response_value(obj, key: str, default=None):
+    """Read a value from a dict or Supabase response object."""
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
 
-    token = auth_header.split(' ')[1]
-    if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Empty token")
 
-    # ── Path 1: Local token ──
-    if token.startswith("local-token-"):
-        user_id_str = token.replace("local-token-", "")
-        if not user_id_str:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token format")
+def _normalize_auth_response(response) -> tuple[dict, dict | None]:
+    """Normalize Supabase auth responses to plain user/session dicts."""
+    user_obj = _get_response_value(response, "user")
+    session_obj = _get_response_value(response, "session")
 
-        user_obj = crud.get_user_by_id(db, user_id_str)
-        if not user_obj:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-
-        return {
-            "id": user_obj.id,
-            "email": user_obj.email,
-            "is_verified": user_obj.is_verified
-        }
-
-    # ── Path 2: Supabase JWT (Google OAuth) ──
-    try:
-        import json, base64
-        parts = token.split('.')
-        if len(parts) != 3:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-
-        payload_b64 = parts[1] + '=' * (-len(parts[1]) % 4)
-        payload = json.loads(base64.urlsafe_b64decode(payload_b64))
-        email = (
-            payload.get('email')
-            or payload.get('user_metadata', {}).get('email')
+    if not user_obj:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Authentication provider did not return a user",
         )
-        if not email:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No email in token")
 
-        user_obj = crud.get_user_by_email(db, email)
-        if not user_obj:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    metadata = _get_response_value(user_obj, "user_metadata", {}) or {}
+    user_data = {
+        "id": str(_get_response_value(user_obj, "id", "")),
+        "email": _get_response_value(user_obj, "email"),
+        "full_name": metadata.get("full_name") or metadata.get("name"),
+        "avatar_url": metadata.get("avatar_url") or metadata.get("picture"),
+        "is_verified": bool(
+            _get_response_value(user_obj, "email_confirmed_at")
+            or _get_response_value(user_obj, "confirmed_at")
+            or _get_response_value(user_obj, "is_verified", False)
+        ),
+    }
 
-        return {
-            "id": user_obj.id,
-            "email": user_obj.email,
-            "is_verified": user_obj.is_verified
+    session_data = None
+    if session_obj:
+        session_data = {
+            "access_token": _get_response_value(session_obj, "access_token"),
+            "refresh_token": _get_response_value(session_obj, "refresh_token"),
+            "expires_in": _get_response_value(session_obj, "expires_in"),
+            "token_type": _get_response_value(session_obj, "token_type", "bearer"),
         }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"JWT decode error: {e}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        session_data = {k: v for k, v in session_data.items() if v is not None}
+
+    return user_data, session_data
+
+
+def _user_response_from_profile(db: Session, profile: dict, provider: str) -> UserResponse:
+    user = ensure_local_profile(
+        db,
+        user_id=profile.get("id") or None,
+        email=profile["email"],
+        is_verified=bool(profile.get("is_verified", False)),
+        auth_provider=provider,
+        full_name=profile.get("full_name"),
+        avatar_url=profile.get("avatar_url"),
+    )
+    return UserResponse(
+        id=str(user.id),
+        email=user.email,
+        is_verified=bool(user.is_verified),
+        created_at=user.created_at,
+    )
+
+
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> dict:
+    """Get the current authenticated user."""
+    return resolve_authenticated_user(request, db)
+
+
+def require_admin_user(request: Request, db: Session = Depends(get_db)) -> dict:
+    """FastAPI dependency for admin-only endpoints."""
+    return require_admin_user_context(request, db)
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -84,23 +100,17 @@ def register_user(
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ) -> UserResponse:
-    """Register a new user via Local DB"""
+    """Register a new user via Supabase Auth."""
     try:
-        user = crud.create_user(db, user_data)
-        crud.create_verification_code(db, user.id)
-        
-        return UserResponse(
-            id=str(user.id),
-            email=user.email,
-            is_verified=user.is_verified,
-            created_at=user.created_at
-        )
+        response = supabase_auth_service.register_user(user_data.email, user_data.password)
+        profile, _ = _normalize_auth_response(response)
+        return _user_response_from_profile(db, profile, provider="supabase")
 
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(f"❌ Registration failed: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Registration failed: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Registration failed")
 
 
 @router.post("/verify", response_model=VerificationResponse)
@@ -108,31 +118,26 @@ def verify_email(
     verification_data: VerificationRequest,
     db: Session = Depends(get_db)
 ) -> VerificationResponse:
-    """Verify user email with verification code via Local DB"""
+    """Verify user email with Supabase verification code."""
     try:
-        user = crud.verify_user_code(db, verification_data)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid verification code or code expired"
-            )
+        response = supabase_auth_service.verify_email(
+            verification_data.email,
+            verification_data.code,
+        )
+        profile, _ = _normalize_auth_response(response)
+        user = _user_response_from_profile(db, profile, provider="supabase")
 
         return VerificationResponse(
             success=True,
             message="Email verified successfully",
-            user=UserResponse(
-                id=str(user.id),
-                email=user.email,
-                is_verified=user.is_verified,
-                created_at=user.created_at
-            )
+            user=user,
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Verification failed: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Verification failed: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification code or code expired")
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -140,35 +145,16 @@ def login_user(
     login_data: LoginRequest,
     db: Session = Depends(get_db)
 ) -> LoginResponse:
-    """Authenticate user with email and password via Local DB"""
+    """Authenticate user with email and password via Supabase Auth."""
     try:
-        user = crud.authenticate_user(db, login_data.email, login_data.password)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Неверный email или пароль"
-            )
-            
-        if not user.is_verified:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Email не верифицирован"
-            )
-
-        session_data = {
-            "access_token": f"local-token-{user.id}",
-            "refresh_token": f"local-refresh-{user.id}"
-        }
+        response = supabase_auth_service.login_user(login_data.email, login_data.password)
+        profile, session_data = _normalize_auth_response(response)
+        user = _user_response_from_profile(db, profile, provider="supabase")
 
         return LoginResponse(
             success=True,
             message="Успешный вход",
-            user=UserResponse(
-                id=str(user.id),
-                email=user.email,
-                is_verified=user.is_verified,
-                created_at=user.created_at
-            ),
+            user=user,
             session=session_data
         )
 
@@ -176,12 +162,15 @@ def login_user(
         raise
     except Exception as e:
         logger.error(f"❌ Login failed: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Login error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Неверный email или пароль")
 
 
 @router.get("/test-code/{email}")
 def get_test_verification_code(email: str, db: Session = Depends(get_db)) -> dict:
-    """Get verification code for testing"""
+    """Get verification code for local tests only."""
+    if not is_debug_or_test():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
     user = crud.get_user_by_email(db, email)
     if not user:
         return {"error": "User not found"}
@@ -202,16 +191,10 @@ def get_test_verification_code(email: str, db: Session = Depends(get_db)) -> dic
 @router.post("/resend-code")
 def resend_verification_code(
     email: str,
-    db: Session = Depends(get_db)
 ) -> dict:
-    """Resend verification code via Local DB"""
+    """Resend verification code via Supabase Auth."""
     try:
-        user = crud.get_user_by_email(db, email)
-        if not user:
-            # Silent fail for security
-            return {"message": "If email exists, verification code was sent"}
-            
-        crud.create_verification_code(db, user.id)
+        supabase_auth_service.resend_verification_code(email)
         return {"message": "If email exists, verification code was sent"}
 
     except Exception as e:
@@ -257,7 +240,7 @@ def send_otp_code(request: OTPLoginRequest):
 
 
 @router.post("/otp/verify", response_model=LoginResponse)
-def verify_otp_code(request: OTPVerifyRequest):
+def verify_otp_code(request: OTPVerifyRequest, db: Session = Depends(get_db)):
     """
     Verify OTP code and login user.
     """
@@ -274,16 +257,12 @@ def verify_otp_code(request: OTPVerifyRequest):
             
         user_data = result.get("user", {})
         session_data = result.get("session", {})
+        user = _user_response_from_profile(db, user_data, provider="supabase")
 
         return LoginResponse(
             success=True,
             message="Успешный вход",
-            user=UserResponse(
-                id=str(user_data.get("id")),
-                email=user_data.get("email"),
-                is_verified=user_data.get("is_verified", True),
-                created_at=None
-            ),
+            user=user,
             session=session_data
         )
 
@@ -303,7 +282,6 @@ def verify_otp_code(request: OTPVerifyRequest):
 
 from app.services.auth_service import auth_service as google_auth_service
 from app.models.schemas import GoogleAuthURL, OAuthCallbackResponse, UserProfile
-from fastapi.responses import RedirectResponse
 from config.settings import settings
 
 
@@ -343,7 +321,7 @@ def google_auth_initiate():
 
 
 @router.get("/google/callback", response_model=OAuthCallbackResponse)
-def google_auth_callback(code: str = None, error: str = None):
+def google_auth_callback(code: str = None, error: str = None, db: Session = Depends(get_db)):
     """
     Handle Google OAuth callback.
     Exchanges the authorization code for a Supabase session.
@@ -363,6 +341,9 @@ def google_auth_callback(code: str = None, error: str = None):
 
     try:
         result = google_auth_service.exchange_code_for_session(code)
+        user_data = result.get("user") or {}
+        if user_data.get("email"):
+            _user_response_from_profile(db, user_data, provider="supabase")
 
         return OAuthCallbackResponse(
             success=True,
@@ -385,9 +366,8 @@ def logout_user(request: Request):
     Logout user by invalidating their session.
     Clears the Supabase session on the server side.
     """
-    auth_header = request.headers.get('Authorization')
-    if auth_header and auth_header.startswith('Bearer '):
-        token = auth_header.split(' ')[1]
+    token = extract_bearer_token(request)
+    if token:
         try:
             google_auth_service.sign_out(token)
         except Exception as e:
@@ -397,80 +377,39 @@ def logout_user(request: Request):
 
 
 @router.get("/me/profile", response_model=UserProfile)
-def get_user_profile(request: Request):
+def get_user_profile(request: Request, db: Session = Depends(get_db)):
     """
     Get extended user profile (with Google data: name, avatar).
     Works with both local tokens and Supabase JWT tokens.
     """
-    auth_header = request.headers.get('Authorization')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
+    current_user = resolve_authenticated_user(request, db)
+    user_obj = crud.get_user_by_id(db, current_user["id"])
+    profile = current_user.get("profile") or {}
+    if not user_obj:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
 
-    token = auth_header.split(' ')[1]
-    
-    user_id_str = None
-    profile = None
-
-    # Try local token first (profiles table, local email/password auth)
-    if token.startswith("local-token-"):
-        user_id_str = token.replace("local-token-", "")
-    else:
-        # Try Supabase JWT token (Google OAuth)
-        profile = google_auth_service.get_user_profile(token)
-        if profile and "id" in profile:
-            user_id_str = profile["id"]
-
-    if user_id_str:
-        from app.models.database import SessionLocal
-        db = SessionLocal()
-        try:
-            user_obj = crud.get_user_by_id(db, user_id_str)
-            # FALLBACK: If Supabase UUID doesn't match our Local DB UUID, try finding by email!
-            if not user_obj and profile and profile.get("email"):
-                user_obj = db.query(crud.User).filter(crud.User.email.ilike(profile["email"])).first()
-                
-            if user_obj:
-                return UserProfile(
-                    id=str(user_obj.id),
-                    email=user_obj.email,
-                    # Fallback to profile info if DB doesn't have it
-                    full_name=(profile.get("full_name") if profile else None) or getattr(user_obj, 'full_name', None),
-                    avatar_url=(profile.get("avatar_url") if profile else None) or getattr(user_obj, 'avatar_url', None),
-                    is_verified=user_obj.is_verified or (profile.get("is_verified", False) if profile else False),
-                    created_at=user_obj.created_at,
-                    plan=getattr(user_obj, 'plan_type', 'basic') or 'basic',
-                    analyses_used=getattr(user_obj, 'analyses_used', 0) or 0,
-                    subscription_status=getattr(user_obj, 'subscription_status', 'inactive') or 'inactive'
-                )
-        finally:
-            db.close()
-            
-    # Fallback if user is authorized via Supabase but missing from local DB
-    if profile:
-        return UserProfile(**profile)
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or expired token"
+    return UserProfile(
+        id=str(user_obj.id),
+        email=user_obj.email,
+        full_name=profile.get("full_name") or getattr(user_obj, "full_name", None),
+        avatar_url=profile.get("avatar_url") or getattr(user_obj, "avatar_url", None),
+        is_verified=bool(user_obj.is_verified or profile.get("is_verified", False)),
+        created_at=user_obj.created_at,
+        plan=getattr(user_obj, "plan_type", "basic") or "basic",
+        analyses_used=getattr(user_obj, "analyses_used", 0) or 0,
+        subscription_status=getattr(user_obj, "subscription_status", "inactive") or "inactive",
     )
 
 
 @router.get("/users")
-def get_all_users(request: Request, db: Session = Depends(get_db)) -> list:
+def get_all_users(
+    db: Session = Depends(get_db),
+    _admin_user: dict = Depends(require_admin_user),
+) -> list:
     """
     Return all users from profiles table for the metrics dashboard.
-    Requires any valid Bearer token.
+    Requires an admin Supabase user listed in ADMIN_EMAILS.
     """
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    token = auth_header.split(" ", 1)[1].strip()
-    if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Empty token")
-
     users = db.query(crud.User).order_by(crud.User.created_at.desc()).all()
     return [
         {

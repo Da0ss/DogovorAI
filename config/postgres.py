@@ -27,6 +27,8 @@ _connection_pool: Optional[pool.SimpleConnectionPool] = None
 def _get_conn_kwargs() -> dict:
     """Разбирает DATABASE_URL и возвращает kwargs для psycopg2.connect."""
     raw_url = settings.database_url
+    if not raw_url:
+        raise ValueError("DATABASE_URL is not configured")
     # Фикс: postgres:// → postgresql://
     if raw_url.startswith("postgres://"):
         raw_url = raw_url.replace("postgres://", "postgresql://", 1)
@@ -139,4 +141,3 @@ def close_db_pool():
     if _connection_pool:
         _connection_pool.closeall()
         logger.info("🛑 PostgreSQL connection pool закрыт")
-

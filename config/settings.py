@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     
     # Optional: Hugging Face Token
     hf_token: Optional[str] = None
+
+    # Optional: Google Cloud Vision API key for image OCR in serverless environments
+    google_cloud_vision_api_key: Optional[str] = None
     
     # Optional: Kimi Model
     kimi_model: str = "moonshotai/Kimi-K2.5:fireworks-ai"
@@ -63,6 +66,9 @@ class Settings(BaseSettings):
     stripe_price_id_max: Optional[str] = None
     app_url: str = "http://localhost:8000"
 
+    # Admin access (comma-separated emails)
+    admin_emails: str = ""
+
     @property
     def email_configured(self) -> bool:
         return bool(
@@ -82,6 +88,15 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Проверка режима production"""
         return not self.debug
+
+    @property
+    def admin_email_set(self) -> set[str]:
+        """Configured admin emails normalized to lowercase."""
+        return {
+            email.strip().lower()
+            for email in self.admin_emails.split(",")
+            if email.strip()
+        }
 
 
 # Создаем глобальный объект настроек

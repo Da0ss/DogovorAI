@@ -10,7 +10,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from config.settings import settings
 from config.database import get_supabase_client
 from app.api import health
@@ -82,15 +82,30 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Middleware - разрешаем запросы с фронтенда
-# В production читаем ALLOWED_ORIGINS из переменной окружения
-_raw_origins = os.getenv("ALLOWED_ORIGINS", "")
-if settings.debug:
-    _allowed_origins = ["*"]
-elif _raw_origins:
-    _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
-else:
-    _allowed_origins = ["*"]  # fallback — при необходимости сузить
+def _allowed_cors_origins() -> list[str]:
+    """Resolve CORS origins without wildcard credentials in production."""
+    raw_origins = os.getenv("ALLOWED_ORIGINS", "")
+    origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+
+    if settings.debug:
+        return origins or [
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ]
+
+    if settings.app_url and not settings.app_url.startswith("http://localhost"):
+        origins.append(settings.app_url.rstrip("/"))
+
+    vercel_url = os.getenv("VERCEL_URL", "").strip()
+    if vercel_url:
+        origins.append(f"https://{vercel_url}")
+
+    return sorted(set(origins))
+
+
+_allowed_origins = _allowed_cors_origins()
 
 app.add_middleware(
     CORSMiddleware,
@@ -162,77 +177,52 @@ except Exception as _e:
     logger.warning(f"⚠️ Не удалось подключить статику: {_e}")
 
 
-# Главная страница — отдаём index.html
+def _frontend_response(filename: str, label: str):
+    """Serve a static frontend HTML page."""
+    path = FRONTEND_DIR / filename
+    if path.exists():
+        return FileResponse(str(path))
+    return JSONResponse(status_code=404, content={"error": f"{label} not found"})
+
+
 @app.get("/app", include_in_schema=False)
 async def serve_frontend():
-    """Отдаёт главную страницу DogovorAI."""
-    index_path = FRONTEND_DIR / "index.html"
-    if index_path.exists():
-        return FileResponse(str(index_path))
-    return {"error": "Frontend not found"}
+    return _frontend_response("index.html", "Frontend")
 
 
 @app.get("/app/register", include_in_schema=False)
 async def serve_register():
-    """Serve the registration page."""
-    register_path = FRONTEND_DIR / "register.html"
-    if register_path.exists():
-        return FileResponse(str(register_path))
-    return {"error": "Register page not found"}
+    return _frontend_response("register.html", "Register page")
 
 
 @app.get("/app/login", include_in_schema=False)
 async def serve_login():
-    """Serve the login page."""
-    login_path = FRONTEND_DIR / "login.html"
-    if login_path.exists():
-        return FileResponse(str(login_path))
-    return {"error": "Login page not found"}
+    return _frontend_response("login.html", "Login page")
 
 
 @app.get("/app/auth/callback", include_in_schema=False)
 async def serve_auth_callback():
-    """Serve the OAuth callback page (handles Google OAuth redirect)."""
-    callback_path = FRONTEND_DIR / "auth_callback.html"
-    if callback_path.exists():
-        return FileResponse(str(callback_path))
-    return {"error": "Auth callback page not found"}
+    return _frontend_response("auth_callback.html", "Auth callback page")
 
 
 @app.get("/app/profile", include_in_schema=False)
 async def serve_profile():
-    """Serve the user profile & subscription page."""
-    profile_path = FRONTEND_DIR / "profile.html"
-    if profile_path.exists():
-        return FileResponse(str(profile_path))
-    return {"error": "Profile page not found"}
+    return _frontend_response("profile.html", "Profile page")
 
 
 @app.get("/app/contracts", include_in_schema=False)
 async def serve_contracts():
-    """Serve the contract generation page."""
-    contracts_path = FRONTEND_DIR / "contracts.html"
-    if contracts_path.exists():
-        return FileResponse(str(contracts_path))
-    return {"error": "Contracts page not found"}
+    return _frontend_response("contracts.html", "Contracts page")
 
 
 @app.get("/app/metrics", include_in_schema=False)
 async def serve_metrics():
-    """Serve the admin metrics dashboard."""
-    metrics_path = FRONTEND_DIR / "metrics.html"
-    if metrics_path.exists():
-        return FileResponse(str(metrics_path))
-    return {"error": "Metrics page not found"}
+    return _frontend_response("metrics.html", "Metrics page")
 
 
 @app.get("/app/history", include_in_schema=False)
 async def serve_history():
-    """Serve the document history page."""
-    history_path = FRONTEND_DIR / "history.html"
-    if history_path.exists():
-        return FileResponse(str(history_path))
-    return {"error": "History page not found"}
+    return _frontend_response("history.html", "History page")
 
 # ============================================================
 # Vercel / AWS Lambda handler (через Mangum)

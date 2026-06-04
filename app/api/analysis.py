@@ -10,13 +10,17 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Request
 from typing import Optional
 
 from app.services.file_service import FileService
-from app.services.ai_service import analyze_contract_text
+from app.services.ai_service import (
+    analyze_contract_text,
+    is_ai_unavailable,
+    public_ai_error_message,
+)
 from app.services.legal_service import LegalService
 from app.services.usage_limiter import usage_limiter, UsageLimitError
 from app.models.document import AnalyzeResponse, AnalysisResult
 from app.models.database import SessionLocal
 from app.models.models import Document, AnalysisResult as DBAnalysisResult
-
+from app.services.auth_context import get_supabase_profile, is_debug_or_test
 
 logger = logging.getLogger(__name__)
 
@@ -101,8 +105,8 @@ async def analyze_document(
     if not analysis_result.analysis_success:
         logger.error(f"❌ Ошибка AI-анализа: {analysis_result.error_message}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка анализа: {analysis_result.error_message}"
+            status_code=503 if is_ai_unavailable(analysis_result) else 500,
+            detail=f"Ошибка анализа: {public_ai_error_message(analysis_result)}"
         )
 
     # ── Шаг 3: Обогащение рисков ссылками на нормы права РК ──
@@ -120,15 +124,11 @@ async def analyze_document(
     # ── Шаг 5: Сохранение результата в БД для зарегистрированных пользователей ──
     user_id = None
     if token:
-        if token.startswith("local-token-"):
+        if token.startswith("local-token-") and is_debug_or_test():
             user_id = token.replace("local-token-", "")
         else:
-            try:
-                import jwt
-                payload = jwt.decode(token, options={"verify_signature": False})
-                user_id = payload.get("sub")
-            except Exception:
-                pass
+            profile = get_supabase_profile(token)
+            user_id = profile.get("id") if profile else None
 
     if user_id:
         with SessionLocal() as db:
@@ -160,7 +160,7 @@ async def analyze_document(
                     recommendations=recs_json,
                     total_risks=analysis_result.total_risks,
                     high_risk_count=analysis_result.high_risk_count,
-                    medium_risk_count=analysis_result.high_risk_count, # wait, this was medium but Pydantic only tracks high
+                    medium_risk_count=analysis_result.medium_risk_count,
                     success=analysis_result.analysis_success,
                     error_message=analysis_result.error_message
                 )

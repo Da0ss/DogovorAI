@@ -4,6 +4,7 @@ Tests for authentication endpoints using Supabase Auth
 
 import pytest
 import uuid
+from config.settings import settings
 
 
 class TestAuthentication:
@@ -56,14 +57,9 @@ class TestAuthentication:
         }
         client.post("/api/auth/register", json=user_data)
 
-        # Fetch the actual verification code for testing from the endpoint
-        code_resp = client.get(f"/api/auth/test-code/{user_data['email']}")
-        assert code_resp.status_code == 200
-        verification_code = code_resp.json()["code"]
-
         verify_data = {
             "email": user_data["email"],
-            "code": verification_code
+            "code": "123456"
         }
 
         response = client.post("/api/auth/verify", json=verify_data)
@@ -118,13 +114,9 @@ class TestAuthentication:
         # Register user
         client.post("/api/auth/register", json=user_data)
 
-        # Get code and verify first to allow successful login
-        code_resp = client.get(f"/api/auth/test-code/{user_data['email']}")
-        assert code_resp.status_code == 200
-        verification_code = code_resp.json()["code"]
         client.post("/api/auth/verify", json={
             "email": user_data["email"],
-            "code": verification_code
+            "code": "123456"
         })
 
         # Login
@@ -148,3 +140,12 @@ class TestAuthentication:
 
         response = client.post("/api/auth/login", json=login_data)
         assert response.status_code in [400, 401]
+
+    def test_test_code_endpoint_disabled_outside_debug(self, client, monkeypatch):
+        """The local test-code helper must not be exposed in production."""
+        monkeypatch.delenv("PYTEST_RUNNING", raising=False)
+        settings.debug = False
+
+        response = client.get("/api/auth/test-code/test@example.com")
+
+        assert response.status_code == 404

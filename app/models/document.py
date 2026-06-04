@@ -77,6 +77,7 @@ class AnalysisResult(BaseModel):
         risks: Список найденных рисков
         total_risks: Общее количество рисков
         high_risk_count: Количество критических рисков
+        medium_risk_count: Количество умеренных рисков
         overall_risk_level: Общий уровень риска
         recommendations: Общие рекомендации
         analysis_success: Успешность анализа
@@ -87,6 +88,7 @@ class AnalysisResult(BaseModel):
     risks: list[RiskItem] = []
     total_risks: int = 0
     high_risk_count: int = 0
+    medium_risk_count: int = 0
     overall_risk_level: RiskLevel = RiskLevel.LOW
     recommendations: list[str] = []
     analysis_success: bool = True
