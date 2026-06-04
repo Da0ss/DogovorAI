@@ -10,7 +10,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from config.settings import settings
 from config.database import get_supabase_client
 from app.api import health
@@ -116,21 +116,10 @@ app.add_middleware(
 )
 
 
-# Root endpoint
-@app.get("/", tags=["Root"])
-async def root() -> dict:
-    """
-    Root endpoint with API information.
-    
-    Returns:
-        dict: Information about the API
-    """
-    return {
-        "name": settings.app_name,
-        "version": settings.app_version,
-        "description": settings.app_description,
-        "status": "\U0001F7E2 Running"
-    }
+@app.get("/", include_in_schema=False)
+async def root():
+    """Redirect root path to /app for frontend serving."""
+    return RedirectResponse(url="/app")
 
 
 # Health check endpoint

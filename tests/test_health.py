@@ -14,15 +14,11 @@ class TestHealthEndpoints:
 
     def test_root_endpoint(self):
         """
-        Test root endpoint returns correct application info
+        Test root endpoint redirects to /app
         """
-        response = client.get("/")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["name"] == "DogovorAI"
-        assert data["status"] == "🟢 Running"
-        assert "version" in data
-        assert "description" in data
+        response = client.get("/", follow_redirects=False)
+        assert response.status_code == 307
+        assert response.headers["location"] == "/app"
 
     def test_health_check_endpoint(self):
         """
