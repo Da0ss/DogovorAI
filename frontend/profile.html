@@ -474,18 +474,29 @@
       highlightPlan(plan);
     }
 
+    const PLAN_RANKS = { basic: 0, pro: 1, max: 2 };
+
     function highlightPlan(plan) {
+      const currentRank = PLAN_RANKS[plan] !== undefined ? PLAN_RANKS[plan] : 0;
+
       ['basic', 'pro', 'max'].forEach(p => {
         const card = document.getElementById(`plan${p.charAt(0).toUpperCase() + p.slice(1)}Card`);
         const btn = document.getElementById(`btn${p.charAt(0).toUpperCase() + p.slice(1)}`);
         if (!card || !btn) return;
 
+        const thisRank = PLAN_RANKS[p];
+
         if (p === plan) {
           card.className = "bg-surface-container-lowest rounded-xl p-5 border-2 border-primary shadow-luminous flex flex-col h-full relative";
           btn.textContent = 'Текущий план';
           btn.disabled = true;
+          btn.style.display = 'block';
           btn.className = "w-full py-2.5 rounded-lg font-label-md text-xs bg-outline-variant text-outline cursor-not-allowed text-center";
+        } else if (thisRank < currentRank) {
+          card.className = "bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col h-full opacity-70";
+          btn.style.display = 'none';
         } else {
+          btn.style.display = 'block';
           if (p === 'pro') {
             card.className = "bg-surface-container-lowest rounded-xl p-5 border-2 border-primary shadow-luminous flex flex-col h-full relative transform md:-translate-y-2 hover:shadow-md transition-shadow";
             btn.className = "w-full py-2.5 rounded-lg font-label-md text-xs bg-primary text-on-primary hover:bg-primary/95 transition-all text-center font-bold shadow-sm";
@@ -495,8 +506,8 @@
           }
           btn.disabled = false;
           if (p === 'basic') btn.textContent = 'Перейти на Basic';
-          if (p === 'pro') btn.textContent = 'Выбрать Pro';
-          if (p === 'max') btn.textContent = 'Выбрать Max';
+          if (p === 'pro') btn.textContent = 'Улучшить до Pro';
+          if (p === 'max') btn.textContent = 'Улучшить до Max';
         }
       });
     }
@@ -509,6 +520,22 @@
       if (!user || !user.id) {
         alert('Войдите в аккаунт для смены тарифа.');
         return;
+      }
+
+      const currentPlan = (user.plan || 'basic').toLowerCase();
+      const currentRank = PLAN_RANKS[currentPlan] !== undefined ? PLAN_RANKS[currentPlan] : 0;
+      const newRank = PLAN_RANKS[plan] !== undefined ? PLAN_RANKS[plan] : 0;
+
+      if (newRank <= currentRank) {
+         alert('Вы не можете перейти на этот тариф с вашего текущего.');
+         return;
+      }
+      
+      const isSubscribed = user.subscription_status === 'active' || user.subscription_status === 'trialing';
+      if (currentPlan !== 'basic' && isSubscribed) {
+        const planTitle = currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
+        const confirmUpgrade = confirm(`Вы сейчас на тарифе ${planTitle}. Если вы улучшите тариф сейчас, ваша текущая подписка будет заменена. Вы уверены, что хотите продолжить?`);
+        if (!confirmUpgrade) return;
       }
 
       const btn = document.getElementById(`btn${plan.charAt(0).toUpperCase() + plan.slice(1)}`);
@@ -546,7 +573,7 @@
         alert('Ошибка: ' + err.message);
         if (btn) {
           btn.disabled = false;
-          btn.textContent = plan === 'basic' ? 'Перейти на Basic' : `Выбрать ${plan.charAt(0).toUpperCase() + plan.slice(1)}`;
+          btn.textContent = plan === 'basic' ? 'Перейти на Basic' : `Улучшить до ${plan.charAt(0).toUpperCase() + plan.slice(1)}`;
         }
       }
     }

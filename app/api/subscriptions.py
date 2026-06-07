@@ -29,6 +29,19 @@ class UsageResponse(BaseModel):
 
 @router.post("/checkout", response_model=CheckoutResponse)
 def create_checkout(req: CheckoutRequest) -> CheckoutResponse:
+    plan_ranks = {"basic": 0, "pro": 1, "max": 2}
+    new_rank = plan_ranks.get(req.plan.lower(), 0)
+    
+    profile = billing_manager.get_profile(req.user_id)
+    if profile:
+        current_plan = profile.get("plan_type", "basic").lower()
+        current_rank = plan_ranks.get(current_plan, 0)
+        
+        if new_rank < current_rank:
+             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Downgrading to a lower plan is not permitted.")
+        elif new_rank == current_rank:
+             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You are already on this plan.")
+
     try:
         url = billing_manager.create_checkout(req.user_id, req.plan)
         if url is None:

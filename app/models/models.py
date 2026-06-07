@@ -43,6 +43,7 @@ class User(Base):
     plan_type           = Column(String, default="basic", nullable=False)
     subscription_status = Column(String, default="inactive", nullable=False)
     stripe_customer_id  = Column(String, unique=True, nullable=True)
+    subscription_expiry_date = Column(DateTime, nullable=True)
 
     # Usage tracking
     analyses_used       = Column(Integer, default=0, nullable=False)
