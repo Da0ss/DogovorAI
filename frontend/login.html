@@ -1,70 +1,311 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html class="light" lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>DogovorAI — Вход</title>
-  <link rel="stylesheet" href="/static/css/register.css">
-  <link rel="stylesheet" href="/static/css/privacy.css">
+  <meta name="description" content="Войдите в DogovorAI — AI-сервис для анализа договоров">
+  <!-- Material Symbols and Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "secondary-fixed": "#6bfe9c",
+            "surface-container-lowest": "#ffffff",
+            "inverse-surface": "#2e3132",
+            "on-error-container": "#93000a",
+            "outline-variant": "#c5c5d4",
+            "inverse-primary": "#bac3ff",
+            "surface-container": "#edeeef",
+            "on-primary-fixed": "#00105c",
+            "tertiary": "#6c3400",
+            "surface": "#f8f9fa",
+            "on-error": "#ffffff",
+            "on-background": "#191c1d",
+            "on-surface-variant": "#454652",
+            "tertiary-fixed": "#ffdcc6",
+            "on-primary-fixed-variant": "#293ca0",
+            "surface-bright": "#f8f9fa",
+            "on-secondary-container": "#00743a",
+            "surface-dim": "#d9dadb",
+            "on-surface": "#191c1d",
+            "on-tertiary": "#ffffff",
+            "surface-tint": "#4355b9",
+            "secondary": "#006d37",
+            "secondary-fixed-dim": "#4ae183",
+            "on-secondary": "#ffffff",
+            "on-primary": "#ffffff",
+            "primary": "#24389c",
+            "error-container": "#ffdad6",
+            "on-tertiary-container": "#ffc7a2",
+            "on-tertiary-fixed": "#301400",
+            "primary-fixed": "#dee0ff",
+            "on-secondary-fixed-variant": "#005228",
+            "surface-container-highest": "#e1e3e4",
+            "surface-container-low": "#f3f4f5",
+            "error": "#ba1a1a",
+            "inverse-on-surface": "#f0f1f2",
+            "surface-variant": "#e1e3e4",
+            "tertiary-container": "#8f4700",
+            "on-primary-container": "#cacfff",
+            "outline": "#757684",
+            "surface-container-high": "#e7e8e9",
+            "primary-container": "#3f51b5",
+            "secondary-container": "#6bfe9c",
+            "on-tertiary-fixed-variant": "#713700",
+            "primary-fixed-dim": "#bac3ff",
+            "background": "#f8f9fa",
+            "on-secondary-fixed": "#00210c",
+            "tertiary-fixed-dim": "#ffb784"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "sm": "12px",
+            "gutter": "24px",
+            "xl": "64px",
+            "md": "24px",
+            "lg": "40px",
+            "xs": "4px",
+            "container-max": "1200px",
+            "base": "8px"
+          },
+          fontFamily: {
+            "title-md": ["Manrope"],
+            "body-sm": ["Work Sans"],
+            "body-md": ["Work Sans"],
+            "headline-lg-mobile": ["Manrope"],
+            "headline-lg": ["Manrope"],
+            "body-lg": ["Work Sans"],
+            "label-md": ["Manrope"],
+            "display-lg": ["Manrope"]
+          },
+          fontSize: {
+            "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+            "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+    }
+    .glass-effect {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .auth-card-shadow {
+      box-shadow: 0px 4px 20px rgba(63, 81, 181, 0.12);
+    }
+    /* Messages alerts */
+    .message:not(:empty) {
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: left;
+    }
+    .message.success {
+      background-color: rgba(0, 191, 165, 0.12);
+      color: #00bfa5;
+      border: 1px solid rgba(0, 191, 165, 0.25);
+    }
+    .message.error {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+    /* Spinner override for integration */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin-anim 0.8s linear infinite;
+      display: none;
+    }
+    @keyframes spin-anim {
+      to { transform: rotate(360deg); }
+    }
+    button.loading .spinner {
+      display: inline-block;
+    }
+  </style>
 </head>
-<body>
-  <main class="page-shell">
-    <section class="card">
-      <div class="brand">
-        <span class="brand-title">DogovorAI</span>
-        <p class="brand-subtitle">Вход в аккаунт</p>
-        <a class="text-link" href="/app">Вернуться на главную</a>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+
+
+  <!-- Main Content: Login Canvas -->
+  <main class="flex-grow flex items-center justify-center px-gutter py-xl relative overflow-hidden gap-xl">
+    <!-- Decorative Ambient Background Element -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10"></div>
+    
+    <!-- Auth Card -->
+    <div class="w-full max-w-[440px] bg-surface-container-lowest rounded-lg auth-card-shadow p-lg border border-outline-variant/30 z-10">
+      <!-- Card Header -->
+      <div class="text-center mb-lg">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary-container/10 mb-md">
+          <span class="material-symbols-outlined text-primary text-[32px]" style="font-variation-settings: 'FILL' 1;">security</span>
+        </div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">С возвращением</h1>
+        <p class="font-body-md text-body-md text-on-surface-variant">Войдите в свой аккаунт для анализа договоров</p>
       </div>
 
+      <!-- Global Message Container -->
       <div class="message" id="message" aria-live="polite"></div>
 
       <!-- Google Sign-In Button -->
-      <button class="button button-google" id="googleLoginBtn" type="button">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <button class="w-full flex items-center justify-center gap-3 bg-white border border-outline-variant py-3 rounded-lg hover:bg-surface-container-low transition-all active:scale-[0.98] transform mb-4" id="googleLoginBtn" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="flex-shrink-0">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
         </svg>
-        <span class="button-text">Войти через Google</span>
+        <span class="font-label-md text-label-md text-on-surface font-semibold button-text">Войти через Google</span>
       </button>
 
-      <div class="divider">или</div>
+      <!-- Divider -->
+      <div class="relative py-sm divider">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-outline-variant"></div>
+        </div>
+        <div class="relative flex justify-center text-xs uppercase">
+          <span class="bg-surface-container-lowest px-2 text-on-surface-variant font-label-md">или по email</span>
+        </div>
+      </div>
 
       <!-- STEP 1: Email Form -->
-      <form class="form" id="loginStep1Form">
-        <label class="field-label" for="email">Email</label>
-        <input class="field-input" id="email" name="email" type="email" placeholder="ivan@example.com" required>
-
-        <button class="button button-primary" id="getOtpButton" type="submit">
+      <form class="space-y-md" id="loginStep1Form" autocomplete="on">
+        <!-- Email Field -->
+        <div class="space-y-xs">
+          <label class="font-label-md text-label-md text-on-surface-variant px-xs" for="email">Электронная почта</label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">mail</span>
+            </div>
+            <input class="block w-full pl-10 pr-4 py-3 bg-transparent border border-outline rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-md text-body-md placeholder:text-outline-variant" id="email" name="email" placeholder="name@company.com" required="" type="email" autocomplete="email"/>
+          </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <button class="w-full bg-[#3f51b5] text-white font-title-md text-title-md py-3 rounded-lg hover:bg-primary transition-all shadow-sm active:scale-[0.98] transform flex justify-center items-center gap-2" id="getOtpButton" type="submit">
           <span class="button-text">Получить код</span>
           <span class="spinner" id="otpSpinner" aria-hidden="true"></span>
+          <span class="material-symbols-outlined text-[20px]">send</span>
         </button>
       </form>
 
       <!-- STEP 2: Verify Code Form (Initially Hidden) -->
-      <form class="form hidden" id="loginStep2Form">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-          <p class="hint" style="margin:0;">Код отправлен на <span id="displayEmail" style="font-weight:600;"></span></p>
-          <button type="button" id="changeEmailBtn" class="text-link" style="border:none; background:transparent; font-size:0.85em; padding:0; cursor:pointer;">Изменить</button>
+      <form class="space-y-md hidden" id="loginStep2Form" autocomplete="off">
+        <div class="flex justify-between items-center px-xs">
+          <p class="font-body-sm text-body-sm text-on-surface-variant">Код отправлен на <span id="displayEmail" class="font-semibold text-primary"></span></p>
+          <button type="button" id="changeEmailBtn" class="font-label-md text-label-md text-primary hover:underline transition-all border-none bg-transparent p-0 cursor-pointer">Изменить</button>
         </div>
-
-        <label class="field-label" for="otpCode">Отправленный код</label>
-        <input class="field-input" id="otpCode" name="code" type="text" inputmode="numeric" pattern="\d{6}" placeholder="123456" maxlength="6" required>
-
-        <button class="button button-primary" id="verifyOtpButton" type="submit">
+        
+        <!-- Verification Code Field -->
+        <div class="space-y-xs">
+          <label class="font-label-md text-label-md text-on-surface-variant px-xs" for="otpCode">Код подтверждения</label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">dialpad</span>
+            </div>
+            <input class="block w-full pl-10 pr-4 py-3 bg-transparent border border-outline rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-md text-body-md placeholder:text-outline-variant text-center tracking-widest font-bold" id="otpCode" name="code" placeholder="123456" required="" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code"/>
+          </div>
+        </div>
+        
+        <!-- Verify Button -->
+        <button class="w-full bg-[#3f51b5] text-white font-title-md text-title-md py-3 rounded-lg hover:bg-primary transition-all shadow-sm active:scale-[0.98] transform flex justify-center items-center gap-2" id="verifyOtpButton" type="submit">
           <span class="button-text">Войти</span>
           <span class="spinner" id="verifySpinner" aria-hidden="true"></span>
+          <span class="material-symbols-outlined text-[20px]">login</span>
         </button>
       </form>
 
-      <p class="form-footer">
-        Нет аккаунта? <a class="text-link" href="/app/register">Зарегистрироваться</a>
-      </p>
-    </section>
+      <!-- Sign Up Link -->
+      <div class="mt-lg text-center">
+        <p class="font-body-sm text-body-sm text-on-surface-variant">
+          Нет аккаунта? 
+          <a class="text-primary font-bold hover:underline transition-all" href="/app/register">Зарегистрироваться</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Descriptive Graphic Area (Asymmetric Layout Enhancement) -->
+    <div class="hidden xl:flex flex-col justify-center max-w-sm z-10">
+      <div class="mb-md">
+        <div class="flex gap-2 mb-sm">
+          <span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-[10px] uppercase tracking-wider">AI Анализ</span>
+          <span class="px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant font-label-md text-[10px] uppercase tracking-wider">Безопасно</span>
+        </div>
+        <h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Точность в каждом пункте договора.</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          Войдите в свой аккаунт, чтобы продолжить анализ юридических рисков с помощью передового искусственного интеллекта.
+        </p>
+      </div>
+      <!-- Glassmorphism Card Snippet -->
+      <div class="p-md bg-white/40 glass-effect border border-white/60 rounded-xl shadow-lg">
+        <div class="flex items-center gap-sm mb-xs">
+          <div class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+          </div>
+          <span class="font-title-md text-body-md font-bold text-on-surface">Анализ рисков завершен</span>
+        </div>
+        <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+          <div class="h-full bg-secondary w-full"></div>
+        </div>
+        <p class="mt-sm font-body-sm text-body-sm text-on-surface-variant italic">"Найдено 3 критических риска в разделе ответственности сторон"</p>
+      </div>
+    </div>
   </main>
 
+  <!-- Footer: Spans 100% width with inner centered container -->
+  <footer class="w-full bg-surface border-t border-outline-variant/30 py-lg mt-auto">
+    <div class="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row justify-between items-center">
+      <div class="mb-md md:mb-0">
+        <span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">© 2026 Dogovor AI. Точность в каждом пункте.</p>
+      </div>
+      <div class="flex gap-md">
+        <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/app/privacy">Политика конфиденциальности</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
   <script src="/static/js/login.js"></script>
   <script src="/static/js/privacy.js"></script>
+  <script>
+    // Micro-interactions for inputs
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('focus', () => {
+        input.closest('.relative').classList.add('scale-[1.01]', 'duration-200');
+      });
+      input.addEventListener('blur', () => {
+        input.closest('.relative').classList.remove('scale-[1.01]');
+      });
+    });
+  </script>
 </body>
 </html>

@@ -101,6 +101,11 @@ def register_user(
     db: Session = Depends(get_db)
 ) -> UserResponse:
     """Register a new user via Supabase Auth."""
+    if not user_data.consent:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Вы должны согласиться с Условиями использования, чтобы продолжить."
+        )
     try:
         response = supabase_auth_service.register_user(user_data.email, user_data.password)
         profile, _ = _normalize_auth_response(response)

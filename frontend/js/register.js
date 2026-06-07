@@ -74,6 +74,7 @@ async function handleRegister(event) {
 
   const email = registerForm.email.value.trim();
   const password = registerForm.password.value;
+  const termsConsent = document.querySelector('#termsConsent');
 
   if (!validateEmail(email)) {
     setMessage('Введите корректный email.', 'error');
@@ -85,6 +86,11 @@ async function handleRegister(event) {
     return;
   }
 
+  if (termsConsent && !termsConsent.checked) {
+    setMessage('Вы должны согласиться с нашими Условиями использования, чтобы продолжить.', 'error');
+    return;
+  }
+
   setLoading(registerButton, registerSpinner, true);
 
   try {
@@ -93,7 +99,7 @@ async function handleRegister(event) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, consent: true })
     });
 
     const data = await parseJsonResponse(response);

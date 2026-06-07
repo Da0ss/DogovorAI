@@ -13,6 +13,7 @@ class UserCreate(BaseModel):
     """
     email: EmailStr
     password: str
+    consent: bool = Field(True, description="Consent to Terms of Service and Privacy Policy")
 
 
 class UserResponse(BaseModel):

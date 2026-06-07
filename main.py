@@ -17,7 +17,7 @@ from app.api import health
 from app.api import analysis
 from app.api import auth
 from app.api import subscriptions
-from app.api import contracts
+
 from app.api import metrics
 from app.api import history
 
@@ -142,7 +142,7 @@ app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
 app.include_router(auth.router, prefix="/api", tags=["Authentication"])
 app.include_router(subscriptions.router, prefix="/api", tags=["Subscriptions"])
-app.include_router(contracts.router, prefix="/api", tags=["Contracts"])
+
 app.include_router(metrics.router, prefix="/api", tags=["Metrics"])
 app.include_router(history.router, prefix="/api", tags=["History"])
 
@@ -199,9 +199,7 @@ async def serve_profile():
     return _frontend_response("profile.html", "Profile page")
 
 
-@app.get("/app/contracts", include_in_schema=False)
-async def serve_contracts():
-    return _frontend_response("contracts.html", "Contracts page")
+
 
 
 @app.get("/app/metrics", include_in_schema=False)

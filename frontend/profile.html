@@ -1,958 +1,573 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html class="light" lang="ru">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой профиль — DogovorAI</title>
-    <meta name="description" content="Управление профилем и подпиской DogovorAI">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/privacy.css">
-    <style>
-        /* ===== PROFILE PAGE STYLES ===== */
-        .profile-page {
-            padding-top: 100px;
-            padding-bottom: 80px;
-            min-height: 100vh;
-        }
-
-        .profile-grid {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 24px;
-            align-items: start;
-        }
-
-        /* ===== PROFILE CARD ===== */
-        .profile-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 24px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 12px;
-            position: sticky;
-            top: 100px;
-            width: 100%;
-        }
-
-        .profile-avatar-wrapper {
-            position: relative;
-        }
-
-        .profile-avatar {
-            width: 96px;
-            height: 96px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid rgba(59, 130, 246, 0.4);
-        }
-
-        .profile-avatar-placeholder {
-            width: 96px;
-            height: 96px;
-            border-radius: 50%;
-            background: var(--accent-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            font-weight: 700;
-            color: white;
-            border: 3px solid rgba(59, 130, 246, 0.4);
-        }
-
-        .profile-plan-badge {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .badge-basic {
-            background: rgba(100, 116, 139, 0.3);
-            color: #94a3b8;
-            border: 1px solid rgba(100, 116, 139, 0.4);
-        }
-
-        .badge-pro {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.4);
-        }
-
-        .badge-max {
-            background: rgba(168, 85, 247, 0.2);
-            color: #c084fc;
-            border: 1px solid rgba(168, 85, 247, 0.4);
-        }
-
-        .profile-name {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .profile-email {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-top: -8px;
-        }
-
-        .profile-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            width: 100%;
-            margin-top: 24px;
-        }
-
-        .profile-stat {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 12px 8px;
-            text-align: center;
-            transition: transform 0.2s;
-        }
-
-        .profile-stat:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .profile-stat:nth-child(3) {
-            grid-column: span 2;
-        }
-
-        .profile-stat-value {
-            font-size: 20px;
-            font-weight: 800;
-            background: var(--accent-gradient);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .profile-stat-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            margin-top: 2px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .profile-divider {
-            width: 100%;
-            height: 1px;
-            background: var(--border);
-        }
-
-        .profile-meta {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .profile-meta-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-        }
-
-        .profile-meta-label {
-            color: var(--text-muted);
-        }
-
-        .profile-meta-value {
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .profile-logout-btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: var(--radius-md);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            background: rgba(239, 68, 68, 0.07);
-            color: #f87171;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all var(--transition);
-        }
-
-        .profile-logout-btn:hover {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: rgba(239, 68, 68, 0.5);
-        }
-
-        /* ===== RIGHT COLUMN ===== */
-        .profile-right {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .profile-section-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        /* ===== SUBSCRIPTION PLANS ===== */
-        .plans-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
-        .plan-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 28px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            transition: all var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .plan-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-        }
-
-        .plan-basic::before {
-            background: linear-gradient(90deg, #64748b, #94a3b8);
-        }
-
-        .plan-pro::before {
-            background: linear-gradient(90deg, #3b82f6, #06b6d4);
-        }
-
-        .plan-max::before {
-            background: linear-gradient(90deg, #8b5cf6, #ec4899);
-        }
-
-        .plan-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-            border-color: rgba(255, 255, 255, 0.12);
-        }
-
-        .plan-card.active {
-            border-color: rgba(59, 130, 246, 0.5);
-            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25), var(--shadow-md);
-        }
-
-        .plan-card.active.plan-max {
-            border-color: rgba(168, 85, 247, 0.5);
-            box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.25), var(--shadow-md);
-        }
-
-        .plan-popular-badge {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.4);
-        }
-
-        .plan-name {
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-
-        .plan-basic .plan-name {
-            color: #94a3b8;
-        }
-
-        .plan-pro .plan-name {
-            color: #60a5fa;
-        }
-
-        .plan-max .plan-name {
-            color: #c084fc;
-        }
-
-        .plan-price {
-            display: flex;
-            align-items: baseline;
-            gap: 4px;
-        }
-
-        .plan-price-amount {
-            font-size: 36px;
-            font-weight: 800;
-            color: var(--text-primary);
-        }
-
-        .plan-price-currency {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .plan-price-period {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .plan-features {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .plan-feature {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .plan-feature-icon {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            flex-shrink: 0;
-        }
-
-        .feature-check {
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .feature-cross {
-            background: rgba(100, 116, 139, 0.15);
-            color: #64748b;
-            border: 1px solid rgba(100, 116, 139, 0.2);
-        }
-
-        .plan-feature.disabled {
-            opacity: 0.45;
-        }
-
-        .plan-btn {
-            padding: 12px;
-            border-radius: var(--radius-md);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition);
-            border: none;
-        }
-
-        .plan-btn-basic {
-            background: rgba(100, 116, 139, 0.15);
-            color: #94a3b8;
-            border: 1px solid rgba(100, 116, 139, 0.3);
-        }
-
-        .plan-btn-basic:hover {
-            background: rgba(100, 116, 139, 0.25);
-        }
-
-        .plan-btn-pro {
-            background: linear-gradient(135deg, #3b82f6, #06b6d4);
-            color: white;
-        }
-
-        .plan-btn-pro:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
-        }
-
-        .plan-btn-max {
-            background: linear-gradient(135deg, #8b5cf6, #ec4899);
-            color: white;
-        }
-
-        .plan-btn-max:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
-        }
-
-        .plan-btn:disabled,
-        .plan-btn.current {
-            opacity: 0.7;
-            cursor: default;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        /* ===== USAGE SECTION ===== */
-        .usage-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 28px;
-        }
-
-        .usage-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .usage-label {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .usage-count {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .usage-bar {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .usage-fill {
-            height: 100%;
-            border-radius: 10px;
-            background: var(--accent-gradient);
-            transition: width 0.8s ease;
-        }
-
-        .usage-fill.full {
-            background: linear-gradient(90deg, #ef4444, #f97316);
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 900px) {
-            .profile-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .profile-card {
-                position: static;
-            }
-
-            .plans-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .plans-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Мой профиль — DogovorAI</title>
+  <meta name="description" content="Управление профилем и подпиской DogovorAI" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/design-system-ext.css">
+
+  <!-- Theme Configuration -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "secondary-fixed": "#6bfe9c",
+            "surface-container-lowest": "#ffffff",
+            "inverse-surface": "#2e3132",
+            "on-error-container": "#93000a",
+            "outline-variant": "#c5c5d4",
+            "inverse-primary": "#bac3ff",
+            "surface-container": "#edeeef",
+            "on-primary-fixed": "#00105c",
+            "tertiary": "#6c3400",
+            "surface": "#f8f9fa",
+            "on-error": "#ffffff",
+            "on-background": "#191c1d",
+            "on-surface-variant": "#454652",
+            "tertiary-fixed": "#ffdcc6",
+            "on-primary-fixed-variant": "#293ca0",
+            "surface-bright": "#f8f9fa",
+            "on-secondary-container": "#00743a",
+            "surface-dim": "#d9dadb",
+            "on-surface": "#191c1d",
+            "on-tertiary": "#ffffff",
+            "surface-tint": "#4355b9",
+            "secondary": "#006d37",
+            "secondary-fixed-dim": "#4ae183",
+            "on-secondary": "#ffffff",
+            "on-primary": "#ffffff",
+            "primary": "#24389c",
+            "error-container": "#ffdad6",
+            "on-tertiary-container": "#ffc7a2",
+            "on-tertiary-fixed": "#301400",
+            "primary-fixed": "#dee0ff",
+            "on-secondary-fixed-variant": "#005228",
+            "surface-container-highest": "#e1e3e4",
+            "surface-container-low": "#f3f4f5",
+            "error": "#ba1a1a",
+            "inverse-on-surface": "#f0f1f2",
+            "surface-variant": "#e1e3e4",
+            "tertiary-container": "#8f4700",
+            "on-primary-container": "#cacfff",
+            "outline": "#757684",
+            "surface-container-high": "#e7e8e9",
+            "primary-container": "#3f51b5",
+            "secondary-container": "#6bfe9c",
+            "on-tertiary-fixed-variant": "#713700",
+            "primary-fixed-dim": "#bac3ff",
+            "background": "#f8f9fa",
+            "on-secondary-fixed": "#00210c",
+            "tertiary-fixed-dim": "#ffb784"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "sm": "12px",
+            "gutter": "24px",
+            "xl": "64px",
+            "md": "24px",
+            "lg": "40px",
+            "xs": "4px",
+            "container-max": "1200px",
+            "base": "8px"
+          },
+          fontFamily: {
+            "title-md": ["Manrope"],
+            "body-md": ["Work Sans"],
+            "label-md": ["Manrope"],
+            "body-sm": ["Work Sans"],
+            "body-lg": ["Work Sans"],
+            "headline-lg-mobile": ["Manrope"],
+            "display-lg": ["Manrope"],
+            "headline-lg": ["Manrope"]
+          },
+          fontSize: {
+            "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+            "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Luminous Shadow */
+    .shadow-luminous {
+      box-shadow: 0px 4px 20px rgba(36, 56, 156, 0.08);
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
 
-<body>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px] pb-[100px]">
 
-    <!-- ===== HEADER ===== -->
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <span class="logo-icon">⚖️</span>
-                <a href="/app" style="text-decoration:none; color:inherit;">
-                    <span class="logo-text">Dogovor<span class="logo-accent">AI</span></span>
-                </a>
-            </div>
-            <nav class="nav">
-                <a href="/app" class="nav-link">← На главную</a>
-                <a href="#subscription" class="nav-link">Подписка</a>
-                <a href="/app/history" class="nav-link">История</a>
-            </nav>
+  <!-- Nav rendered by nav.js -->
+  <div id="nav-root"></div>
+
+  <!-- Main Content Canvas -->
+  <main class="flex-grow w-full max-w-container-max mx-auto px-gutter py-xl">
+    
+    <!-- Header -->
+    <div class="mb-lg">
+      <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Личный кабинет</h2>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">Управляйте своим профилем, отслеживайте лимиты использования и выбирайте тарифные планы.</p>
+    </div>
+
+    <!-- Profile Page Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start mt-8">
+      
+      <!-- LEFT COLUMN: Profile Sidebar -->
+      <aside class="lg:col-span-4 bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-luminous flex flex-col items-center text-center gap-6">
+        
+        <!-- Avatar Wrapper -->
+        <div class="relative group cursor-pointer">
+          <img class="w-24 h-24 rounded-full object-cover border-4 border-primary/20 shadow-sm" id="profileAvatar" src="" alt="Avatar" style="display:none">
+          <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-primary to-purple-600 flex items-center justify-center text-white text-3xl font-extrabold shadow-sm border-4 border-primary/20" id="profileAvatarPlaceholder">
+            <span id="profileInitial">?</span>
+          </div>
+          <span class="absolute bottom-0 right-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white bg-primary shadow" id="profilePlanBadge">Basic</span>
         </div>
-    </header>
 
-    <!-- ===== PROFILE PAGE ===== -->
-    <main class="profile-page">
-        <div class="container">
-            <div class="profile-grid">
-
-                <!-- LEFT: Profile Card -->
-                <div class="profile-card">
-                    <div class="profile-avatar-wrapper">
-                        <img class="profile-avatar" id="profileAvatar" src="" alt="" style="display:none">
-                        <div class="profile-avatar-placeholder" id="profileAvatarPlaceholder">
-                            <span id="profileInitial">?</span>
-                        </div>
-                        <span class="profile-plan-badge badge-basic" id="profilePlanBadge">Basic</span>
-                    </div>
-
-                    <div class="profile-name" id="profileName">Загрузка...</div>
-                    <div class="profile-email" id="profileEmail"></div>
-
-                    <div class="profile-stats">
-                        <div class="profile-stat">
-                            <div class="profile-stat-value" id="statAnalyses">0</div>
-                            <div class="profile-stat-label">Использовано</div>
-                        </div>
-                        <div class="profile-stat">
-                            <div class="profile-stat-value" id="statRemaining">3</div>
-                            <div class="profile-stat-label">Осталось</div>
-                        </div>
-                        <div class="profile-stat">
-                            <div class="profile-stat-value" id="statLimit">3</div>
-                            <div class="profile-stat-label">Лимит/мес</div>
-                        </div>
-                    </div>
-
-                    <div class="profile-divider"></div>
-
-                    <div class="profile-meta">
-                        <div class="profile-meta-row">
-                            <span class="profile-meta-label">Подписка</span>
-                            <span class="profile-meta-value" id="metaPlan">Basic</span>
-                        </div>
-                        <div class="profile-meta-row">
-                            <span class="profile-meta-label">Email подтвержден</span>
-                            <span class="profile-meta-value" id="metaVerified">—</span>
-                        </div>
-                        <div class="profile-meta-row">
-                            <span class="profile-meta-label">Участник с</span>
-                            <span class="profile-meta-value" id="metaJoined">—</span>
-                        </div>
-                    </div>
-
-                    <div class="profile-divider"></div>
-
-                    <button class="profile-logout-btn" id="logoutBtn">Выйти из аккаунта</button>
-                </div>
-
-                <!-- RIGHT: Content -->
-                <div class="profile-right">
-
-                    <!-- Usage -->
-                    <div class="usage-card">
-                        <h2 class="profile-section-title">Использование в этом месяце</h2>
-                        <div class="usage-row">
-                            <span class="usage-label">Анализы договоров</span>
-                            <span class="usage-count"><span id="usageUsed">0</span> / <span
-                                    id="usageTotal">3</span></span>
-                        </div>
-                        <div class="usage-bar">
-                            <div class="usage-fill" id="usageFill" style="width: 0%"></div>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                            <p id="usageResetText" style="font-size:13px; color:var(--text-muted); margin:0;">
-                                Обновляется 1-го числа каждого месяца.
-                            </p>
-                            <span id="usageRemainingBadge" style="
-                                font-size:12px; font-weight:600; padding:3px 10px;
-                                border-radius:20px; background:rgba(139,92,246,.15);
-                                color:#a78bfa; white-space:nowrap;
-                            ">Осталось: 3</span>
-                        </div>
-                    </div>
-
-                    <!-- Subscription Plans -->
-                    <div id="subscription">
-                        <h2 class="profile-section-title">Тарифные планы</h2>
-                        <div class="plans-grid">
-
-                            <!-- BASIC -->
-                            <div class="plan-card plan-basic" id="planBasicCard">
-                                <div class="plan-header">
-                                    <div class="plan-name">Basic</div>
-                                    <div class="plan-price">
-                                        <span class="plan-price-amount">Free</span>
-                                        <span class="plan-price-currency"></span>
-                                        <span class="plan-price-period">/мес</span>
-                                    </div>
-                                </div>
-                                <div class="plan-features">
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        3 анализа в месяц
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        PDF, DOCX, TXT форматы
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        Базовый анализ рисков
-                                    </div>
-                                    <div class="plan-feature disabled">
-                                        <div class="plan-feature-icon feature-cross">✕</div>
-                                        OCR изображений
-                                    </div>
-                                    <div class="plan-feature disabled">
-                                        <div class="plan-feature-icon feature-cross">✕</div>
-                                        История анализов
-                                    </div>
-                                    <div class="plan-feature disabled">
-                                        <div class="plan-feature-icon feature-cross">✕</div>
-                                        Экспорт отчётов
-                                    </div>
-                                </div>
-                                <button class="plan-btn plan-btn-basic" id="btnBasic" onclick="selectPlan('basic')">
-                                    Текущий план
-                                </button>
-                            </div>
-
-                            <!-- PRO -->
-                            <div class="plan-card plan-pro" id="planProCard">
-                                <span class="plan-popular-badge">Популярный</span>
-                                <div class="plan-header">
-                                    <div class="plan-name">Pro</div>
-                                    <div class="plan-price">
-                                        <span class="plan-price-amount">10</span>
-                                        <span class="plan-price-currency">$</span>
-                                        <span class="plan-price-period">/мес</span>
-                                    </div>
-                                </div>
-                                <div class="plan-features">
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        30 анализов в месяц
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        PDF, DOCX, TXT форматы
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        OCR изображений (JPG/PNG)
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        История анализов
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        Детальный анализ рисков
-                                    </div>
-                                    <div class="plan-feature disabled">
-                                        <div class="plan-feature-icon feature-cross">✕</div>
-                                        Экспорт PDF-отчётов
-                                    </div>
-                                </div>
-                                <button class="plan-btn plan-btn-pro" id="btnPro" onclick="selectPlan('pro')">
-                                    Выбрать Pro
-                                </button>
-                            </div>
-
-                            <!-- MAX -->
-                            <div class="plan-card plan-max" id="planMaxCard">
-                                <div class="plan-header">
-                                    <div class="plan-name">Max</div>
-                                    <div class="plan-price">
-                                        <span class="plan-price-amount">20</span>
-                                        <span class="plan-price-currency">$</span>
-                                        <span class="plan-price-period">/мес</span>
-                                    </div>
-                                </div>
-                                <div class="plan-features">
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        Безлимитные анализы
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        Все форматы + OCR
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        История анализов
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        Экспорт PDF-отчётов
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        Приоритетный анализ
-                                    </div>
-                                    <div class="plan-feature">
-                                        <div class="plan-feature-icon feature-check">✓</div>
-                                        API-доступ
-                                    </div>
-                                </div>
-                                <button class="plan-btn plan-btn-max" id="btnMax" onclick="selectPlan('max')">
-                                    Выбрать Max
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
-                    <!-- end plans -->
-
-                </div>
-                <!-- end profile-right -->
-            </div>
-            <!-- end profile-grid -->
+        <!-- User details -->
+        <div class="w-full">
+          <h3 class="font-title-md text-lg font-bold text-on-surface truncate" id="profileName">Загрузка...</h3>
+          <p class="font-body-sm text-xs text-on-surface-variant mt-1 truncate" id="profileEmail"></p>
         </div>
-    </main>
 
-    <script src="/static/js/auth-guard.js"></script>
-    <script>requireAuth();</script>
-    <script>
-        // Auth utilities — provided by auth-guard.js
-        function authHeaders() { return getAuthHeaders(); }
+        <!-- Quick Stats Grid -->
+        <div class="grid grid-cols-3 gap-2 w-full">
+          <div class="bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-center">
+            <span class="block text-lg font-extrabold text-primary" id="statAnalyses">0</span>
+            <span class="block text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">Сделано</span>
+          </div>
+          <div class="bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-center">
+            <span class="block text-lg font-extrabold text-on-surface" id="statRemaining">0</span>
+            <span class="block text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">Осталось</span>
+          </div>
+          <div class="bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-center">
+            <span class="block text-lg font-extrabold text-on-surface" id="statLimit">0</span>
+            <span class="block text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5 font-semibold">Лимит/мес</span>
+          </div>
+        </div>
 
-        const PLAN_LIMITS = { basic: 3, pro: 30, max: Infinity };
+        <div class="w-full h-px bg-outline-variant/50"></div>
 
-        // ============================================================
-        // Load & render profile
-        // ============================================================
-        async function loadProfile() {
-            // requireAuth() already redirected if not authed — double check
-            if (!isAuthenticated()) {
-                window.location.replace('/app/login?next=/app/profile');
-                return;
-            }
+        <!-- Meta list details -->
+        <div class="w-full flex flex-col gap-3 font-body-sm text-xs text-left">
+          <div class="flex justify-between items-center">
+            <span class="text-on-surface-variant">Текущий тариф</span>
+            <span class="font-bold text-on-surface" id="metaPlan">Basic</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-on-surface-variant">Email подтвержден</span>
+            <span class="font-bold text-on-surface" id="metaVerified">—</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-on-surface-variant">В системе с</span>
+            <span class="font-bold text-on-surface" id="metaJoined">—</span>
+          </div>
+        </div>
 
-            let user = getUser() || {};
-            let usage = null;
+        <div class="w-full h-px bg-outline-variant/50"></div>
 
-            // Получаем профиль + лимиты параллельно
-            try {
-                const [profileResp, usageResp] = await Promise.all([
-                    fetch(`/api/auth/me/profile?t=${Date.now()}`, { headers: authHeaders() }),
-                    fetch('/api/usage/me', { headers: authHeaders() })
-                ]);
-                if (profileResp.ok) {
-                    user = await profileResp.json();
-                    localStorage.setItem('user', JSON.stringify(user));
-                }
-                if (usageResp.ok) {
-                    usage = await usageResp.json();
-                }
-            } catch (_) { }
+        <!-- Logout Button -->
+        <button class="w-full py-2.5 border border-error/30 hover:border-error bg-error-container/10 hover:bg-error-container/20 text-error rounded-xl font-label-md text-sm transition-colors flex items-center justify-center gap-2" id="logoutBtn">
+          <span class="material-symbols-outlined text-sm">logout</span>
+          Выйти из аккаунта
+        </button>
 
-            renderProfile(user, usage);
+      </aside>
+
+      <!-- RIGHT COLUMN: Quota / Subscriptions -->
+      <section class="lg:col-span-8 flex flex-col gap-6">
+        
+        <!-- Usage Quota Card -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-luminous">
+          <h3 class="font-title-md text-base font-bold text-on-surface mb-4">Использование лимитов в этом месяце</h3>
+          
+          <div class="flex justify-between items-center mb-2 font-body-sm text-sm">
+            <span class="text-on-surface-variant">Проверено документов:</span>
+            <span class="font-bold text-on-surface"><span id="usageUsed">0</span> / <span id="usageTotal">3</span></span>
+          </div>
+          
+          <!-- Progress Bar -->
+          <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden mb-3">
+            <div class="h-full bg-gradient-to-r from-primary to-purple-600 rounded-full transition-all duration-700" id="usageFill" style="width: 0%"></div>
+          </div>
+
+          <div class="flex justify-between items-center mt-4">
+            <p class="font-body-sm text-xs text-on-surface-variant" id="usageResetText">Обновляется 1-го числа каждого месяца.</p>
+            <span class="font-label-md text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20" id="usageRemainingBadge">Осталось: 3</span>
+          </div>
+        </div>
+
+        <!-- Subscriptions Plan Area -->
+        <div>
+          <h3 class="font-title-md text-base font-bold text-on-surface mb-6">Доступные тарифные планы</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Basic Card -->
+            <div class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col h-full hover:shadow transition-shadow" id="planBasicCard">
+              <div class="mb-4">
+                <h4 class="font-title-md text-base font-bold text-on-surface mb-1">Basic</h4>
+                <p class="font-body-sm text-xs text-on-surface-variant mb-3">Для ознакомления и нечастого личного использования.</p>
+                <div class="flex items-baseline gap-1">
+                  <span class="font-headline-lg text-2xl font-bold text-on-surface">$0</span>
+                  <span class="font-body-sm text-xs text-on-surface-variant">/месяц</span>
+                </div>
+              </div>
+              <ul class="flex-grow space-y-2 mb-6 font-body-sm text-xs text-on-surface-variant">
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-secondary text-sm">check_circle</span>
+                  <span>3 анализа в месяц</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-secondary text-sm">check_circle</span>
+                  <span>Анализ юридических рисков</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-secondary text-sm">check_circle</span>
+                  <span>Ссылки на законы РК</span>
+                </li>
+              </ul>
+              <button class="w-full py-2.5 rounded-lg font-label-md text-xs border border-outline-variant text-on-surface hover:bg-surface-container-low transition-all text-center" id="btnBasic" onclick="selectPlan('basic')">
+                Выбрать Basic
+              </button>
+            </div>
+
+            <!-- Pro Card (Most Popular Highlighted) -->
+            <div class="bg-surface-container-lowest rounded-xl p-5 border-2 border-primary shadow-luminous flex flex-col h-full relative transform md:-translate-y-2 hover:shadow-md transition-shadow" id="planProCard">
+              <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-on-primary font-label-md text-[10px] uppercase tracking-wider px-3.5 py-0.5 rounded-full font-bold">
+                Популярный
+              </div>
+              <div class="mb-4">
+                <h4 class="font-title-md text-base font-bold text-primary mb-1">Pro</h4>
+                <p class="font-body-sm text-xs text-on-surface-variant mb-3">Оптимально для юристов, фрилансеров и малого бизнеса.</p>
+                <div class="flex items-baseline gap-1">
+                  <span class="font-headline-lg text-2xl font-bold text-on-surface">$9</span>
+                  <span class="font-body-sm text-xs text-on-surface-variant">/месяц</span>
+                </div>
+              </div>
+              <ul class="flex-grow space-y-2 mb-6 font-body-sm text-xs text-on-surface">
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                  <span>30 анализов в месяц</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                  <span>Глубокий анализ рисков</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                  <span>Приоритетная AI поддержка</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                  <span>Сохранение всей истории</span>
+                </li>
+              </ul>
+              <button class="w-full py-2.5 rounded-lg font-label-md text-xs bg-primary text-on-primary hover:bg-primary/95 transition-all text-center font-bold shadow-sm" id="btnPro" onclick="selectPlan('pro')">
+                Выбрать Pro
+              </button>
+            </div>
+
+            <!-- Max Card -->
+            <div class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col h-full hover:shadow transition-shadow" id="planMaxCard">
+              <div class="mb-4">
+                <h4 class="font-title-md text-base font-bold text-on-surface mb-1">Max</h4>
+                <p class="font-body-sm text-xs text-on-surface-variant mb-3">Для крупных команд и неограниченной работы с договорами.</p>
+                <div class="flex items-baseline gap-1">
+                  <span class="font-headline-lg text-2xl font-bold text-on-surface">$19</span>
+                  <span class="font-body-sm text-xs text-on-surface-variant">/месяц</span>
+                </div>
+              </div>
+              <ul class="flex-grow space-y-2 mb-6 font-body-sm text-xs text-on-surface-variant">
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                  <span class="text-on-surface font-semibold">Абсолютный безлимит ∞</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                  <span>Мгновенный анализ AI</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                  <span>Доступ ко всем новым фичам</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                  <span>Выделенный API доступ</span>
+                </li>
+              </ul>
+              <button class="w-full py-2.5 rounded-lg font-label-md text-xs bg-surface-container-highest text-on-surface hover:bg-surface-variant transition-all text-center" id="btnMax" onclick="selectPlan('max')">
+                Выбрать Max
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <script src="/static/js/auth-guard.js"></script>
+  <script>requireAuth();</script>
+  <script>
+    // Bridge to get auth headers
+    function authHeaders() { return getAuthHeaders(); }
+
+    const PLAN_LIMITS = { basic: 3, pro: 30, max: Infinity };
+
+    // ============================================================
+    // Load & render profile
+    // ============================================================
+    async function loadProfile() {
+      if (!isAuthenticated()) {
+        window.location.replace('/app/login?next=/app/profile');
+        return;
+      }
+
+      let user = getUser() || {};
+      let usage = null;
+
+      try {
+        const [profileResp, usageResp] = await Promise.all([
+          fetch(`/api/auth/me/profile?t=${Date.now()}`, { headers: authHeaders() }),
+          fetch('/api/usage/me', { headers: authHeaders() })
+        ]);
+        if (profileResp.ok) {
+          user = await profileResp.json();
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        if (usageResp.ok) {
+          usage = await usageResp.json();
+        }
+      } catch (_) { }
+
+      renderProfile(user, usage);
+    }
+
+    function renderProfile(user, usage) {
+      const plan = (user.plan || 'basic').toLowerCase();
+
+      // Limits details
+      const used = (usage && usage.used != null) ? usage.used : (user.analyses_used || 0);
+      const limit = (usage && usage.limit != null) ? usage.limit : (PLAN_LIMITS[plan] || 3);
+      const remaining = (usage && usage.remaining != null) ? usage.remaining : Math.max(0, limit - used);
+      const resetAt = usage && usage.reset_at ? usage.reset_at : null;
+
+      // Avatar
+      const avatarImg = document.getElementById('profileAvatar');
+      const avatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
+      const initialEl = document.getElementById('profileInitial');
+
+      if (user.avatar_url) {
+        avatarImg.src = user.avatar_url;
+        avatarImg.style.display = 'block';
+        avatarPlaceholder.style.display = 'none';
+      } else {
+        const name = user.full_name || user.email || '?';
+        initialEl.textContent = name[0].toUpperCase();
+        avatarPlaceholder.style.display = 'flex';
+        avatarImg.style.display = 'none';
+      }
+
+      // Plan badge
+      const badge = document.getElementById('profilePlanBadge');
+      const planTitle = plan.charAt(0).toUpperCase() + plan.slice(1);
+      badge.textContent = planTitle;
+
+      // Details
+      document.getElementById('profileName').textContent = user.full_name || user.email || 'Пользователь';
+      document.getElementById('profileEmail').textContent = user.email || '';
+
+      // Stats
+      document.getElementById('statAnalyses').textContent = used;
+      document.getElementById('statLimit').textContent = limit === null || limit === Infinity ? '∞' : limit;
+
+      const remainingEl = document.getElementById('statRemaining');
+      if (limit === null || limit === Infinity) {
+        remainingEl.textContent = '∞';
+        remainingEl.style.color = '';
+      } else {
+        remainingEl.textContent = Math.max(0, remaining);
+        remainingEl.style.color = remaining <= 1 ? '#ba1a1a' : remaining <= limit * 0.3 ? '#d97706' : '';
+      }
+
+      // Meta list
+      document.getElementById('metaPlan').textContent = planTitle;
+      document.getElementById('metaVerified').textContent = user.is_verified ? '✅ Подтвержден' : '❌ Не подтвержден';
+      if (user.created_at) {
+        const d = new Date(user.created_at);
+        document.getElementById('metaJoined').textContent = d.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long' });
+      }
+
+      // Usage bar stats
+      document.getElementById('usageUsed').textContent = used;
+      document.getElementById('usageTotal').textContent = limit === null || limit === Infinity ? '∞' : limit;
+      const pct = limit === null || limit === Infinity ? 10 : Math.min(100, Math.round((used / limit) * 100));
+      const fill = document.getElementById('usageFill');
+      fill.style.width = pct + '%';
+      if (pct >= 100) fill.className = "h-full bg-error rounded-full transition-all duration-700";
+
+      // Quota warning badge
+      const badge2 = document.getElementById('usageRemainingBadge');
+      if (badge2) {
+        if (limit === null || limit === Infinity) {
+          badge2.textContent = 'Безлимит ∞';
+          badge2.className = 'font-label-md text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20';
+        } else if (remaining === 0) {
+          badge2.textContent = 'Лимит исчерпан';
+          badge2.className = 'font-label-md text-xs font-bold px-3 py-1 rounded-full bg-error/10 text-error border border-error/20';
+        } else {
+          badge2.textContent = `Осталось: ${remaining}`;
+          const warn = remaining <= limit * 0.3;
+          badge2.className = warn 
+            ? 'font-label-md text-xs font-bold px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20'
+            : 'font-label-md text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20';
+        }
+      }
+
+      // Quota reset info
+      const resetText = document.getElementById('usageResetText');
+      if (resetText && resetAt) {
+        try {
+          const d = new Date(resetAt);
+          const formatted = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+          resetText.textContent = `Сброс счётчика: ${formatted}`;
+        } catch (_) { }
+      }
+
+      highlightPlan(plan);
+    }
+
+    function highlightPlan(plan) {
+      ['basic', 'pro', 'max'].forEach(p => {
+        const card = document.getElementById(`plan${p.charAt(0).toUpperCase() + p.slice(1)}Card`);
+        const btn = document.getElementById(`btn${p.charAt(0).toUpperCase() + p.slice(1)}`);
+        if (!card || !btn) return;
+
+        if (p === plan) {
+          card.className = "bg-surface-container-lowest rounded-xl p-5 border-2 border-primary shadow-luminous flex flex-col h-full relative";
+          btn.textContent = 'Текущий план';
+          btn.disabled = true;
+          btn.className = "w-full py-2.5 rounded-lg font-label-md text-xs bg-outline-variant text-outline cursor-not-allowed text-center";
+        } else {
+          if (p === 'pro') {
+            card.className = "bg-surface-container-lowest rounded-xl p-5 border-2 border-primary shadow-luminous flex flex-col h-full relative transform md:-translate-y-2 hover:shadow-md transition-shadow";
+            btn.className = "w-full py-2.5 rounded-lg font-label-md text-xs bg-primary text-on-primary hover:bg-primary/95 transition-all text-center font-bold shadow-sm";
+          } else {
+            card.className = "bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col h-full hover:shadow transition-shadow";
+            btn.className = "w-full py-2.5 rounded-lg font-label-md text-xs border border-outline-variant text-on-surface hover:bg-surface-container-low transition-all text-center";
+          }
+          btn.disabled = false;
+          if (p === 'basic') btn.textContent = 'Перейти на Basic';
+          if (p === 'pro') btn.textContent = 'Выбрать Pro';
+          if (p === 'max') btn.textContent = 'Выбрать Max';
+        }
+      });
+    }
+
+    // ============================================================
+    // Plan selection → Stripe Checkout
+    // ============================================================
+    async function selectPlan(plan) {
+      const user = getUser();
+      if (!user || !user.id) {
+        alert('Войдите в аккаунт для смены тарифа.');
+        return;
+      }
+
+      const btn = document.getElementById(`btn${plan.charAt(0).toUpperCase() + plan.slice(1)}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Загрузка...';
+      }
+
+      try {
+        const resp = await fetch('/api/subscriptions/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders()
+          },
+          body: JSON.stringify({ user_id: user.id, plan: plan })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          throw new Error(data.detail || 'Ошибка оформления');
         }
 
-        function renderProfile(user, usage) {
-            const plan = (user.plan || 'basic').toLowerCase();
-
-            // Лимиты: предпочитаем freshusage, если есть
-            const used = (usage && usage.used != null) ? usage.used : (user.analyses_used || 0);
-            const limit = (usage && usage.limit != null) ? usage.limit : (PLAN_LIMITS[plan] || 3);
-            const remaining = (usage && usage.remaining != null) ? usage.remaining : Math.max(0, limit - used);
-            const resetAt = usage && usage.reset_at ? usage.reset_at : null;
-
-            // Avatar
-            const avatarImg = document.getElementById('profileAvatar');
-            const avatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
-            const initialEl = document.getElementById('profileInitial');
-
-            if (user.avatar_url) {
-                avatarImg.src = user.avatar_url;
-                avatarImg.style.display = 'block';
-                avatarPlaceholder.style.display = 'none';
-            } else {
-                const name = user.full_name || user.email || '?';
-                initialEl.textContent = name[0].toUpperCase();
-                avatarPlaceholder.style.display = 'flex';
-                avatarImg.style.display = 'none';
-            }
-
-            // Plan badge
-            const badge = document.getElementById('profilePlanBadge');
-            badge.textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
-            badge.className = `profile-plan-badge badge-${plan}`;
-
-            // Name & email
-            document.getElementById('profileName').textContent = user.full_name || user.email || 'Пользователь';
-            document.getElementById('profileEmail').textContent = user.email || '';
-
-            // Статистика: использовано / осталось / лимит
-            document.getElementById('statAnalyses').textContent = used;
-            document.getElementById('statLimit').textContent = limit === null ? '∞' : limit;
-
-            const remainingEl = document.getElementById('statRemaining');
-            if (limit === null) {
-                // Max план — безлимит
-                remainingEl.textContent = '∞';
-                remainingEl.style.color = '';
-            } else {
-                remainingEl.textContent = Math.max(0, remaining);
-                // Красный если исчерпано или остался 1
-                remainingEl.style.color = remaining <= 1 ? '#ef4444' : remaining <= limit * 0.3 ? '#f59e0b' : '';
-            }
-
-            // Meta
-            document.getElementById('metaPlan').textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
-            document.getElementById('metaVerified').textContent = user.is_verified ? '✅ Да' : '❌ Нет';
-            if (user.created_at) {
-                const d = new Date(user.created_at);
-                document.getElementById('metaJoined').textContent = d.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long' });
-            }
-
-            // Usage bar
-            document.getElementById('usageUsed').textContent = used;
-            document.getElementById('usageTotal').textContent = limit === null ? '∞' : limit;
-            const pct = limit === null ? 10 : Math.min(100, Math.round((used / limit) * 100));
-            const fill = document.getElementById('usageFill');
-            fill.style.width = pct + '%';
-            if (pct >= 100) fill.classList.add('full');
-
-            // Бадж “Осталось” в usage блоке
-            const badge2 = document.getElementById('usageRemainingBadge');
-            if (badge2) {
-                if (limit === null) {
-                    badge2.textContent = 'Безлимит ∞';
-                    badge2.style.background = 'rgba(139,92,246,.15)';
-                    badge2.style.color = '#a78bfa';
-                } else if (remaining === 0) {
-                    badge2.textContent = 'Лимит исчерпан';
-                    badge2.style.background = 'rgba(239,68,68,.15)';
-                    badge2.style.color = '#ef4444';
-                } else {
-                    badge2.textContent = `Осталось: ${remaining}`;
-                    const warn = remaining <= limit * 0.3;
-                    badge2.style.background = warn ? 'rgba(245,158,11,.15)' : 'rgba(139,92,246,.15)';
-                    badge2.style.color = warn ? '#f59e0b' : '#a78bfa';
-                }
-            }
-
-            // Дата сброса
-            const resetText = document.getElementById('usageResetText');
-            if (resetText && resetAt) {
-                try {
-                    const d = new Date(resetAt);
-                    const formatted = d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-                    resetText.textContent = `Сброс счётчика: ${formatted}`;
-                } catch (_) { }
-            }
-
-            // Active plan card highlight
-            highlightPlan(plan);
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          // Basic plan — no payment needed
+          const updated = { ...user, plan: 'basic' };
+          localStorage.setItem('user', JSON.stringify(updated));
+          renderProfile(updated);
+          alert('Вы переключились на Basic план.');
         }
-
-        function highlightPlan(plan) {
-            ['basic', 'pro', 'max'].forEach(p => {
-                const card = document.getElementById(`plan${p.charAt(0).toUpperCase() + p.slice(1)}Card`);
-                const btn = document.getElementById(`btn${p.charAt(0).toUpperCase() + p.slice(1)}`);
-                if (!card || !btn) return;
-
-                if (p === plan) {
-                    card.classList.add('active');
-                    btn.textContent = 'Текущий план';
-                    btn.disabled = true;
-                    btn.classList.add('current');
-                } else {
-                    card.classList.remove('active');
-                    btn.disabled = false;
-                    btn.classList.remove('current');
-                    if (p === 'basic') btn.textContent = 'Перейти на Basic';
-                    if (p === 'pro') btn.textContent = 'Выбрать Pro';
-                    if (p === 'max') btn.textContent = 'Выбрать Max';
-                }
-            });
+      } catch (err) {
+        alert('Ошибка: ' + err.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = plan === 'basic' ? 'Перейти на Basic' : `Выбрать ${plan.charAt(0).toUpperCase() + plan.slice(1)}`;
         }
+      }
+    }
 
-        // ============================================================
-        // Plan selection → Stripe Checkout
-        // ============================================================
-        async function selectPlan(plan) {
-            const user = getUser();
-            if (!user || !user.id) {
-                alert('Войдите в аккаунт для смены тарифа.');
-                return;
-            }
+    // ============================================================
+    // Logout
+    // ============================================================
+    async function logout() {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() });
+      } catch (_) { }
+      localStorage.clear();
+      window.location.href = '/app/login';
+    }
 
-            const btn = document.getElementById(`btn${plan.charAt(0).toUpperCase() + plan.slice(1)}`);
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = 'Загрузка...';
-            }
+    document.getElementById('logoutBtn').addEventListener('click', logout);
 
-            try {
-                const resp = await fetch('/api/subscriptions/checkout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...authHeaders()
-                    },
-                    body: JSON.stringify({ user_id: user.id, plan: plan })
-                });
-
-                const data = await resp.json();
-
-                if (!resp.ok) {
-                    throw new Error(data.detail || 'Ошибка оформления');
-                }
-
-                if (data.checkout_url) {
-                    window.location.href = data.checkout_url;
-                } else {
-                    // Basic plan — no payment needed
-                    const updated = { ...user, plan: 'basic' };
-                    localStorage.setItem('user', JSON.stringify(updated));
-                    renderProfile(updated);
-                    alert('Вы переключились на Basic план.');
-                }
-            } catch (err) {
-                alert('Ошибка: ' + err.message);
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = plan === 'basic' ? 'Перейти на Basic' : `Выбрать ${plan.charAt(0).toUpperCase() + plan.slice(1)}`;
-                }
-            }
-        }
-
-        // ============================================================
-        // Logout
-        // ============================================================
-        async function logout() {
-            try {
-                await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() });
-            } catch (_) { }
-            localStorage.clear();
-            window.location.href = '/app/login';
-        }
-
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-
-        // Init
-        loadProfile();
-    </script>
-    <script src="/static/js/privacy.js"></script>
+    // Init
+    loadProfile();
+  </script>
+  <script src="/static/js/privacy.js"></script>
 </body>
 
 </html>

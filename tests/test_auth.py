@@ -29,6 +29,21 @@ class TestAuthentication:
         assert data["is_verified"] is False
         assert "created_at" in data
 
+    def test_register_user_without_consent(self, client):
+        """
+        Test registration fails when consent is explicitly false
+        """
+        user_data = {
+            "email": f"noconsent+{uuid.uuid4().hex[:8]}@example.com",
+            "password": "password123",
+            "consent": False
+        }
+
+        response = client.post("/api/auth/register", json=user_data)
+        assert response.status_code == 400
+        data = response.json()
+        assert "согласиться" in data["detail"]
+
     def test_register_duplicate_email(self, client):
         """
         Test registration with existing email fails

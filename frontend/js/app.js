@@ -280,18 +280,17 @@ function displayResults(data) {
     const verdictEl = document.getElementById('resultsVerdict');
     const verdictIcon = document.getElementById('verdictIcon');
     const verdictText = document.getElementById('verdictText');
-    verdictEl.className = 'results-verdict';
 
     if (analysis.overall_risk_level === 'high') {
-        verdictEl.classList.add('verdict-high');
+        verdictEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border bg-error-container/30 border-error text-error';
         verdictIcon.textContent = '🔴';
         verdictText.textContent = 'Высокий риск';
     } else if (analysis.overall_risk_level === 'medium') {
-        verdictEl.classList.add('verdict-medium');
+        verdictEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border bg-tertiary-fixed/30 border-tertiary text-amber-600';
         verdictIcon.textContent = '🟡';
         verdictText.textContent = 'Умеренный риск';
     } else {
-        verdictEl.classList.add('verdict-low');
+        verdictEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border bg-secondary-container/20 border-secondary text-secondary';
         verdictIcon.textContent = '🟢';
         verdictText.textContent = 'Низкий риск';
     }
@@ -306,22 +305,22 @@ function displayResults(data) {
     document.getElementById('mediumCount').textContent = mediumRisks.length;
     document.getElementById('lowCount').textContent = lowRisks.length;
 
-    // Список рисков
-    const risksList = document.getElementById('risksList');
-    risksList.innerHTML = '';
+    // Список рисков (сначала в fallback рендерим, потом переносим в сплит-скрин)
+    const risksListFb = document.getElementById('risksListFallback');
+    risksListFb.innerHTML = '';
 
     if (risks.length === 0) {
-        risksList.innerHTML = `
-            <div class="risk-card risk-low">
-                <p style="color:var(--risk-low);font-size:18px;text-align:center;padding:8px 0">
-                    ✅ Рисков не обнаружено
+        risksListFb.innerHTML = `
+            <div class="bg-surface-container-lowest rounded-[12px] p-6 text-center border border-outline-variant">
+                <p class="text-secondary font-bold text-lg flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">check_circle</span> Рисков не обнаружено
                 </p>
             </div>
         `;
     } else {
         // Сначала критические, потом умеренные, потом низкие
         [...highRisks, ...mediumRisks, ...lowRisks].forEach((risk, i) => {
-            risksList.appendChild(createRiskCard(risk, i + 1));
+            risksListFb.appendChild(createRiskCard(risk, i + 1));
         });
     }
 
@@ -335,6 +334,14 @@ function displayResults(data) {
         recList.innerHTML = recommendations
             .map(rec => `<li>${escapeHtml(rec)}</li>`)
             .join('');
+    }
+
+    // Обновляем прогресс-бар и сплит-скрин
+    if (typeof updateRiskProgressBar === 'function') {
+        updateRiskProgressBar(highRisks.length, mediumRisks.length, lowRisks.length);
+    }
+    if (typeof showSplitScreen === 'function') {
+        showSplitScreen(fileInfo.extracted_text);
     }
 
     // Плавная прокрутка к результатам
@@ -351,51 +358,78 @@ function displayResults(data) {
  */
 function createRiskCard(risk, index) {
     const card = document.createElement('div');
-    card.className = `risk-card risk-${risk.risk_level}`;
+    card.className = `bg-surface-container-lowest rounded-[12px] p-4 shadow-sm border border-surface-variant hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col gap-2 relative overflow-hidden group`;
     card.style.animationDelay = `${index * 0.07}s`;
 
-    const levelLabels = { high: 'Критический', medium: 'Умеренный', low: 'Низкий' };
-    const levelLabel = levelLabels[risk.risk_level] || 'Низкий';
+    let colorClass = 'bg-outline-variant';
+    let badgeClass = 'bg-surface-container-high text-on-surface';
+    let badgeIcon = 'check_circle';
+    let levelLabel = 'Низкий риск';
+
+    if (risk.risk_level === 'high') {
+        colorClass = 'bg-error';
+        badgeClass = 'bg-error-container text-on-error-container';
+        badgeIcon = 'warning';
+        levelLabel = 'Критический риск';
+    } else if (risk.risk_level === 'medium') {
+        colorClass = 'bg-tertiary';
+        badgeClass = 'bg-tertiary-fixed text-on-tertiary-fixed';
+        badgeIcon = 'info';
+        levelLabel = 'Умеренный риск';
+    }
 
     let html = `
-        <div class="risk-card-header">
-            <span class="risk-level-badge badge-${risk.risk_level}">${levelLabel}</span>
-            <span class="risk-category">${escapeHtml(risk.category)}</span>
+        <div class="absolute top-0 left-0 w-1.5 h-full ${colorClass}"></div>
+        <div class="flex justify-between items-start">
+            <div class="${badgeClass} px-2.5 py-1 rounded-full font-label-md text-xs w-fit flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-sm">${badgeIcon}</span> ${levelLabel}
+            </div>
+            <span class="text-outline text-xs uppercase tracking-wider font-bold">${escapeHtml(risk.category)}</span>
         </div>
-        <p class="risk-description">${escapeHtml(risk.description)}</p>
+        <h4 class="font-title-md text-base font-bold text-on-surface mt-1">${escapeHtml(risk.category)}</h4>
+        <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">${escapeHtml(risk.description)}</p>
     `;
 
     if (risk.original_clause) {
-        html += `<div class="risk-original-clause">${escapeHtml(risk.original_clause)}</div>`;
-    }
-
-    html += `<div class="risk-footer">`;
-
-    if (risk.recommendation) {
-        html += `<div class="risk-recommendation">${escapeHtml(risk.recommendation)}</div>`;
-    }
-
-    if (risk.law_reference) {
-        const title = risk.law_description
-            ? `title="${escapeHtml(risk.law_description)}"`
-            : '';
         html += `
-            <div class="risk-law" ${title}>
-                ⚖️ <span class="risk-law-ref">${escapeHtml(risk.law_reference)}</span>
-                ${risk.law_description ? `<span style="color:var(--text-muted);margin-left:6px;font-size:12px">— нажмите для деталей</span>` : ''}
+            <div class="p-3 bg-surface-container-low rounded-lg border-l-2 border-outline-variant font-body-sm text-xs text-on-surface-variant italic my-1">
+                ${escapeHtml(risk.original_clause)}
             </div>
         `;
     }
 
-    html += `</div>`;
+    if (risk.recommendation) {
+        html += `
+            <div class="mt-2 bg-secondary-container/20 rounded-lg p-3 border border-secondary-container/30">
+                <div class="flex items-center gap-1 font-label-md text-secondary font-bold text-xs mb-1">
+                    <span class="material-symbols-outlined text-sm">lightbulb</span> Рекомендация AI
+                </div>
+                <p class="font-body-sm text-xs text-on-secondary-container leading-relaxed">${escapeHtml(risk.recommendation)}</p>
+            </div>
+        `;
+    }
+
+    if (risk.law_reference) {
+        const title = risk.law_description ? `title="${escapeHtml(risk.law_description)}"` : '';
+        html += `
+            <div class="flex items-center gap-1.5 font-label-md text-xs text-primary font-bold cursor-pointer hover:underline mt-2" ${title}>
+                <span class="material-symbols-outlined text-sm">gavel</span> Закон: <span class="underline">${escapeHtml(risk.law_reference)}</span>
+                ${risk.law_description ? `<span class="text-outline font-normal text-[10px]">— подробнее</span>` : ''}
+            </div>
+        `;
+    }
+
     card.innerHTML = html;
 
-    // Тултип для закона
+    // Click handler for law tooltip detail
     if (risk.law_reference && risk.law_description) {
-        const lawEl = card.querySelector('.risk-law');
-        lawEl.addEventListener('click', () => {
-            alert(`${risk.law_reference}\n\n${risk.law_description}`);
-        });
+        const lawEl = card.querySelector('.underline');
+        if (lawEl) {
+            lawEl.parentElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                alert(`${risk.law_reference}\n\n${risk.law_description}`);
+            });
+        }
     }
 
     return card;

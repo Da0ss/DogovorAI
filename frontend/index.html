@@ -1,489 +1,831 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html class="light" lang="ru">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DogovorAI — Умный анализ договоров</title>
-    <meta name="description"
-        content="AI-сервис для анализа юридических рисков в договорах. Загрузите PDF, DOCX или фото договора — получите список рисков с ссылками на законодательство РК.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/paywall.css">
-    <link rel="stylesheet" href="/static/css/privacy.css">
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Dogovor AI — Умный анализ договоров</title>
+  <meta name="description" content="AI-сервис для анализа юридических рисков в договорах. Загрузите PDF, DOCX или фото договора — получите список рисков с ссылками на законодательство РК." />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/design-system-ext.css">
+
+  <!-- Theme Configuration -->
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "secondary-fixed": "#6bfe9c",
+            "surface-container-lowest": "#ffffff",
+            "inverse-surface": "#2e3132",
+            "on-error-container": "#93000a",
+            "outline-variant": "#c5c5d4",
+            "inverse-primary": "#bac3ff",
+            "surface-container": "#edeeef",
+            "on-primary-fixed": "#00105c",
+            "tertiary": "#6c3400",
+            "surface": "#f8f9fa",
+            "on-error": "#ffffff",
+            "on-background": "#191c1d",
+            "on-surface-variant": "#454652",
+            "tertiary-fixed": "#ffdcc6",
+            "on-primary-fixed-variant": "#293ca0",
+            "surface-bright": "#f8f9fa",
+            "on-secondary-container": "#00743a",
+            "surface-dim": "#d9dadb",
+            "on-surface": "#191c1d",
+            "on-tertiary": "#ffffff",
+            "surface-tint": "#4355b9",
+            "secondary": "#006d37",
+            "secondary-fixed-dim": "#4ae183",
+            "on-secondary": "#ffffff",
+            "on-primary": "#ffffff",
+            "primary": "#24389c",
+            "error-container": "#ffdad6",
+            "on-tertiary-container": "#ffc7a2",
+            "on-tertiary-fixed": "#301400",
+            "primary-fixed": "#dee0ff",
+            "on-secondary-fixed-variant": "#005228",
+            "surface-container-highest": "#e1e3e4",
+            "surface-container-low": "#f3f4f5",
+            "error": "#ba1a1a",
+            "inverse-on-surface": "#f0f1f2",
+            "surface-variant": "#e1e3e4",
+            "tertiary-container": "#8f4700",
+            "on-primary-container": "#cacfff",
+            "outline": "#757684",
+            "surface-container-high": "#e7e8e9",
+            "primary-container": "#3f51b5",
+            "secondary-container": "#6bfe9c",
+            "on-tertiary-fixed-variant": "#713700",
+            "primary-fixed-dim": "#bac3ff",
+            "background": "#f8f9fa",
+            "on-secondary-fixed": "#00210c",
+            "tertiary-fixed-dim": "#ffb784"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "sm": "12px",
+            "gutter": "24px",
+            "xl": "64px",
+            "md": "24px",
+            "lg": "40px",
+            "xs": "4px",
+            "container-max": "1200px",
+            "base": "8px"
+          },
+          fontFamily: {
+            "title-md": ["Manrope"],
+            "body-md": ["Work Sans"],
+            "label-md": ["Manrope"],
+            "body-sm": ["Work Sans"],
+            "body-lg": ["Work Sans"],
+            "headline-lg-mobile": ["Manrope"],
+            "display-lg": ["Manrope"],
+            "headline-lg": ["Manrope"]
+          },
+          fontSize: {
+            "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+            "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Luminous Shadow for Level 1 Surfaces */
+    .shadow-luminous {
+      box-shadow: 0px 4px 20px rgba(36, 56, 156, 0.12);
+    }
+
+    /* Custom Scrollbar for Workspace */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #c5c5d4;
+      border-radius: 20px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Additional custom elements to style our native parts */
+    .usage-bar-card {
+      background: #ffffff;
+      border: 1px solid #c5c5d4;
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      box-sizing: border-box;
+      box-shadow: 0px 4px 20px rgba(36, 56, 156, 0.05);
+    }
+    .usage-bar-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #3f51b5, #24389c);
+      border-radius: 100px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .usage-upgrade-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 14px;
+      background: linear-gradient(135deg, #3f51b5, #24389c);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .usage-upgrade-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(36, 56, 156, 0.3);
+    }
+
+    /* Error Toast */
+    .error-toast {
+      position: fixed;
+      bottom: 120px;
+      right: 24px;
+      background: #ba1a1a;
+      color: white;
+      padding: 16px 20px;
+      border-radius: 12px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0px 8px 24px rgba(186, 26, 26, 0.35);
+      font-family: 'Work Sans', sans-serif;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Paywall Modal */
+    .paywall-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(25, 28, 29, 0.6);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .paywall-card {
+      background: white;
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 480px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0px 12px 40px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .paywall-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 24px;
+      color: #757684;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
-<body>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px] pb-[100px]">
 
-    <!-- ===== HEADER ===== -->
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <span class="logo-icon">⚖️</span>
-                <span class="logo-text">Dogovor<span class="logo-accent">AI</span></span>
-            </div>
-            <nav class="nav">
-                <a href="#features" class="nav-link">Возможности</a>
-                <a href="#upload" class="nav-link">Анализ</a>
-                <a href="/app/contracts" class="nav-link">Генерация</a>
-                <a href="/app/history" class="nav-link">История</a>
-                <!-- Logged-OUT navigation -->
-                <div class="nav-auth nav-auth-logged-out">
-                    <a href="/app/login" class="nav-button nav-button-secondary">Войти</a>
-                    <a href="/app/register" class="nav-button">Регистрация</a>
-                </div>
-                <!-- Logged-IN navigation: avatar + dropdown -->
-                <div class="nav-auth nav-auth-logged-in" style="display: none; position: relative;">
-                    <button class="user-avatar-btn" id="userAvatarBtn" aria-label="Профиль пользователя">
-                        <img class="user-avatar-img" id="userAvatarImg" src="" alt="" style="display:none;">
-                        <div class="user-avatar-placeholder" id="userAvatarPlaceholder">
-                            <span id="userInitial">?</span>
-                        </div>
-                    </button>
-                    <!-- Dropdown menu -->
-                    <div class="user-dropdown" id="userDropdown">
-                        <div class="user-dropdown-header">
-                            <div class="dropdown-name" id="dropdownName">Пользователь</div>
-                            <div class="dropdown-plan" id="dropdownPlan">Basic</div>
-                        </div>
-                        <div class="user-dropdown-divider"></div>
-                        <a href="/app/profile" class="user-dropdown-item">
-                            <span></span> Мой профиль
-                        </a>
-                        <a href="/app/profile#subscription" class="user-dropdown-item">
-                            <span></span> Подписка
-                        </a>
-                        <div class="user-dropdown-divider"></div>
-                        <button class="user-dropdown-item user-dropdown-logout" id="logoutBtn">
-                            <span></span> Выйти
-                        </button>
-                    </div>
-                </div>
-            </nav>
-        </div>
-    </header>
+  <!-- Nav rendered by nav.js -->
+  <div id="nav-root"></div>
 
-    <!-- ===== HERO ===== -->
-    <section class="hero">
-        <div class="hero-bg">
-            <div class="hero-orb hero-orb-1"></div>
-            <div class="hero-orb hero-orb-2"></div>
-        </div>
-        <div class="container">
-            <div class="hero-badge">
-                <span class="badge-dot"></span>
-                Работает на Kimi AI
+  <!-- ===== LANDING VIEW SECTION ===== -->
+  <div id="landingView">
+    <main class="flex-grow flex flex-col items-center justify-start pt-lg pb-xl px-gutter max-w-container-max mx-auto w-full gap-xl">
+      <!-- Hero Section -->
+      <section class="text-center max-w-3xl flex flex-col items-center gap-md mt-lg">
+        <h1 class="font-display-lg text-display-lg text-on-surface mb-2">Анализируйте договоры с юридической точностью</h1>
+        <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Автоматизированный разбор рисков, спорных пунктов и рекомендаций со ссылками на законодательство Республики Казахстан за секунды.</p>
+        
+        <!-- 3-Step Guide -->
+        <div class="flex flex-col md:flex-row items-center justify-center gap-lg mt-xl w-full">
+          <div class="flex flex-col items-center gap-sm relative z-10">
+            <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-primary shadow-sm">
+              <span class="material-symbols-outlined text-[32px]">upload_file</span>
             </div>
-            <h1 class="hero-title">
-                Анализируйте договоры<br>
-                <span class="gradient-text">с юридической точностью</span>
-            </h1>
-            <p class="hero-subtitle">
-                Загрузите PDF, DOCX или фотографию договора — DogovorAI выявит риски,
-                нарушения и опасные пункты со ссылками на законодательство РК за секунды.
-            </p>
-            <div class="hero-stats">
-                <div class="stat">
-                    <span class="stat-value">PDF</span>
-                    <span class="stat-label">документы</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat">
-                    <span class="stat-value">DOCX</span>
-                    <span class="stat-label">Word файлы</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat">
-                    <span class="stat-value">OCR</span>
-                    <span class="stat-label">фотографии</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat">
-                    <span class="stat-value">ГК РК</span>
-                    <span class="stat-label">база знаний</span>
-                </div>
+            <span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">1. Загрузите</span>
+          </div>
+          <div class="hidden md:block w-24 h-px bg-outline-variant relative -top-4"></div>
+          <div class="flex flex-col items-center gap-sm relative z-10">
+            <div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shadow-sm">
+              <span class="material-symbols-outlined text-[32px]">psychology</span>
             </div>
+            <span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">2. AI-Анализ</span>
+          </div>
+          <div class="hidden md:block w-24 h-px bg-outline-variant relative -top-4"></div>
+          <div class="flex flex-col items-center gap-sm relative z-10">
+            <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-primary shadow-sm">
+              <span class="material-symbols-outlined text-[32px]">download_done</span>
+            </div>
+            <span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">3. Результат</span>
+          </div>
         </div>
+      </section>
+
+      <!-- Smart Input Interface -->
+      <section class="w-full max-w-4xl bg-surface-container-lowest rounded-[24px] shadow-[0_4px_20px_rgba(36,56,156,0.12)] border border-outline-variant overflow-hidden mt-lg">
+        
+        <!-- Usage Bar (quota indicator) -->
+        <div class="p-6 border-b border-outline-variant bg-surface-container-low" id="usageBarContainer" style="display:none;">
+          <div class="usage-bar-card">
+            <span class="text-2xl">📊</span>
+            <div class="flex-grow">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-on-surface-variant">Анализы в этом месяце <span class="bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full text-xs font-bold" id="usagePlanBadge">Basic</span></span>
+                <span class="text-sm font-bold text-on-surface"><span id="usageUsed">0</span> / <span id="usageLimit">3</span></span>
+              </div>
+              <div class="w-full h-1 bg-surface-container rounded-full overflow-hidden">
+                <div class="usage-bar-fill" id="usageFill" style="width: 0%;"></div>
+              </div>
+              <p id="usageResetDate" class="text-xs text-on-surface-variant mt-1" style="display:none;"></p>
+            </div>
+            <div id="usageUpgradeWrap" style="display:none;">
+              <a href="/app/profile" class="usage-upgrade-btn">⚡ Подписка</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="upload-card" id="uploadCard">
+          <!-- Tabs -->
+          <div class="flex border-b border-outline-variant bg-surface-container-low">
+            <button class="flex-grow py-4 font-label-md text-label-md text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2" id="tabFile" onclick="switchTab('file')">
+              <span class="material-symbols-outlined text-[20px]">file_upload</span>
+              Файл
+            </button>
+            <button class="flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2" id="tabText" onclick="switchTab('text')">
+              <span class="material-symbols-outlined text-[20px]">notes</span>
+              Текст договора
+            </button>
+            <button class="flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2" id="tabUrl" onclick="switchTab('url')">
+              <span class="material-symbols-outlined text-[20px]">link</span>
+              Ссылка на документ
+            </button>
+          </div>
+
+          <!-- Content Area -->
+          <div class="p-lg md:p-xl min-h-[360px] flex flex-col justify-center bg-surface-container-lowest relative">
+            
+            <!-- Panel: File Drag & Drop -->
+            <div class="smart-input-panel active" id="panelFile">
+              <div class="w-full flex flex-col items-center justify-center border-2 border-dashed border-outline-variant rounded-xl p-lg hover:border-primary hover:bg-primary-fixed/30 transition-all cursor-pointer group" id="dropZone">
+                <div class="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center text-primary mb-md group-hover:scale-110 transition-transform">
+                  <span class="material-symbols-outlined text-[36px]">document_scanner</span>
+                </div>
+                <h3 class="font-title-md text-title-md text-on-surface mb-2">Перетащите договор сюда</h3>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mb-lg text-center max-w-sm">Поддерживаются форматы PDF, DOCX, JPG, PNG до 20 МБ. Текст будет автоматически распознан AI.</p>
+                <button class="bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg hover:bg-primary/95 transition-colors shadow-sm">
+                  Выбрать файл
+                </button>
+              </div>
+              <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" style="display:none">
+
+              <!-- File Preview (hidden by default) -->
+              <div class="w-full flex items-center gap-4 p-4 border border-outline-variant rounded-xl bg-surface-container-low" id="filePreview" style="display:none">
+                <div class="w-10 h-10 rounded bg-primary-container text-on-primary-container flex items-center justify-center text-lg font-bold" id="filePreviewIcon">📄</div>
+                <div class="flex-grow">
+                  <h4 class="font-title-md text-sm text-on-surface truncate max-w-md" id="fileName">document.pdf</h4>
+                  <p class="font-body-sm text-xs text-on-surface-variant" id="fileSize">2.3 MB</p>
+                </div>
+                <button class="text-outline-variant hover:text-error text-2xl font-bold p-2 transition-colors" id="removeFile" title="Удалить файл">×</button>
+              </div>
+            </div>
+
+            <!-- Panel: Text Paste -->
+            <div class="smart-input-panel hidden" id="panelText">
+              <textarea class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline" id="textInput" placeholder="Вставьте текст договора сюда... Минимум 100 символов для AI-анализа." rows="9"></textarea>
+              <div id="textInputInfo" class="font-label-md text-xs text-right mt-2 text-outline">0 / мин. 100 символов</div>
+            </div>
+
+            <!-- Panel: Cloud Link -->
+            <div class="smart-input-panel hidden" id="panelUrl">
+              <div class="relative w-full">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">link</span>
+                <input class="w-full bg-surface border border-outline-variant rounded-lg pl-10 pr-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline" id="urlInput" placeholder="https://example.com/agreement.pdf" type="url" />
+              </div>
+              <p class="font-body-sm text-xs text-on-surface-variant mt-2">Вставьте прямую ссылку на PDF, DOCX или TXT файл с вашего облачного хранилища.</p>
+            </div>
+
+            <!-- Analyze Action Button -->
+            <div class="mt-8 flex justify-center">
+              <button class="bg-primary text-on-primary font-label-md text-label-md px-12 py-3 rounded-lg hover:bg-primary/95 disabled:bg-outline-variant disabled:text-outline disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2" id="analyzeBtn" disabled>
+                <span class="material-symbols-outlined">bolt</span>
+                Анализировать договор
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Progress/Loading State -->
+        <div class="p-xl min-h-[400px] flex flex-col items-center justify-center bg-surface-container-lowest" id="progressContainer" style="display:none">
+          <div class="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-lg"></div>
+          <h3 class="font-title-md text-title-md text-on-surface mb-xs" id="progressTitle">Анализируем договор...</h3>
+          <p class="font-body-md text-body-md text-on-surface-variant mb-xl text-center max-w-sm" id="progressStep">Извлечение текста из документа</p>
+          
+          <div class="flex items-center gap-md mt-6" id="progressSteps">
+            <div class="flex items-center gap-2" id="step1">
+              <span class="w-3 h-3 rounded-full bg-outline-variant" id="step1Dot"></span>
+              <span class="font-label-md text-xs text-on-surface-variant">Чтение файла</span>
+            </div>
+            <div class="w-12 h-px bg-outline-variant"></div>
+            <div class="flex items-center gap-2" id="step2">
+              <span class="w-3 h-3 rounded-full bg-outline-variant" id="step2Dot"></span>
+              <span class="font-label-md text-xs text-on-surface-variant">AI-анализ</span>
+            </div>
+            <div class="w-12 h-px bg-outline-variant"></div>
+            <div class="flex items-center gap-2" id="step3">
+              <span class="w-3 h-3 rounded-full bg-outline-variant" id="step3Dot"></span>
+              <span class="font-label-md text-xs text-on-surface-variant">Законодательство РК</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Features Section -->
+      <section class="w-full max-w-5xl py-12 mt-12 border-t border-outline-variant/30">
+        <div class="text-center mb-12">
+          <h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Возможности Dogovor AI</h2>
+          <p class="font-body-md text-body-md text-on-surface-variant max-w-xl mx-auto">Интеллектуальные инструменты для быстрой и безопасной юридической экспертизы.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Feature 1 -->
+          <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center text-center gap-4 hover:shadow-md transition-all">
+            <div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">security</span>
+            </div>
+            <h3 class="font-title-md text-base text-on-surface font-bold">Выявление рисков с AI</h3>
+            <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">Мгновенный поиск скрытых обязательств, штрафных санкций и кабальных условий в тексте.</p>
+          </div>
+          <!-- Feature 2 -->
+          <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center text-center gap-4 hover:shadow-md transition-all">
+            <div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">picture_as_pdf</span>
+            </div>
+            <h3 class="font-title-md text-base text-on-surface font-bold">Отчеты в PDF формате</h3>
+            <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">Скачивание структурированного и наглядного отчета с готовыми рекомендациями по исправлению.</p>
+          </div>
+          <!-- Feature 3 -->
+          <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center text-center gap-4 hover:shadow-md transition-all">
+            <div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">cloud_done</span>
+            </div>
+            <h3 class="font-title-md text-base text-on-surface font-bold">Безопасная интеграция</h3>
+            <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">Полная конфиденциальность. Загруженные файлы зашифрованы и не используются для обучения публичных моделей.</p>
+          </div>
+        </div>
+      </section>
+
+
+    </main>
+  </div>
+
+
+  <!-- ===== RESULTS VIEW SECTION (Analytical Dashboard style) ===== -->
+  <div id="resultsSection" style="display:none">
+    
+    <!-- Top Progress Summary Block -->
+    <section class="w-full bg-surface pt-md pb-lg border-b border-surface-container-high">
+      <div class="max-w-container-max mx-auto px-gutter">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-sm mb-sm">
+          <div>
+            <h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs" id="resultsTitle">Анализ договора завершён</h1>
+            <p class="font-body-sm text-body-sm text-on-surface-variant" id="resultsFilename">contract.pdf</p>
+          </div>
+          
+          <div class="flex items-center gap-md">
+            <!-- Verdict -->
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-error-container/30 border-error text-error" id="resultsVerdict">
+              <span class="text-lg" id="verdictIcon">🔴</span>
+              <span class="font-label-md text-label-md" id="verdictText">Высокий риск</span>
+            </div>
+            <!-- Counts -->
+            <div class="flex gap-md font-label-md text-label-md text-xs">
+              <div class="flex items-center gap-xs text-error">
+                <span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+                <span id="highCount">0</span> Критических
+              </div>
+              <div class="flex items-center gap-xs text-tertiary">
+                <span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+                <span id="mediumCount">0</span> Умеренных
+              </div>
+              <div class="flex items-center gap-xs text-outline">
+                <span class="w-2.5 h-2.5 rounded-full bg-outline"></span>
+                <span id="lowCount">0</span> Низких
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Linear Proportional Risk Progress Bar -->
+        <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden flex shadow-inner mt-4" id="riskProgressBar">
+          <div class="h-full bg-error transition-all duration-500" id="progressHigh" style="width: 0%;" title="Критические риски"></div>
+          <div class="h-full bg-tertiary-container bg-[#ffdcc6] transition-all duration-500" id="progressMedium" style="width: 0%;" title="Умеренные риски"></div>
+          <div class="h-full bg-outline-variant bg-[#c5c5d4] transition-all duration-500" id="progressLow" style="width: 0%;" title="Низкие риски"></div>
+        </div>
+      </div>
     </section>
 
-    <!-- ===== FEATURES ===== -->
-    <section class="features" id="features">
-        <div class="container">
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📄</div>
-                    <h3>Все форматы</h3>
-                    <p>PDF, Word, JPG, PNG — анализируем любой формат документа</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
-                    <h3>Кими AI</h3>
-                    <p>Мощная языковая модель специально настроена для юридического анализа</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚖️</div>
-                    <h3>Ссылки на законы</h3>
-                    <p>Каждый риск со ссылкой на ГК РК, ТК РК и другие законы</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🛡️</div>
-                    <h3>3 уровня риска</h3>
-                    <p>Критический, умеренный и низкий — видите что важно в первую очередь</p>
-                </div>
-            </div>
+    <!-- Main analytical report block -->
+    <main class="w-full max-w-container-max mx-auto px-gutter py-lg">
+      
+      <!-- Summary / Document Type block -->
+      <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md mb-lg shadow-sm">
+        <div class="flex justify-between items-center mb-sm">
+          <span class="font-label-md text-xs text-on-surface-variant uppercase tracking-wider">Резюме документа</span>
+          <span class="bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-full text-xs font-bold" id="docTypeBadge">Тип договора</span>
         </div>
-    </section>
+        <p class="font-body-md text-body-md text-on-surface leading-relaxed" id="summaryText">Резюме AI...</p>
+      </section>
 
-    <!-- ===== UPLOAD SECTION ===== -->
-    <section class="upload-section" id="upload">
-        <div class="container">
-            <div class="section-header">
-                <h2>Проверить договор</h2>
-                <p>Загрузите документ и получите детальный юридический анализ</p>
+      <!-- Split Screen layout -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter relative mt-lg" id="resultsSplit" style="display:none;">
+        
+        <!-- Left Side: Original Document Viewer -->
+        <div class="lg:col-span-7 flex flex-col bg-surface-container-lowest rounded-[16px] shadow-luminous border-l-4 border-primary overflow-hidden relative" style="height: calc(100vh - 280px); min-height: 520px;">
+          <!-- Doc Viewer Header -->
+          <div class="bg-surface py-sm px-md border-b border-surface-container flex justify-between items-center z-10 sticky top-0">
+            <div class="font-label-md text-xs text-on-surface-variant flex items-center gap-xs">
+              <span class="material-symbols-outlined text-[18px]">description</span> 
+              Оригинал текста
             </div>
-
-            <!-- Usage Bar -->
-            <div class="usage-bar-container" id="usageBarContainer" style="display:none;">
-                <div class="usage-bar-card">
-                    <span class="usage-bar-icon">📊</span>
-                    <div class="usage-bar-info">
-                        <div class="usage-bar-header">
-                            <span class="usage-bar-label">Использовано анализов <span class="usage-bar-plan" id="usagePlanBadge">Basic</span></span>
-                            <span class="usage-bar-count"><span class="count-used" id="usageUsed">0</span> / <span class="count-limit" id="usageLimit">3</span></span>
-                        </div>
-                        <div class="usage-bar-track">
-                            <div class="usage-bar-fill" id="usageFill" style="width: 0%;"></div>
-                        </div>
-                        <span id="usageResetDate" style="display:none;font-size:0.72rem;color:rgba(160,175,210,0.55);margin-top:4px;"></span>
-                    </div>
-                    <div class="usage-bar-upgrade" id="usageUpgradeWrap" style="display:none;">
-                        <a href="/app/profile" class="usage-upgrade-btn">⚡ Upgrade</a>
-                    </div>
-                </div>
+            <div class="flex gap-sm">
+              <button class="p-1 hover:bg-surface-container rounded transition-colors text-outline" onclick="zoomDoc(-1)"><span class="material-symbols-outlined text-[20px]">zoom_out</span></button>
+              <button class="p-1 hover:bg-surface-container rounded transition-colors text-outline" onclick="zoomDoc(1)"><span class="material-symbols-outlined text-[20px]">zoom_in</span></button>
             </div>
-
-            <div class="upload-card" id="uploadCard">
-                <!-- Drop Zone -->
-                <div class="drop-zone" id="dropZone">
-                    <div class="drop-zone-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="1.5">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                            <polyline points="17 8 12 3 7 8" />
-                            <line x1="12" y1="3" x2="12" y2="15" />
-                        </svg>
-                    </div>
-                    <p class="drop-zone-title">Перетащите файл сюда</p>
-                    <p class="drop-zone-subtitle">или нажмите для выбора</p>
-                    <div class="drop-zone-formats">
-                        <span class="format-badge">PDF</span>
-                        <span class="format-badge">DOCX</span>
-                        <span class="format-badge">JPG</span>
-                        <span class="format-badge">PNG</span>
-                    </div>
-                    <p class="drop-zone-limit">Максимальный размер: 20 МБ</p>
-                </div>
-                <!-- fileInput вынесен ЗА dropZone чтобы избежать двойного диалога -->
-                <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" style="display:none">
-
-                <!-- File Preview (hidden by default) -->
-                <div class="file-preview" id="filePreview" style="display:none">
-                    <div class="file-preview-icon" id="filePreviewIcon">📄</div>
-                    <div class="file-preview-info">
-                        <span class="file-preview-name" id="fileName">document.pdf</span>
-                        <span class="file-preview-size" id="fileSize">2.3 MB</span>
-                    </div>
-                    <button class="file-remove-btn" id="removeFile" title="Удалить файл">×</button>
-                </div>
-
-                <!-- Analyze Button -->
-                <button class="analyze-btn" id="analyzeBtn" disabled>
-                    <span class="btn-icon">⚡</span>
-                    <span class="btn-text">Анализировать договор</span>
-                </button>
-            </div>
-
-            <!-- Progress -->
-            <div class="progress-container" id="progressContainer" style="display:none">
-                <div class="progress-card">
-                    <div class="progress-spinner"></div>
-                    <div class="progress-info">
-                        <p class="progress-title">Анализирую договор...</p>
-                        <p class="progress-subtitle" id="progressStep">Извлечение текста из документа</p>
-                    </div>
-                </div>
-                <div class="progress-steps" id="progressSteps">
-                    <div class="progress-step active" id="step1">
-                        <div class="step-dot"></div>
-                        <span>Чтение файла</span>
-                    </div>
-                    <div class="progress-step" id="step2">
-                        <div class="step-dot"></div>
-                        <span>AI-анализ рисков</span>
-                    </div>
-                    <div class="progress-step" id="step3">
-                        <div class="step-dot"></div>
-                        <span>Сопоставление с законами</span>
-                    </div>
-                </div>
-            </div>
+          </div>
+          <!-- Doc content scrollable -->
+          <div class="p-md md:p-lg overflow-y-auto custom-scrollbar font-body-md text-sm text-on-surface leading-relaxed space-y-md relative bg-white flex-grow" id="originalTextPane" style="font-size: 14px; white-space: pre-wrap; word-break: break-word;">
+            Текст договора...
+          </div>
         </div>
-    </section>
 
-    <!-- ===== RESULTS SECTION ===== -->
-    <section class="results-section" id="resultsSection" style="display:none">
-        <div class="container">
-
-            <!-- Results Header -->
-            <div class="results-header">
-                <div class="results-title-block">
-                    <h2 id="resultsTitle">Анализ завершён</h2>
-                    <p class="results-filename" id="resultsFilename"></p>
-                </div>
-                <div class="results-verdict" id="resultsVerdict">
-                    <span class="verdict-icon" id="verdictIcon">🔴</span>
-                    <span class="verdict-text" id="verdictText">Высокий риск</span>
-                </div>
-            </div>
-
-            <!-- Summary Card -->
-            <div class="summary-card" id="summaryCard">
-                <div class="summary-header">
-                    <span class="summary-label">Тип договора</span>
-                    <span class="doc-type-badge" id="docTypeBadge"></span>
-                </div>
-                <p class="summary-text" id="summaryText"></p>
-            </div>
-
-            <!-- Stats Row -->
-            <div class="results-stats" id="resultsStats">
-                <div class="result-stat result-stat-high">
-                    <span class="result-stat-value" id="highCount">0</span>
-                    <span class="result-stat-label">Критических</span>
-                </div>
-                <div class="result-stat result-stat-medium">
-                    <span class="result-stat-value" id="mediumCount">0</span>
-                    <span class="result-stat-label">Умеренных</span>
-                </div>
-                <div class="result-stat result-stat-low">
-                    <span class="result-stat-value" id="lowCount">0</span>
-                    <span class="result-stat-label">Низких</span>
-                </div>
-            </div>
-
-            <!-- Risks List -->
-            <div class="risks-list" id="risksList"></div>
-
-            <!-- Recommendations -->
-            <div class="recommendations-card" id="recommendationsCard" style="display:none">
-                <h3 class="rec-title">💡 Общие рекомендации</h3>
-                <ul class="rec-list" id="recList"></ul>
-            </div>
-
-            <!-- New Analysis Button -->
-            <div class="new-analysis-block">
-                <button class="new-analysis-btn" id="newAnalysisBtn">
-                    ↩ Проверить другой договор
-                </button>
-            </div>
+        <!-- Right Side: AI Risk Cards stack -->
+        <div class="lg:col-span-5 flex flex-col gap-sm overflow-y-auto custom-scrollbar pr-sm" style="height: calc(100vh - 280px); min-height: 520px;">
+          <div class="font-label-md text-xs text-on-surface-variant mb-xs px-xs uppercase tracking-wider">Выявленные риски AI</div>
+          <div class="flex flex-col gap-3" id="risksList"></div>
         </div>
-    </section>
 
-    <!-- ===== PAYWALL MODAL ===== -->
-    <div class="paywall-overlay" id="paywallModal" style="display:none;">
-        <div class="paywall-card">
-            <button class="paywall-close" id="paywallClose">×</button>
-            <span class="paywall-icon">🔒</span>
-            <h2 class="paywall-title">Лимит исчерпан</h2>
-            <p class="paywall-message" id="paywallMessage">
-                Вы использовали все бесплатные анализы.
-                Приобретите подписку для продолжения работы.
-            </p>
-            <span id="paywallReset" style="display:none;font-size:0.82rem;color:rgba(160,175,210,0.65);text-align:center;margin-bottom:8px;"></span>
-            <div class="paywall-usage-info">
-                <div class="paywall-stat">
-                    <span class="paywall-stat-value stat-used" id="paywallUsed">3</span>
-                    <span class="paywall-stat-label">использовано</span>
-                </div>
-                <div class="paywall-divider"></div>
-                <div class="paywall-stat">
-                    <span class="paywall-stat-value" id="paywallLimit">3</span>
-                    <span class="paywall-stat-label">лимит</span>
-                </div>
-            </div>
-            <div class="paywall-plans">
-                <button class="paywall-plan-card" onclick="window.location.href='/app/profile'">
-                    <span class="plan-card-icon">⚡</span>
-                    <div class="plan-card-info">
-                        <div class="plan-card-name">Pro</div>
-                        <div class="plan-card-desc">30 анализов в месяц</div>
-                    </div>
-                    <span class="plan-card-price">$9/мес</span>
-                </button>
-                <button class="paywall-plan-card plan-recommended" onclick="window.location.href='/app/profile'">
-                    <span class="plan-card-icon">🚀</span>
-                    <div class="plan-card-info">
-                        <div class="plan-card-name">Max</div>
-                        <div class="plan-card-desc">Безлимитные анализы</div>
-                    </div>
-                    <span class="plan-card-price">$19/мес</span>
-                </button>
-            </div>
-            <button class="paywall-cta-btn" onclick="window.location.href='/app/profile'">Купить подписку</button>
-            <button class="paywall-skip-btn" id="paywallSkip">Позже</button>
+      </section>
+
+      <!-- Fallback Single Column List (when no text preview) -->
+      <section class="flex flex-col gap-3 mt-lg" id="risksListFallback"></section>
+
+      <!-- General Recommendations -->
+      <section class="bg-surface-container-lowest border border-outline-variant rounded-[16px] p-md mt-lg shadow-sm" id="recommendationsCard" style="display:none;">
+        <h3 class="font-title-md text-title-md text-on-surface mb-md flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">lightbulb</span> Общие рекомендации
+        </h3>
+        <ul class="list-disc pl-5 space-y-2 font-body-md text-sm text-on-surface-variant" id="recList"></ul>
+      </section>
+
+      <!-- Reset / Analyze Another Document action -->
+      <div class="mt-xl mb-xl flex justify-center">
+        <button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md px-8 py-3 rounded-lg border border-outline-variant transition-colors flex items-center gap-2" id="newAnalysisBtn">
+          <span class="material-symbols-outlined">replay</span>
+          Проверить другой договор
+        </button>
+      </div>
+
+    </main>
+
+    <!-- Bottom Action Bar (Fixed Footer) -->
+    <footer class="fixed bottom-0 left-0 w-full bg-surface/95 backdrop-blur-md border-t border-outline-variant shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50">
+      <div class="max-w-container-max mx-auto py-md px-gutter flex flex-col md:flex-row justify-between items-center gap-md">
+        <div class="flex gap-md font-body-sm text-xs text-on-surface-variant">
+          <span class="hidden md:inline">© 2026 Dogovor AI</span>
+          <a class="hover:text-primary transition-colors" href="#">Условия</a>
+          <a class="hover:text-primary transition-colors" href="#">Конфиденциальность</a>
         </div>
-    </div>
-
-    <!-- ===== ERROR TOAST ===== -->
-    <div class="error-toast" id="errorToast" style="display:none">
-        <span class="toast-icon">⚠️</span>
-        <span class="toast-message" id="toastMessage">Произошла ошибка</span>
-        <button class="toast-close" onclick="closeToast()">×</button>
-    </div>
-
-    <!-- ===== FOOTER ===== -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-inner">
-                <span class="footer-logo">⚖️ DogovorAI</span>
-                <p class="footer-text">Не является юридической консультацией. Для важных решений обратитесь к юристу.
-                </p>
-                <span class="footer-version">v0.1.0 MVP</span>
-            </div>
+        <div class="flex items-center gap-md w-full md:w-auto justify-end">
+          <button class="text-primary font-label-md text-sm hover:bg-primary/5 px-4 py-2.5 rounded-lg transition-colors flex items-center gap-xs" onclick="alert('Ссылка скопирована в буфер обмена!')">
+            <span class="material-symbols-outlined text-[18px]">share</span> Поделиться
+          </button>
+          <button class="bg-primary text-on-primary font-label-md text-sm px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-sm" onclick="alert('Скачивание PDF-отчета начнется в ближайшее время.')">
+            <span class="material-symbols-outlined text-[20px]">download</span> Скачать отчёт PDF
+          </button>
         </div>
+      </div>
     </footer>
 
-    <script src="/static/js/auth-guard.js?v=1.1"></script>
-    <script src="/static/js/app.js?v=1.1"></script>
-    <script src="/static/js/paywall.js?v=1.1"></script>
-    <script>
-        // ============================================================
-        // Load user info from server
-        // ============================================================
-        async function loadUserInfo() {
-            if (!isAuthenticated()) return;
-            try {
-                const resp = await fetch(`/api/auth/me/profile?t=${Date.now()}`, { headers: getAuthHeaders() });
-                if (resp.ok) {
-                    const data = await resp.json();
-                    localStorage.setItem('user', JSON.stringify(data));
-                    updateAuthUI();
-                    return;
-                }
-                const resp2 = await fetch('/api/auth/me', { headers: getAuthHeaders() });
-                if (resp2.ok) {
-                    const data2 = await resp2.json();
-                    localStorage.setItem('user', JSON.stringify(data2));
-                    updateAuthUI();
-                }
-            } catch (e) { console.warn('Failed to load user info:', e); }
+  </div>
+
+
+  <!-- ===== PAYWALL MODAL ===== -->
+  <div class="paywall-overlay" id="paywallModal" style="display:none;">
+    <div class="paywall-card">
+      <button class="paywall-close" id="paywallClose">×</button>
+      <span class="text-4xl mb-2">🔒</span>
+      <h2 class="font-title-md text-lg font-bold text-on-surface mb-2">Лимит анализов исчерпан</h2>
+      <p class="font-body-md text-sm text-on-surface-variant mb-6" id="paywallMessage">
+        Вы использовали все доступные анализы в рамках текущего тарифного плана.
+      </p>
+      <span id="paywallReset" class="text-xs text-outline mb-4" style="display:none;"></span>
+      
+      <div class="w-full bg-surface rounded-xl p-4 flex justify-around mb-6 border border-outline-variant/30">
+        <div class="flex flex-col items-center">
+          <span class="text-xl font-bold text-primary" id="paywallUsed">3</span>
+          <span class="font-label-md text-xs text-on-surface-variant uppercase tracking-wider">Использовано</span>
+        </div>
+        <div class="w-px h-8 bg-outline-variant/30"></div>
+        <div class="flex flex-col items-center">
+          <span class="text-xl font-bold text-on-surface" id="paywallLimit">3</span>
+          <span class="font-label-md text-xs text-on-surface-variant uppercase tracking-wider">Месячный Лимит</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3 w-full mb-6">
+        <div class="flex justify-between items-center p-3 border border-outline-variant rounded-xl hover:border-primary transition-colors cursor-pointer" onclick="window.location.href='/app/profile'">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">⚡</span>
+            <div class="text-left">
+              <h4 class="font-label-md text-sm font-bold text-on-surface">Тариф Pro</h4>
+              <p class="font-body-sm text-xs text-on-surface-variant">30 анализов ежемесячно</p>
+            </div>
+          </div>
+          <span class="font-label-md text-sm font-bold text-primary">$9/мес</span>
+        </div>
+        <div class="flex justify-between items-center p-3 border-2 border-primary rounded-xl bg-primary/5 cursor-pointer" onclick="window.location.href='/app/profile'">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">🚀</span>
+            <div class="text-left">
+              <h4 class="font-label-md text-sm font-bold text-primary">Тариф Max</h4>
+              <p class="font-body-sm text-xs text-on-surface-variant">Абсолютный безлимит</p>
+            </div>
+          </div>
+          <span class="font-label-md text-sm font-bold text-primary">$19/мес</span>
+        </div>
+      </div>
+
+      <button class="w-full bg-primary text-on-primary font-label-md py-3 rounded-lg hover:bg-primary/95 transition-colors shadow-sm mb-3" onclick="window.location.href='/app/profile'">Подключить тариф</button>
+      <button class="w-full bg-transparent hover:bg-surface text-on-surface-variant font-label-md py-2 rounded-lg transition-colors" id="paywallSkip">Закрыть</button>
+    </div>
+  </div>
+
+
+  <!-- ===== ERROR TOAST ===== -->
+  <div class="error-toast" id="errorToast" style="display:none">
+    <span class="material-symbols-outlined">warning</span>
+    <span id="toastMessage">Произошла ошибка</span>
+    <button class="text-white hover:text-outline-variant font-bold text-lg ml-auto p-1" onclick="closeToast()">×</button>
+  </div>
+
+
+  <!-- ===== STATIC FOOTER (Only visible on Landing view) ===== -->
+  <footer class="w-full bg-surface border-t border-outline-variant py-lg mt-xl" id="staticFooter">
+    <div class="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row justify-between items-center">
+      <div class="mb-4 md:mb-0 text-center md:text-left">
+        <span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">© 2026 Dogovor AI. Автоматическая экспертиза договоров.</p>
+      </div>
+      <div class="flex gap-md font-body-sm text-body-sm mt-4 md:mt-0">
+        <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Условия пользования</a>
+        <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Конфиденциальность</a>
+        <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Поддержка</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- Scripts: nav first, then auth, then app logic -->
+  <script src="/static/js/nav.js"></script>
+  <script src="/static/js/auth-guard.js?v=1.1"></script>
+  <script src="/static/js/app.js?v=1.1"></script>
+  <script src="/static/js/paywall.js?v=1.1"></script>
+
+  <script>
+    // ============================================================
+    // Smart Input Tab Switching
+    // ============================================================
+    let activeTab = 'file';
+
+    function switchTab(tab) {
+      activeTab = tab;
+      
+      // Update tab buttons style
+      const btnFile = document.getElementById('tabFile');
+      const btnText = document.getElementById('tabText');
+      const btnUrl = document.getElementById('tabUrl');
+      
+      [btnFile, btnText, btnUrl].forEach(btn => {
+        if (btn) {
+          btn.className = "flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2";
         }
+      });
+      
+      const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+      if (activeBtn) {
+        activeBtn.className = "flex-grow py-4 font-label-md text-label-md text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2";
+      }
 
-        // ============================================================
-        // Update nav UI
-        // ============================================================
-        function updateAuthUI() {
-            const isAuth = isAuthenticated();
-            const user = getUser();
+      // Show/hide panels
+      document.getElementById('panelFile').classList.add('hidden');
+      document.getElementById('panelText').classList.add('hidden');
+      document.getElementById('panelUrl').classList.add('hidden');
+      
+      document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
 
-            const loggedOutNav = document.querySelector('.nav-auth-logged-out');
-            const loggedInNav = document.querySelector('.nav-auth-logged-in');
+      // Update analyze button state
+      updateAnalyzeBtn();
+    }
 
-            if (isAuth && user) {
-                loggedOutNav.style.display = 'none';
-                loggedInNav.style.display = 'flex';
+    function updateAnalyzeBtn() {
+      const btn = document.getElementById('analyzeBtn');
+      if (!btn) return;
+      if (activeTab === 'file') {
+        const fileInput = document.getElementById('fileInput');
+        btn.disabled = !fileInput || !fileInput.files || fileInput.files.length === 0;
+      } else if (activeTab === 'text') {
+        const text = (document.getElementById('textInput') || {}).value || '';
+        btn.disabled = text.trim().length < 100;
+      } else if (activeTab === 'url') {
+        const url = (document.getElementById('urlInput') || {}).value || '';
+        btn.disabled = !url.startsWith('http');
+      }
+    }
 
-                // Determine display name
-                const displayName = user.full_name || user.email || 'Пользователь';
-                const plan = (user.plan || 'basic').charAt(0).toUpperCase() + (user.plan || 'basic').slice(1);
-
-                // Dropdown header
-                const dropdownName = document.getElementById('dropdownName');
-                const dropdownPlan = document.getElementById('dropdownPlan');
-                if (dropdownName) dropdownName.textContent = displayName;
-                if (dropdownPlan) dropdownPlan.textContent = `Тариф: ${plan}`;
-
-                // Avatar
-                const avatarImg = document.getElementById('userAvatarImg');
-                const avatarPlaceholder = document.getElementById('userAvatarPlaceholder');
-                const initialEl = document.getElementById('userInitial');
-
-                if (user.avatar_url && avatarImg) {
-                    avatarImg.src = user.avatar_url;
-                    avatarImg.style.display = 'block';
-                    if (avatarPlaceholder) avatarPlaceholder.style.display = 'none';
-                } else {
-                    if (avatarImg) avatarImg.style.display = 'none';
-                    if (avatarPlaceholder) avatarPlaceholder.style.display = 'flex';
-                    if (initialEl) initialEl.textContent = displayName[0].toUpperCase();
-                }
-            } else {
-                loggedOutNav.style.display = 'flex';
-                loggedInNav.style.display = 'none';
-            }
+    // Text input character counter
+    const textInput = document.getElementById('textInput');
+    if (textInput) {
+      textInput.addEventListener('input', () => {
+        const len = textInput.value.length;
+        const info = document.getElementById('textInputInfo');
+        if (info) {
+          info.textContent = len < 100 ? `${len} / мин. 100 символов` : `${len} символов`;
+          info.style.color = len < 100 ? '#ba1a1a' : '#757684';
         }
+        updateAnalyzeBtn();
+      });
+    }
 
-        // ============================================================
-        // Dropdown toggle
-        // ============================================================
-        document.addEventListener('DOMContentLoaded', function () {
-            updateAuthUI();
-            loadUserInfo();
+    // URL input watcher
+    const urlInput = document.getElementById('urlInput');
+    if (urlInput) {
+      urlInput.addEventListener('input', updateAnalyzeBtn);
+    }
 
-            const avatarBtn = document.getElementById('userAvatarBtn');
-            const dropdown = document.getElementById('userDropdown');
-            const logoutBtn = document.getElementById('logoutBtn');
+    // Risk Progress Bar updater (called from app.js after results load)
+    function updateRiskProgressBar(high, medium, low) {
+      const total = high + medium + low;
+      if (total === 0) return;
+      const bar = document.getElementById('riskProgressBar');
+      if (bar) bar.style.display = 'flex';
+      const pHigh = document.getElementById('progressHigh');
+      const pMed = document.getElementById('progressMedium');
+      const pLow = document.getElementById('progressLow');
+      if (pHigh) pHigh.style.width = (high / total * 100) + '%';
+      if (pMed) pMed.style.width = (medium / total * 100) + '%';
+      if (pLow) pLow.style.width = (low / total * 100) + '%';
+    }
 
-            // Toggle dropdown on avatar click
-            if (avatarBtn && dropdown) {
-                avatarBtn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('open');
-                });
-                // Close on outside click
-                document.addEventListener('click', function () {
-                    dropdown.classList.remove('open');
-                });
-                dropdown.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                });
-            }
+    // Document Viewer Zoom
+    let currentFontSize = 14;
+    function zoomDoc(dir) {
+      const pane = document.getElementById('originalTextPane');
+      if (!pane) return;
+      currentFontSize = Math.max(10, Math.min(24, currentFontSize + dir * 2));
+      pane.style.fontSize = currentFontSize + 'px';
+    }
 
-            // Logout
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async function () {
-                    try { await fetch('/api/auth/logout', { method: 'POST', headers: getAuthHeaders() }); } catch (_) { }
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
-                    localStorage.removeItem('user');
-                    updateAuthUI();
-                    showToast('Вы успешно вышли из системы', 'success');
-                    if (dropdown) dropdown.classList.remove('open');
-                });
-            }
+    // Split-screen view toggler
+    function showSplitScreen(originalText) {
+      const split = document.getElementById('resultsSplit');
+      const fallback = document.getElementById('risksListFallback');
+      const origPane = document.getElementById('originalTextPane');
+      const risksList = document.getElementById('risksList');
+      const risksListFb = document.getElementById('risksListFallback');
+
+      if (originalText && originalText.trim().length > 50) {
+        if (split) split.style.display = 'grid';
+        if (fallback) fallback.style.display = 'none';
+        if (origPane) origPane.textContent = originalText;
+        
+        // Move risk cards from fallback into split pane
+        if (risksList && risksListFb && risksListFb.children.length > 0) {
+          risksList.innerHTML = risksListFb.innerHTML;
+        }
+      } else {
+        // No original text — fallback single column
+        if (split) split.style.display = 'none';
+        if (fallback) fallback.style.display = 'flex';
+      }
+    }
+
+    // Load user info from server
+    async function loadUserInfo() {
+      if (!isAuthenticated()) return;
+      try {
+        const resp = await fetch(`/api/auth/me/profile?t=${Date.now()}`, { headers: getAuthHeaders() });
+        if (resp.ok) {
+          const data = await resp.json();
+          localStorage.setItem('user', JSON.stringify(data));
+          if (window.NavComponent) window.NavComponent.updateAuthState();
+          return;
+        }
+        const resp2 = await fetch('/api/auth/me', { headers: getAuthHeaders() });
+        if (resp2.ok) {
+          const data2 = await resp2.json();
+          localStorage.setItem('user', JSON.stringify(data2));
+          if (window.NavComponent) window.NavComponent.updateAuthState();
+        }
+      } catch (e) { console.warn('Failed to load user info:', e); }
+    }
+
+    // Toast Messages
+    function showToast(message, type = 'error') {
+      const toast = document.getElementById('errorToast');
+      const msg = document.getElementById('toastMessage');
+      if (!toast || !msg) return;
+      msg.textContent = message;
+      toast.className = `error-toast ${type === 'error' ? 'bg-[#ba1a1a]' : 'bg-[#006d37]'}`;
+      toast.style.display = 'flex';
+      setTimeout(closeToast, 5000);
+    }
+
+    function closeToast() {
+      const toast = document.getElementById('errorToast');
+      if (toast) toast.style.display = 'none';
+    }
+
+    // Init on load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadUserInfo();
+      updateAnalyzeBtn();
+
+      // Drop zone click opens file input
+      const dropZone = document.getElementById('dropZone');
+      const fileInputEl = document.getElementById('fileInput');
+      if (dropZone && fileInputEl) {
+        dropZone.addEventListener('click', () => fileInputEl.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('dragover');
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            fileInputEl.files = dt.files;
+            fileInputEl.dispatchEvent(new Event('change'));
+          }
         });
-
-        // ============================================================
-        // Toast
-        // ============================================================
-        function showToast(message, type = 'error') {
-            const toast = document.getElementById('errorToast');
-            const msg = document.getElementById('toastMessage');
-            if (!toast || !msg) return;
-            msg.textContent = message;
-            toast.className = `error-toast ${type}`;
-            toast.style.display = 'flex';
-            setTimeout(closeToast, 5000);
-        }
-
-        function closeToast() {
-            const toast = document.getElementById('errorToast');
-            if (toast) toast.style.display = 'none';
-        }
-    </script>
-    <script src="/static/js/privacy.js"></script>
+      }
+    });
+  </script>
 </body>
 
 </html>

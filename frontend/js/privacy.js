@@ -10,6 +10,10 @@
     const STORAGE_KEY = 'dogovorai_privacy_accepted';
     const POLICY_VERSION = '1.0'; // Смени версию, чтобы показать модал повторно
 
+    // Не показываем на страницах входа и регистрации
+    const path = window.location.pathname;
+    if (path === '/app/login' || path === '/app/register') return;
+
     // Если уже принято — ничего не делаем
     if (localStorage.getItem(STORAGE_KEY) === POLICY_VERSION) return;
 
