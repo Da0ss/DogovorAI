@@ -159,7 +159,39 @@ analyzeBtn.addEventListener('click', startAnalysis);
  */
 async function startAnalysis() {
     if (!isAuthenticated()) { requireAuth(); return; }
-    if (!selectedFile) return;
+
+    const tab = typeof activeTab !== 'undefined' ? activeTab : 'file';
+    let fileToUpload = null;
+
+    if (tab === 'file') {
+        if (!selectedFile) return;
+        fileToUpload = selectedFile;
+    } else if (tab === 'text') {
+        const textVal = (document.getElementById('textInput') || {}).value || '';
+        if (textVal.trim().length < 100) {
+            showError('Введите текст договора (минимум 100 символов).');
+            return;
+        }
+        fileToUpload = new File([textVal], 'text_input.txt', { type: 'text/plain' });
+    } else if (tab === 'url') {
+        const urlVal = (document.getElementById('urlInput') || {}).value || '';
+        if (!urlVal.startsWith('http')) {
+            showError('Введите корректную ссылку.');
+            return;
+        }
+        try {
+            const fetchResp = await fetch(urlVal);
+            if (!fetchResp.ok) throw new Error('Не удалось скачать файл по ссылке.');
+            const blob = await fetchResp.blob();
+            const fileNameFromUrl = urlVal.split('/').pop() || 'document.pdf';
+            fileToUpload = new File([blob], fileNameFromUrl, { type: blob.type });
+        } catch (e) {
+            showError('Не удалось загрузить документ по ссылке. Убедитесь, что ссылка является прямой и сервер разрешает CORS-запросы.');
+            return;
+        }
+    }
+
+    if (!fileToUpload) return;
 
     // Скрываем форму, показываем прогресс
     uploadCard.style.display = 'none';
@@ -171,8 +203,8 @@ async function startAnalysis() {
 
     try {
         const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('filename', selectedFile.name);
+        formData.append('file', fileToUpload);
+        formData.append('filename', fileToUpload.name);
 
         const headers = (typeof getAuthHeaders === 'function') ? getAuthHeaders() : {};
 
