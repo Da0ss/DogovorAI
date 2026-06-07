@@ -345,17 +345,20 @@
 
             <!-- Panel: Text Paste -->
             <div class="smart-input-panel hidden" id="panelText">
-              <textarea class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline" id="textInput" placeholder="Вставьте текст договора сюда... Минимум 100 символов для AI-анализа." style="min-height: 300px;"></textarea>
+              <textarea class="w-full bg-white border-2 border-outline-variant/60 rounded-xl px-5 py-4 font-body-md text-body-md text-on-surface shadow-sm hover:border-primary/50 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-outline/70" id="textInput" placeholder="Вставьте текст договора сюда... Минимум 100 символов для AI-анализа." style="min-height: 300px; resize: vertical;"></textarea>
               <div id="textInputInfo" class="font-label-md text-xs text-right mt-2 text-outline">0 / мин. 100 символов</div>
             </div>
 
             <!-- Panel: Cloud Link -->
             <div class="smart-input-panel hidden" id="panelUrl">
               <div class="relative w-full">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">link</span>
-                <input class="w-full bg-surface border border-outline-variant rounded-lg pl-10 pr-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-outline" id="urlInput" placeholder="https://example.com/agreement.pdf" type="url" />
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-[24px]">link</span>
+                <input class="w-full bg-white border-2 border-outline-variant/60 rounded-xl pl-12 pr-5 py-4 font-body-md text-body-md text-on-surface shadow-sm hover:border-primary/50 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-outline/70" id="urlInput" placeholder="Вставьте ссылку на файл (https://...)" type="url" />
               </div>
-              <p class="font-body-sm text-xs text-on-surface-variant mt-2">Вставьте прямую ссылку на PDF, DOCX или TXT файл с вашего облачного хранилища.</p>
+              <p class="font-body-sm text-xs text-on-surface-variant mt-3 ml-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">info</span>
+                Поддерживаются прямые ссылки на PDF, DOCX или веб-страницы.
+              </p>
             </div>
 
             <!-- Analyze Action Button -->
