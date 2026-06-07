@@ -344,13 +344,13 @@
             </div>
 
             <!-- Panel: Text Paste -->
-            <div class="smart-input-panel hidden" id="panelText">
+            <div class="smart-input-panel" id="panelText">
               <textarea class="w-full bg-white border-2 border-outline-variant/60 rounded-xl px-5 py-4 font-body-md text-body-md text-on-surface shadow-sm hover:border-primary/50 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-outline/70" id="textInput" placeholder="Вставьте текст договора сюда... Минимум 100 символов для AI-анализа." style="min-height: 300px; resize: vertical;"></textarea>
               <div id="textInputInfo" class="font-label-md text-xs text-right mt-2 text-outline">0 / мин. 100 символов</div>
             </div>
 
             <!-- Panel: Cloud Link -->
-            <div class="smart-input-panel hidden" id="panelUrl">
+            <div class="smart-input-panel" id="panelUrl">
               <div class="relative w-full">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-[24px]">link</span>
                 <input class="w-full bg-white border-2 border-outline-variant/60 rounded-xl pl-12 pr-5 py-4 font-body-md text-body-md text-on-surface shadow-sm hover:border-primary/50 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-outline/70" id="urlInput" placeholder="Вставьте ссылку на файл (https://...)" type="url" />
@@ -674,12 +674,12 @@
         activeBtn.className = "flex-grow py-4 font-label-md text-label-md text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2";
       }
 
-      // Show/hide panels
-      document.getElementById('panelFile').classList.add('hidden');
-      document.getElementById('panelText').classList.add('hidden');
-      document.getElementById('panelUrl').classList.add('hidden');
-      
-      document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+      // Show/hide panels using 'active' class (matches design-system-ext.css)
+      document.getElementById('panelFile').classList.remove('active');
+      document.getElementById('panelText').classList.remove('active');
+      document.getElementById('panelUrl').classList.remove('active');
+
+      document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
 
       // Update analyze button state
       updateAnalyzeBtn();
