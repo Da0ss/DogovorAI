@@ -74,6 +74,7 @@ async function handleRegister(event) {
 
   const email = registerForm.email.value.trim();
   const password = registerForm.password.value;
+  const confirmPassword = registerForm.confirmPassword ? registerForm.confirmPassword.value : password;
   const termsConsent = document.querySelector('#termsConsent');
 
   if (!validateEmail(email)) {
@@ -83,6 +84,11 @@ async function handleRegister(event) {
 
   if (!validatePassword(password)) {
     setMessage('Пароль должен содержать минимум 6 символов.', 'error');
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    setMessage('Пароли не совпадают.', 'error');
     return;
   }
 

@@ -175,6 +175,15 @@
 </head>
 <body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
 
+  <!-- Header -->
+  <header class="sticky top-0 w-full z-50 flex justify-between items-center px-gutter py-sm max-w-container-max mx-auto bg-surface/80 backdrop-blur-md">
+    <div class="flex items-center gap-2">
+      <span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
+    </div>
+    <div class="flex items-center gap-sm">
+      <a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="mailto:support@dogovorai.kz">Помощь</a>
+    </div>
+  </header>
 
   <!-- Main Content: Register Canvas -->
   <main class="flex-grow flex items-center justify-center px-gutter py-xl relative overflow-hidden">
@@ -204,11 +213,15 @@
             </div>
           </div>
 
-          <!-- Password Field -->
-          <div class="group">
-            <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="password">Пароль</label>
-            <div class="relative">
+          <!-- Password Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+            <div class="group">
+              <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="password">Пароль</label>
               <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="password" name="password" placeholder="••••••••" required="" type="password" minlength="6" autocomplete="new-password"/>
+            </div>
+            <div class="group">
+              <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="confirmPassword">Повторите пароль</label>
+              <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required="" type="password" minlength="6" autocomplete="new-password"/>
             </div>
           </div>
 
@@ -218,13 +231,13 @@
               <input type="checkbox" id="termsConsent" name="consent" required class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-background bg-transparent transition-all cursor-pointer">
             </div>
             <label for="termsConsent" class="font-body-sm text-body-sm text-on-surface-variant cursor-pointer select-none">
-              Я соглашаюсь с <a href="#" id="openTermsBtn" class="text-primary hover:underline font-semibold">Условиями использования</a> и <a href="#" id="openPrivacyBtn" class="text-primary hover:underline font-semibold">Политикой конфиденциальности</a>
+              Я соглашаюсь с <a href="#" id="openTermsBtn" class="text-primary hover:underline font-semibold">Условиями использования</a> и <a href="#" id="openPrivacyBtn" class="text-primary hover:underline font-semibold">Политикой конфиденциальности</a>.
             </label>
           </div>
 
           <!-- CTA Button -->
-          <button class="w-full bg-primary-container text-white font-title-md text-title-md py-3 rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md flex justify-center items-center gap-2" id="registerButton" type="submit">
-            <span class="button-text">Зарегистрироваться</span>
+          <button class="w-full bg-primary text-white font-title-md text-title-md py-sm rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md flex justify-center items-center gap-2" id="registerButton" type="submit">
+            <span class="button-text">Создать аккаунт</span>
             <span class="spinner" id="registerSpinner" aria-hidden="true"></span>
           </button>
         </form>
@@ -242,7 +255,7 @@
           </div>
 
           <!-- Verify Button -->
-          <button class="w-full bg-primary-container text-white font-title-md text-title-md py-3 rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md flex justify-center items-center gap-2" id="verifyButton" type="submit">
+          <button class="w-full bg-primary text-white font-title-md text-title-md py-sm rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md flex justify-center items-center gap-2" id="verifyButton" type="submit">
             <span class="button-text">Подтвердить</span>
             <span class="spinner" id="verifySpinner" aria-hidden="true"></span>
           </button>
@@ -254,19 +267,19 @@
             <div class="w-full border-t border-outline-variant"></div>
           </div>
           <div class="relative flex justify-center text-label-md">
-            <span class="bg-surface-container-lowest px-md text-on-surface-variant font-label-md uppercase tracking-wider">или с помощью</span>
+            <span class="bg-surface-container-lowest px-md text-on-surface-variant font-label-md uppercase tracking-wider">Или с помощью</span>
           </div>
         </div>
 
         <!-- Google Auth -->
-        <button class="w-full flex items-center justify-center gap-sm bg-surface-container-low border border-outline-variant text-on-surface font-body-md py-3 rounded-lg hover:bg-surface-container-high transition-colors" id="googleRegisterBtn" type="button">
+        <button class="w-full flex items-center justify-center gap-sm bg-surface-container-low border border-outline-variant text-on-surface font-body-md py-sm rounded-lg hover:bg-surface-container-high transition-colors" id="googleRegisterBtn" type="button">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="flex-shrink-0">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
-          <span class="font-label-md text-label-md text-on-surface font-semibold button-text">Зарегистрироваться через Google</span>
+          <span class="button-text">Google</span>
         </button>
 
         <!-- Redirect Link -->
@@ -280,15 +293,14 @@
     </div>
   </main>
 
-  <!-- Footer: Spans 100% width with inner centered container -->
-  <footer class="w-full bg-surface border-t border-outline-variant/30 py-lg mt-auto">
-    <div class="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row justify-between items-center">
-      <div class="mb-sm md:mb-0">
-        <span class="font-body-sm text-body-sm text-on-surface-variant">© 2026 Dogovor AI. Точность в каждом пункте.</span>
-      </div>
-      <div class="flex gap-md">
-        <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/app/privacy">Политика конфиденциальности</a>
-      </div>
+  <!-- Footer -->
+  <footer class="w-full py-lg px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto border-t border-outline-variant bg-surface">
+    <div class="mb-sm md:mb-0">
+      <span class="font-body-sm text-body-sm text-on-surface-variant">© 2026 Dogovor AI. Точность в каждом пункте.</span>
+    </div>
+    <div class="flex gap-md">
+      <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#" onclick="document.getElementById('openTermsBtn').click(); return false;">Условия использования</a>
+      <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#" onclick="document.getElementById('openPrivacyBtn').click(); return false;">Конфиденциальность</a>
     </div>
   </footer>
 
