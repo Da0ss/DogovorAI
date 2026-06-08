@@ -296,13 +296,9 @@ def google_auth_initiate(consent: bool = False):
     """
     Initiate Google OAuth flow.
     Returns a URL to redirect the user to Google's consent screen.
-    Requires consent=true query param to proceed.
+    The optional consent param is passed from the registration page;
+    login page does not send it (user already accepted terms).
     """
-    if not consent:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Вы должны согласиться с Условиями использования, чтобы продолжить."
-        )
     try:
         redirect_to = settings.google_redirect_uri
         response = google_auth_service.sign_in_with_google(redirect_to)
