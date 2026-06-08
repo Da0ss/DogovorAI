@@ -193,6 +193,12 @@ async function handleVerify(event) {
 // ============================================================
 
 async function handleGoogleRegister() {
+  const termsConsent = document.querySelector('#termsConsent');
+  if (termsConsent && !termsConsent.checked) {
+    setMessage('Вы должны согласиться с нашими Условиями использования, чтобы продолжить.', 'error');
+    return;
+  }
+
   googleRegisterBtn.setAttribute('disabled', 'disabled');
   setMessage('Перенаправление на Google...', 'success');
 
