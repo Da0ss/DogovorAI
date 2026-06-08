@@ -262,3 +262,26 @@ async function handleGoogleRegister() {
 registerForm.addEventListener('submit', handleRegister);
 verifyForm.addEventListener('submit', handleVerify);
 googleRegisterBtn.addEventListener('click', handleGoogleRegister);
+
+// ============================================================
+// Visual Feedback: Google button locked/unlocked by consent
+// ============================================================
+
+(function initConsentToggle() {
+  const termsConsent = document.querySelector('#termsConsent');
+  if (!termsConsent || !googleRegisterBtn) return;
+
+  function updateGoogleBtnState() {
+    if (termsConsent.checked) {
+      googleRegisterBtn.classList.remove('btn-locked');
+    } else {
+      googleRegisterBtn.classList.add('btn-locked');
+    }
+  }
+
+  // Set initial state (locked)
+  updateGoogleBtnState();
+
+  // Update on every toggle
+  termsConsent.addEventListener('change', updateGoogleBtnState);
+})();
