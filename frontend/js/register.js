@@ -1,6 +1,7 @@
 /**
  * DogovorAI — Registration Page Logic
  * Handles email/password registration, email verification, and Google OAuth registration.
+ * Enforces mandatory Terms of Service consent for ALL registration methods.
  */
 
 const API_BASE = '/api/auth';
@@ -64,6 +65,38 @@ function parseJsonResponse(response) {
   });
 }
 
+/**
+ * Check if the terms consent checkbox is checked.
+ * If not, show a shake animation and an error message.
+ * Returns true if consent is given, false otherwise.
+ */
+function requireConsent() {
+  const termsConsent = document.querySelector('#termsConsent');
+  if (!termsConsent) return true; // no checkbox = no gate
+
+  if (termsConsent.checked) return true;
+
+  // Show error message
+  setMessage('Пожалуйста, примите Условия использования и Политику конфиденциальности для продолжения.', 'error');
+
+  // Shake animation on the checkbox row
+  const consentRow = termsConsent.closest('.flex.items-start') || termsConsent.parentElement;
+  if (consentRow) {
+    consentRow.classList.add('consent-shake');
+    // Also highlight the checkbox border
+    termsConsent.style.outline = '2px solid #ba1a1a';
+    termsConsent.style.outlineOffset = '1px';
+
+    setTimeout(() => {
+      consentRow.classList.remove('consent-shake');
+      termsConsent.style.outline = '';
+      termsConsent.style.outlineOffset = '';
+    }, 800);
+  }
+
+  return false;
+}
+
 // ============================================================
 // Email/Password Registration
 // ============================================================
@@ -75,7 +108,6 @@ async function handleRegister(event) {
   const email = registerForm.email.value.trim();
   const password = registerForm.password.value;
   const confirmPassword = registerForm.confirmPassword ? registerForm.confirmPassword.value : password;
-  const termsConsent = document.querySelector('#termsConsent');
 
   if (!validateEmail(email)) {
     setMessage('Введите корректный email.', 'error');
@@ -92,10 +124,7 @@ async function handleRegister(event) {
     return;
   }
 
-  if (termsConsent && !termsConsent.checked) {
-    setMessage('Вы должны согласиться с нашими Условиями использования, чтобы продолжить.', 'error');
-    return;
-  }
+  if (!requireConsent()) return;
 
   setLoading(registerButton, registerSpinner, true);
 
@@ -193,17 +222,16 @@ async function handleVerify(event) {
 // ============================================================
 
 async function handleGoogleRegister() {
-  const termsConsent = document.querySelector('#termsConsent');
-  if (termsConsent && !termsConsent.checked) {
-    setMessage('Вы должны согласиться с нашими Условиями использования, чтобы продолжить.', 'error');
-    return;
-  }
+  setMessage('');
+
+  if (!requireConsent()) return;
 
   googleRegisterBtn.setAttribute('disabled', 'disabled');
   setMessage('Перенаправление на Google...', 'success');
 
   try {
-    const response = await fetch(GOOGLE_AUTH_URL);
+    // Send consent=true to backend so it's validated server-side too
+    const response = await fetch(`${GOOGLE_AUTH_URL}?consent=true`);
     const data = await parseJsonResponse(response);
 
     if (!response.ok) {

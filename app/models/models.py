@@ -50,6 +50,10 @@ class User(Base):
     analyses_limit      = Column(Integer, default=3, nullable=True)  # NULL = безлимит (Max)
     analyses_reset_at   = Column(DateTime, nullable=True)
 
+    # Consent tracking
+    consent_accepted    = Column(Boolean, default=False, nullable=False)
+    consent_accepted_at = Column(DateTime, nullable=True)
+
     created_at          = Column(DateTime, default=datetime.utcnow)
     updated_at          = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

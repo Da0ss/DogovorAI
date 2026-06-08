@@ -67,7 +67,7 @@ def _normalize_auth_response(response) -> tuple[dict, dict | None]:
     return user_data, session_data
 
 
-def _user_response_from_profile(db: Session, profile: dict, provider: str) -> UserResponse:
+def _user_response_from_profile(db: Session, profile: dict, provider: str, consent_accepted: bool = False) -> UserResponse:
     user = ensure_local_profile(
         db,
         user_id=profile.get("id") or None,
@@ -76,6 +76,7 @@ def _user_response_from_profile(db: Session, profile: dict, provider: str) -> Us
         auth_provider=provider,
         full_name=profile.get("full_name"),
         avatar_url=profile.get("avatar_url"),
+        consent_accepted=consent_accepted,
     )
     return UserResponse(
         id=str(user.id),
@@ -109,7 +110,7 @@ def register_user(
     try:
         response = supabase_auth_service.register_user(user_data.email, user_data.password)
         profile, _ = _normalize_auth_response(response)
-        return _user_response_from_profile(db, profile, provider="supabase")
+        return _user_response_from_profile(db, profile, provider="supabase", consent_accepted=True)
 
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -291,11 +292,17 @@ from config.settings import settings
 
 
 @router.get("/google", response_model=GoogleAuthURL)
-def google_auth_initiate():
+def google_auth_initiate(consent: bool = False):
     """
     Initiate Google OAuth flow.
     Returns a URL to redirect the user to Google's consent screen.
+    Requires consent=true query param to proceed.
     """
+    if not consent:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Вы должны согласиться с Условиями использования, чтобы продолжить."
+        )
     try:
         redirect_to = settings.google_redirect_uri
         response = google_auth_service.sign_in_with_google(redirect_to)
@@ -348,7 +355,7 @@ def google_auth_callback(code: str = None, error: str = None, db: Session = Depe
         result = google_auth_service.exchange_code_for_session(code)
         user_data = result.get("user") or {}
         if user_data.get("email"):
-            _user_response_from_profile(db, user_data, provider="supabase")
+            _user_response_from_profile(db, user_data, provider="supabase", consent_accepted=True)
 
         return OAuthCallbackResponse(
             success=True,

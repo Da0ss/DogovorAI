@@ -49,8 +49,11 @@ def ensure_local_profile(
     auth_provider: str = "supabase",
     full_name: Optional[str] = None,
     avatar_url: Optional[str] = None,
+    consent_accepted: bool = False,
 ) -> User:
     """Create or update a local profiles row for Supabase-backed users."""
+    from datetime import datetime as _dt
+
     normalized_email = email.lower()
     user = None
 
@@ -67,6 +70,8 @@ def ensure_local_profile(
             "auth_provider": auth_provider,
             "full_name": full_name,
             "avatar_url": avatar_url,
+            "consent_accepted": consent_accepted,
+            "consent_accepted_at": _dt.utcnow() if consent_accepted else None,
         }
         if user_id:
             kwargs["id"] = user_id
@@ -80,6 +85,10 @@ def ensure_local_profile(
             user.full_name = full_name
         if avatar_url and not getattr(user, "avatar_url", None):
             user.avatar_url = avatar_url
+        # Update consent if newly accepted
+        if consent_accepted and not getattr(user, "consent_accepted", False):
+            user.consent_accepted = True
+            user.consent_accepted_at = _dt.utcnow()
 
     try:
         db.commit()
