@@ -2,7 +2,7 @@
 
 ## ✅ Что реализовано 
 
-### 1. **База данных (PostgreSQL + SQLAlchemy)**
+### 1. **База данных (PostgreSQL + SQLAlchemy)** 
 - **Модели**: `User` и `VerificationCode` в `app/models/models.py`
 - **Подключение**: SQLAlchemy engine в `app/models/database.py`
 - **Миграции**: Alembic конфигурация и начальная миграция
