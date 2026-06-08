@@ -126,6 +126,13 @@ async function handleRegister(event) {
 
   if (!requireConsent()) return;
 
+  // reCAPTCHA validation
+  const recaptchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+  if (typeof grecaptcha !== 'undefined' && !recaptchaToken) {
+    setMessage('Пожалуйста, пройдите проверку «Я не робот».', 'error');
+    return;
+  }
+
   setLoading(registerButton, registerSpinner, true);
 
   try {
@@ -134,7 +141,7 @@ async function handleRegister(event) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ email, password, consent: true })
+      body: JSON.stringify({ email, password, consent: true, recaptcha_token: recaptchaToken || null })
     });
 
     const data = await parseJsonResponse(response);
@@ -142,6 +149,8 @@ async function handleRegister(event) {
     if (!response.ok) {
       const message = data.detail || 'Не удалось зарегистрировать пользователя.';
       setMessage(message, 'error');
+      // Reset reCAPTCHA so user can retry
+      if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
       return;
     }
 

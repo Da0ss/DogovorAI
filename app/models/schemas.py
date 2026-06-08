@@ -14,6 +14,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     consent: bool = Field(True, description="Consent to Terms of Service and Privacy Policy")
+    recaptcha_token: Optional[str] = Field(None, description="Google reCAPTCHA v2 response token")
 
 
 class UserResponse(BaseModel):

@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <!-- Google reCAPTCHA v2 -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
@@ -241,6 +243,11 @@
               <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="confirmPassword">Повторите пароль</label>
               <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required="" type="password" minlength="6" autocomplete="new-password"/>
             </div>
+          </div>
+
+          <!-- reCAPTCHA v2 Widget -->
+          <div class="flex justify-center mt-md">
+            <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="6LfJLaYsAAAAACzr119gsd8eW-X5sOfKNr4QR9eF"></div>
           </div>
 
           <!-- CTA Button -->

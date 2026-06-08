@@ -59,6 +59,10 @@ class Settings(BaseSettings):
     email_use_tls: bool = True
     email_use_ssl: bool = False
 
+    # Google reCAPTCHA v2
+    recaptcha_site_key: Optional[str] = None
+    recaptcha_secret_key: Optional[str] = None
+
     # Stripe
     stripe_secret_key: Optional[str] = None
     stripe_webhook_secret: Optional[str] = None

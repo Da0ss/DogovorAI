@@ -3,6 +3,7 @@ Authentication API endpoints using Supabase Auth.
 """
 
 import logging
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
@@ -17,10 +18,51 @@ from app.services.auth_context import (
     resolve_authenticated_user,
 )
 from app.services.auth_service import auth_service as supabase_auth_service
+from config.settings import settings as app_settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
+
+
+def verify_recaptcha(token: str | None) -> None:
+    """Verify a reCAPTCHA v2 token with Google.
+
+    Skips verification if RECAPTCHA_SECRET_KEY is not configured (dev mode).
+    Raises HTTPException on failure.
+    """
+    secret = app_settings.recaptcha_secret_key
+    if not secret:
+        # reCAPTCHA not configured — skip (dev/local)
+        return
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Пожалуйста, пройдите проверку reCAPTCHA."
+        )
+
+    try:
+        resp = httpx.post(RECAPTCHA_VERIFY_URL, data={
+            "secret": secret,
+            "response": token,
+        }, timeout=5.0)
+        result = resp.json()
+    except Exception as e:
+        logger.error(f"❌ reCAPTCHA verification request failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось проверить reCAPTCHA. Попробуйте позже."
+        )
+
+    if not result.get("success"):
+        logger.warning(f"⚠️ reCAPTCHA failed: {result.get('error-codes', [])}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Проверка reCAPTCHA не пройдена. Попробуйте снова."
+        )
 
 
 def _get_response_value(obj, key: str, default=None):
@@ -107,6 +149,10 @@ def register_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Вы должны согласиться с Условиями использования, чтобы продолжить."
         )
+
+    # Server-side reCAPTCHA validation
+    verify_recaptcha(user_data.recaptcha_token)
+
     try:
         response = supabase_auth_service.register_user(user_data.email, user_data.password)
         profile, _ = _normalize_auth_response(response)
