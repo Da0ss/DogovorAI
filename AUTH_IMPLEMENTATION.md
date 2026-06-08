@@ -6,7 +6,7 @@
 - **Модели**: `User` и `VerificationCode` в `app/models/models.py`
 - **Подключение**: SQLAlchemy engine в `app/models/database.py`
 - **Миграции**: Alembic конфигурация и начальная миграция
-- **Скрипт инициализации**: `scripts/init_db.py` для создания таблиц
+- **Скрипт инициализации**: `scripts/init_db.py` для создания таблиц 
 
 ### 2. **Безопасность** 
 - **Хеширование паролей**: bcrypt через passlib
