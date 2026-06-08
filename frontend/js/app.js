@@ -42,6 +42,9 @@ const uploadCard = document.getElementById('uploadCard');
 const errorToast = document.getElementById('errorToast');
 const toastMessage = document.getElementById('toastMessage');
 
+// Expose selectedFile state globally so inline scripts can check it
+window._appHasFile = function() { return selectedFile !== null; };
+
 // ============================================================
 // FILE HANDLING
 // ============================================================
@@ -64,8 +67,9 @@ fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
         handleFileSelect(e.target.files[0]);
     }
-    // Сбрасываем value, чтобы повторный выбор того же файла тоже работал
-    fileInput.value = '';
+    // НЕ сбрасываем fileInput.value здесь — это ломало updateAnalyzeBtn(),
+    // который проверял fileInput.files.length === 0.
+    // Сброс происходит только в resetFileSelection().
 });
 
 // Drag & Drop
@@ -135,6 +139,9 @@ function handleFileSelect(file) {
 
     // Активируем кнопку анализа
     analyzeBtn.disabled = false;
+
+    // Синхронизируем состояние для inline updateAnalyzeBtn()
+    if (typeof updateAnalyzeBtn === 'function') updateAnalyzeBtn();
 }
 
 /**

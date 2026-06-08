@@ -689,8 +689,13 @@
       const btn = document.getElementById('analyzeBtn');
       if (!btn) return;
       if (activeTab === 'file') {
-        const fileInput = document.getElementById('fileInput');
-        btn.disabled = !fileInput || !fileInput.files || fileInput.files.length === 0;
+        // Check app.js selectedFile state first (primary), fallback to fileInput.files
+        if (typeof window._appHasFile === 'function') {
+          btn.disabled = !window._appHasFile();
+        } else {
+          const fileInput = document.getElementById('fileInput');
+          btn.disabled = !fileInput || !fileInput.files || fileInput.files.length === 0;
+        }
       } else if (activeTab === 'text') {
         const text = (document.getElementById('textInput') || {}).value || '';
         btn.disabled = text.trim().length < 100;
@@ -807,26 +812,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       loadUserInfo();
       updateAnalyzeBtn();
-
-      // Drop zone click opens file input
-      const dropZone = document.getElementById('dropZone');
-      const fileInputEl = document.getElementById('fileInput');
-      if (dropZone && fileInputEl) {
-        dropZone.addEventListener('click', () => fileInputEl.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-        dropZone.addEventListener('drop', (e) => {
-          e.preventDefault();
-          dropZone.classList.remove('dragover');
-          const files = e.dataTransfer.files;
-          if (files.length > 0) {
-            const dt = new DataTransfer();
-            dt.items.add(files[0]);
-            fileInputEl.files = dt.files;
-            fileInputEl.dispatchEvent(new Event('change'));
-          }
-        });
-      }
+      // Note: dropZone click/drag/drop handlers are in app.js — no duplicates needed
     });
   </script>
 </body>
