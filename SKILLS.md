@@ -1,4 +1,4 @@
-# Правила разработки (Development Skills)
+ # Правила разработки (Development Skills)
 
 ### 1. Качество кода
 - **Clean Code:** Придерживаться принципов SOLID и DRY.
