@@ -33,6 +33,9 @@ def verify_recaptcha(token: str | None) -> None:
     Skips verification if RECAPTCHA_SECRET_KEY is not configured (dev mode).
     Raises HTTPException on failure.
     """
+    if is_debug_or_test():
+        return
+
     secret = app_settings.recaptcha_secret_key
     if not secret:
         # reCAPTCHA not configured — skip (dev/local)

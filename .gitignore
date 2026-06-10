@@ -54,3 +54,6 @@ scratch/
 
 # SQL files (migrations stored separately)
 fix_column_types.sql
+
+# Admin maintenance mode flag
+.maintenance_mode
