@@ -298,20 +298,20 @@
           </div>
         </div>
 
-        <div class="upload-card" id="uploadCard">
+        <form class="upload-card" id="uploadCard" enctype="multipart/form-data" onsubmit="return false;">
           <!-- Tabs -->
           <div class="flex border-b border-outline-variant bg-surface-container-low">
-            <button class="flex-grow py-4 font-label-md text-label-md text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2" id="tabFile" onclick="switchTab('file')">
+            <button type="button" class="flex-grow py-4 font-label-md text-label-md text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2" id="tabFile" onclick="switchTab('file')">
               <span class="material-symbols-outlined text-[20px]">file_upload</span>
               Файл
             </button>
-            <button class="flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2" id="tabText" onclick="switchTab('text')">
+            <button type="button" class="flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2" id="tabText" onclick="switchTab('text')">
               <span class="material-symbols-outlined text-[20px]">notes</span>
               Текст договора
             </button>
-            <button class="flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2" id="tabUrl" onclick="switchTab('url')">
+            <button type="button" class="flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2" id="tabUrl" onclick="switchTab('url')">
               <span class="material-symbols-outlined text-[20px]">link</span>
-              Ссылка на документ
+              Ссылка на document
             </button>
           </div>
 
@@ -326,7 +326,7 @@
                 </div>
                 <h3 class="font-title-md text-title-md text-on-surface mb-2">Перетащите договор сюда</h3>
                 <p class="font-body-sm text-body-sm text-on-surface-variant mb-lg text-center max-w-sm">Поддерживаются форматы PDF, DOCX, JPG, PNG до 20 МБ. Текст будет автоматически распознан AI.</p>
-                <button class="bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg hover:bg-primary/95 transition-colors shadow-sm">
+                <button type="button" class="bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg hover:bg-primary/95 transition-colors shadow-sm">
                   Выбрать файл
                 </button>
               </div>
@@ -339,7 +339,7 @@
                   <h4 class="font-title-md text-sm text-on-surface truncate max-w-md" id="fileName">document.pdf</h4>
                   <p class="font-body-sm text-xs text-on-surface-variant" id="fileSize">2.3 MB</p>
                 </div>
-                <button class="text-outline-variant hover:text-error text-2xl font-bold p-2 transition-colors" id="removeFile" title="Удалить файл">×</button>
+                <button type="button" class="text-outline-variant hover:text-error text-2xl font-bold p-2 transition-colors" id="removeFile" title="Удалить файл">×</button>
               </div>
             </div>
 
@@ -363,14 +363,14 @@
 
             <!-- Analyze Action Button -->
             <div class="mt-8 flex justify-center">
-              <button class="bg-primary text-on-primary font-label-md text-label-md px-12 py-3 rounded-lg hover:bg-primary/95 disabled:bg-outline-variant disabled:text-outline disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2" id="analyzeBtn" disabled>
+              <button type="submit" class="bg-primary text-on-primary font-label-md text-label-md px-12 py-3 rounded-lg hover:bg-primary/95 disabled:bg-outline-variant disabled:text-outline disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2" id="analyzeBtn" disabled>
                 <span class="material-symbols-outlined">bolt</span>
                 Анализировать договор
               </button>
             </div>
 
           </div>
-        </div>
+        </form>
 
         <!-- Progress/Loading State -->
         <div class="p-xl min-h-[400px] flex flex-col items-center justify-center bg-surface-container-lowest" id="progressContainer" style="display:none">
@@ -646,6 +646,7 @@
   <!-- Scripts: nav first, then auth, then app logic -->
   <script src="/static/js/nav.js"></script>
   <script src="/static/js/auth-guard.js?v=1.1"></script>
+  <script src="/static/js/global_actions.js"></script>
   <script src="/static/js/app.js?v=1.1"></script>
   <script src="/static/js/paywall.js?v=1.1"></script>
 

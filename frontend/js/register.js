@@ -268,29 +268,17 @@ async function handleGoogleRegister() {
 // Event Listeners
 // ============================================================
 
-registerForm.addEventListener('submit', handleRegister);
-verifyForm.addEventListener('submit', handleVerify);
-googleRegisterBtn.addEventListener('click', handleGoogleRegister);
+if (registerForm) {
+  registerForm.addEventListener('submit', (e) => safeSubmit(handleRegister, e));
+}
+if (verifyForm) {
+  verifyForm.addEventListener('submit', (e) => safeSubmit(handleVerify, e));
+}
+if (googleRegisterBtn) {
+  googleRegisterBtn.addEventListener('click', (e) => safeSubmit(handleGoogleRegister, e));
+}
 
-// ============================================================
-// Visual Feedback: Google button locked/unlocked by consent
-// ============================================================
-
-(function initConsentToggle() {
-  const termsConsent = document.querySelector('#termsConsent');
-  if (!termsConsent || !googleRegisterBtn) return;
-
-  function updateGoogleBtnState() {
-    if (termsConsent.checked) {
-      googleRegisterBtn.classList.remove('btn-locked');
-    } else {
-      googleRegisterBtn.classList.add('btn-locked');
-    }
-  }
-
-  // Set initial state (locked)
-  updateGoogleBtnState();
-
-  // Update on every toggle
-  termsConsent.addEventListener('change', updateGoogleBtnState);
-})();
+// Initialize global consent toggling
+document.addEventListener('DOMContentLoaded', () => {
+  initGlobalConsentToggle('termsConsent', ['registerButton', 'googleRegisterBtn']);
+});

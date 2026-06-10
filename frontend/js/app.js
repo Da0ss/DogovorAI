@@ -159,7 +159,7 @@ function resetFileSelection() {
 // ANALYSIS
 // ============================================================
 
-analyzeBtn.addEventListener('click', startAnalysis);
+analyzeBtn.addEventListener('click', (e) => safeSubmit(startAnalysis, e));
 
 /**
  * Запуск анализа: отправка файла на API и обработка ответа.
@@ -199,6 +199,10 @@ async function startAnalysis() {
     }
 
     if (!fileToUpload) return;
+
+    analyzeBtn.disabled = true;
+    analyzeBtn.classList.add('loading');
+    analyzeBtn.setAttribute('data-was-loading', 'true');
 
     // Скрываем форму, показываем прогресс
     uploadCard.style.display = 'none';

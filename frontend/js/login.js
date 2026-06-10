@@ -217,10 +217,10 @@ async function handleGoogleLogin() {
 // Event Listeners
 // ============================================================
 
-if (step1Form) step1Form.addEventListener('submit', handleSendOtp);
-if (step2Form) step2Form.addEventListener('submit', handleVerifyOtp);
+if (step1Form) step1Form.addEventListener('submit', (e) => safeSubmit(handleSendOtp, e));
+if (step2Form) step2Form.addEventListener('submit', (e) => safeSubmit(handleVerifyOtp, e));
 if (changeEmailBtn) changeEmailBtn.addEventListener('click', handleChangeEmail);
-if (googleLoginBtn) googleLoginBtn.addEventListener('click', handleGoogleLogin);
+if (googleLoginBtn) googleLoginBtn.addEventListener('click', (e) => safeSubmit(handleGoogleLogin, e));
 
 // Если уже авторизован — редирект на целевую страницу
 if (isAuthenticated()) {

@@ -197,7 +197,7 @@
       </div>
 
       <!-- STEP 1: Email Form -->
-      <form class="space-y-md" id="loginStep1Form" autocomplete="on">
+      <form class="space-y-md" id="loginStep1Form" autocomplete="on" enctype="multipart/form-data">
         <!-- Email Field -->
         <div class="space-y-xs">
           <label class="font-label-md text-label-md text-on-surface-variant px-xs" for="email">Электронная почта</label>
@@ -218,7 +218,7 @@
       </form>
 
       <!-- STEP 2: Verify Code Form (Initially Hidden) -->
-      <form class="space-y-md hidden" id="loginStep2Form" autocomplete="off">
+      <form class="space-y-md hidden" id="loginStep2Form" autocomplete="off" enctype="multipart/form-data">
         <div class="flex justify-between items-center px-xs">
           <p class="font-body-sm text-body-sm text-on-surface-variant">Код отправлен на <span id="displayEmail" class="font-semibold text-primary"></span></p>
           <button type="button" id="changeEmailBtn" class="font-label-md text-label-md text-primary hover:underline transition-all border-none bg-transparent p-0 cursor-pointer">Изменить</button>
@@ -294,6 +294,7 @@
   </footer>
 
   <!-- Scripts -->
+  <script src="/static/js/global_actions.js"></script>
   <script src="/static/js/login.js"></script>
   <script src="/static/js/privacy.js"></script>
   <script>
