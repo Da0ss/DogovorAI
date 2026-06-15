@@ -42,6 +42,7 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info(f"🚀 Запуск {settings.app_name} v{settings.app_version}")
+    logger.info(f"ℹ️ Loaded APP_URL: {settings.app_url}")
     try:
         # TEMPORARILY DISABLE DB INIT FOR TESTING
         # from app.models.database import create_tables
