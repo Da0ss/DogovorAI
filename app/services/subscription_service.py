@@ -122,45 +122,63 @@ class BillingManager:
         event_type = event["type"]
         obj = event["data"]["object"]
 
+        logger.info(f"🔔 Received Stripe Webhook event: {event_type}")
+
         if event_type == "checkout.session.completed":
-            return self._on_checkout_completed(obj)
+            res = self._on_checkout_completed(obj)
+            logger.info(f"Result for checkout.session.completed: {res}")
+            return res
 
         if event_type == "customer.subscription.deleted":
-            return self._on_subscription_deleted(obj)
+            res = self._on_subscription_deleted(obj)
+            logger.info(f"Result for customer.subscription.deleted: {res}")
+            return res
 
         if event_type == "customer.subscription.updated":
-            return self._on_subscription_updated(obj)
+            res = self._on_subscription_updated(obj)
+            logger.info(f"Result for customer.subscription.updated: {res}")
+            return res
 
         if event_type == "invoice.payment_failed":
-            return self._on_payment_failed(obj)
+            res = self._on_payment_failed(obj)
+            logger.info(f"Result for invoice.payment_failed: {res}")
+            return res
 
         return {"status": "ignored", "event": event_type}
 
     def _resolve_user(self, obj: dict) -> Optional[str]:
-        user_id = obj.get("metadata", {}).get("supabase_user_id")
+        metadata = obj.get("metadata", {}) or {}
+        user_id = metadata.get("supabase_user_id")
+        logger.info(f"🔍 Resolving user: metadata.supabase_user_id = {user_id}")
         if user_id:
             return user_id
 
         customer_id = obj.get("customer")
+        logger.info(f"🔍 Resolving user: customer_id = {customer_id}")
         if not customer_id:
             return None
 
         result = self.supabase.table("profiles").select("id").eq(
             "stripe_customer_id", customer_id
         ).execute()
-        return result.data[0]["id"] if result.data else None
+        resolved_id = result.data[0]["id"] if result.data else None
+        logger.info(f"🔍 Resolved user ID from database: {resolved_id}")
+        return resolved_id
 
     def _on_checkout_completed(self, session_obj: dict) -> Dict[str, Any]:
         user_id = self._resolve_user(session_obj)
         plan = session_obj.get("metadata", {}).get("plan", "pro")
+        logger.info(f"Processing checkout completed for user_id={user_id}, plan={plan}")
 
         if not user_id:
+            logger.error(f"Checkout completed failed: user not found in metadata: {session_obj.get('metadata')}")
             return {"status": "error", "reason": "user_not_found"}
 
-        self.supabase.table("profiles").update({
+        update_res = self.supabase.table("profiles").update({
             "plan_type": plan,
             "subscription_status": "active"
         }).eq("id", user_id).execute()
+        logger.info(f"Supabase update result: {update_res}")
 
         logger.info(f"Subscription activated: user={user_id}, plan={plan}")
         return {"status": "ok", "user_id": user_id, "plan": plan}
