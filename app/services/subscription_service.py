@@ -72,7 +72,7 @@ class BillingManager:
 
         return customer.id
 
-    def create_checkout(self, user_id: str, plan_name: str) -> Optional[str]:
+    def create_checkout(self, user_id: str, plan_name: str, origin: Optional[str] = None) -> Optional[str]:
         plan_name = plan_name.lower()
         if plan_name not in PLANS:
             raise ValueError(f"Unknown plan: {plan_name}")
@@ -98,14 +98,18 @@ class BillingManager:
         customer_id = self._ensure_customer(user_id, profile.get("email", ""))
         price_id = PLANS[plan_name]["price_id"]
 
+        base_url = origin or APP_URL
+        if base_url.endswith("/"):
+            base_url = base_url[:-1]
+
         import stripe
         stripe.api_key = settings.stripe_secret_key or ""
         session = stripe.checkout.Session.create(
             customer=customer_id,
             mode="subscription",
             line_items=[{"price": price_id, "quantity": 1}],
-            success_url=f"{APP_URL}/app/profile?payment=success",
-            cancel_url=f"{APP_URL}/app/profile?payment=canceled",
+            success_url=f"{base_url}/app/profile?payment=success",
+            cancel_url=f"{base_url}/app/profile?payment=canceled",
             metadata={"supabase_user_id": user_id, "plan": plan_name}
         )
 

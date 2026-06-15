@@ -13,6 +13,7 @@ router = APIRouter(prefix="/subscriptions", tags=["Subscriptions"])
 class CheckoutRequest(BaseModel):
     user_id: str
     plan: str
+    origin: Optional[str] = None
 
 
 class CheckoutResponse(BaseModel):
@@ -43,7 +44,7 @@ def create_checkout(req: CheckoutRequest) -> CheckoutResponse:
              raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You are already on this plan.")
 
     try:
-        url = billing_manager.create_checkout(req.user_id, req.plan)
+        url = billing_manager.create_checkout(req.user_id, req.plan, origin=req.origin)
         if url is None:
             return CheckoutResponse(checkout_url=None, message="Switched to Basic")
         return CheckoutResponse(checkout_url=url, message="Redirect to Stripe")

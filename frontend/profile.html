@@ -552,7 +552,7 @@
             'Content-Type': 'application/json',
             ...authHeaders()
           },
-          body: JSON.stringify({ user_id: user.id, plan: plan })
+          body: JSON.stringify({ user_id: user.id, plan: plan, origin: window.location.origin })
         });
 
         const data = await resp.json();
