@@ -26,6 +26,7 @@ class SupabaseClient:
     """
 
     _instance: Optional[Client] = None
+    _admin_instance: Optional[Client] = None
 
     @classmethod
     def get_client(cls) -> Client:
@@ -39,11 +40,26 @@ class SupabaseClient:
             ValueError: If Supabase credentials are not configured
         """
         if cls._instance is None:
-            cls._instance = cls._init_client()
+            cls._instance = cls._init_client(use_service_key=False)
         return cls._instance
 
+    @classmethod
+    def get_admin_client(cls) -> Client:
+        """
+        Get or create Supabase admin client instance using service role key (singleton pattern).
+        
+        Returns:
+            Client: Initialized Supabase admin client
+            
+        Raises:
+            ValueError: If Supabase credentials are not configured
+        """
+        if cls._admin_instance is None:
+            cls._admin_instance = cls._init_client(use_service_key=True)
+        return cls._admin_instance
+
     @staticmethod
-    def _init_client() -> Client:
+    def _init_client(use_service_key: bool = False) -> Client:
         """
         Initialize Supabase client with credentials from settings.
         
@@ -53,7 +69,14 @@ class SupabaseClient:
         Raises:
             ValueError: If Supabase URL or Key is missing
         """
-        if not settings.supabase_url or not settings.supabase_key:
+        url = settings.supabase_url
+        key = (
+            settings.supabase_service_key
+            if use_service_key and settings.supabase_service_key
+            else settings.supabase_key
+        )
+
+        if not url or not key:
             raise ValueError(
                 "Supabase URL and Key must be configured in environment variables"
             )
@@ -65,10 +88,11 @@ class SupabaseClient:
 
         try:
             client = create_client(
-                supabase_url=settings.supabase_url,
-                supabase_key=settings.supabase_key
+                supabase_url=url,
+                supabase_key=key
             )
-            logger.info("✅ Supabase client инициализирован успешно")
+            key_type = "service_role" if use_service_key and settings.supabase_service_key else "anon"
+            logger.info(f"✅ Supabase client ({key_type}) инициализирован успешно")
             return client
         except Exception as e:
             import traceback
@@ -105,3 +129,13 @@ def get_supabase_client() -> Client:
         Client: Initialized Supabase client
     """
     return SupabaseClient.get_client()
+
+
+def get_supabase_admin_client() -> Client:
+    """
+    Get Supabase admin client instance (bypasses Row Level Security).
+    
+    Returns:
+        Client: Initialized Supabase client
+    """
+    return SupabaseClient.get_admin_client()

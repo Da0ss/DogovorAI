@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Optional, Dict, Any
 
-from config.database import get_supabase_client
+from config.database import get_supabase_admin_client
 from config.settings import settings
 
 logger = logging.getLogger(__name__) 
@@ -25,7 +25,7 @@ class BillingManager:
     @property
     def supabase(self):
         if self._supabase is None:
-            self._supabase = get_supabase_client()
+            self._supabase = get_supabase_admin_client()
         return self._supabase
 
     def get_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
