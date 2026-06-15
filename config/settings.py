@@ -3,6 +3,7 @@ Application Settings Configuration
 Loads environment variables and provides typed configuration.
 """
 
+import os
 from typing import Optional
 from pydantic_settings import BaseSettings
 
@@ -68,7 +69,7 @@ class Settings(BaseSettings):
     stripe_webhook_secret: Optional[str] = None
     stripe_price_id_pro: Optional[str] = None
     stripe_price_id_max: Optional[str] = None
-    app_url: str = "http://localhost:8000"
+    app_url: str = os.getenv("APP_URL") or os.getenv("NEXT_PUBLIC_APP_URL") or "https://dogovorai.vercel.app/app"
 
     # Admin access (comma-separated emails)
     admin_emails: str = ""
