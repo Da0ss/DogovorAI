@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any
 from config.database import get_supabase_client
 from config.settings import settings
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__) 
 
 WEBHOOK_SECRET = settings.stripe_webhook_secret or ""
 APP_URL = settings.app_url
