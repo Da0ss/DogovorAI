@@ -12,8 +12,8 @@ APP_URL = settings.app_url
 
 PLANS = {
     "basic": {"price_id": None, "limit": 3},
-    "pro":   {"price_id": "price_1TNSws3Kw83n0jLXdLNtSN2h", "limit": 30},
-    "max":   {"price_id": "price_1TNSx73Kw83n0jLX06otxhnJ", "limit": None},
+    "pro":   {"price_id": "prod_Uhqrk2M5yo6yef", "limit": 30},
+    "max":   {"price_id": "prod_UhqsouzH106NKv", "limit": None},
 }
 
 
