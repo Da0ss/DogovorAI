@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     stripe_webhook_secret: Optional[str] = None
     stripe_price_id_pro: Optional[str] = None
     stripe_price_id_max: Optional[str] = None
-    app_url: str = os.getenv("APP_URL") or os.getenv("NEXT_PUBLIC_APP_URL") or "https://dogovorai.vercel.app/app"
+    app_url: str = os.getenv("APP_URL") or os.getenv("NEXT_PUBLIC_APP_URL") or "https://www.dogovorai.xyz"
 
     # Admin access (comma-separated emails)
     admin_emails: str = ""
