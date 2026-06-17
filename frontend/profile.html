@@ -343,6 +343,63 @@
 
   </main>
 
+  <!-- Modal Window (overlay) for Payment Method Selection -->
+  <div id="paymentModal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300" role="dialog" aria-modal="true">
+    <div class="relative bg-surface-container-lowest border border-outline-variant/30 rounded-xl max-w-md w-full flex flex-col shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="paymentModalCard">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center px-md py-sm border-b border-outline-variant/20 bg-surface-container-low">
+        <div class="flex items-center gap-sm">
+          <span class="material-symbols-outlined text-primary text-2xl">payments</span>
+          <h2 class="font-title-md text-title-md text-on-surface font-bold">Способ оплаты</h2>
+        </div>
+        <button type="button" id="closePaymentModalBtn" class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 p-2 rounded-full transition-colors flex items-center justify-center outline-none">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="px-md py-md space-y-4">
+        <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">
+          Пожалуйста, выберите удобный для вас способ оплаты для активации тарифа <span id="selectedPlanName" class="font-bold text-primary uppercase"></span>:
+        </p>
+        
+        <div class="space-y-3">
+          <!-- Stripe Option -->
+          <button type="button" id="payWithStripeBtn" class="w-full flex items-center justify-between p-4 rounded-xl border border-outline-variant hover:border-primary hover:bg-primary/5 transition-all text-left group">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-2xl">credit_card</span>
+              <div>
+                <div class="font-semibold text-on-surface group-hover:text-primary transition-colors">Банковская карта (Stripe)</div>
+                <div class="text-xs text-on-surface-variant">Visa, Mastercard, Google Pay</div>
+              </div>
+            </div>
+            <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+          </button>
+          
+          <!-- PayPal Option -->
+          <button type="button" id="payWithPaypalBtn" class="w-full flex items-center justify-between p-4 rounded-xl border border-outline-variant hover:border-primary hover:bg-primary/5 transition-all text-left group">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary text-2xl">account_balance_wallet</span>
+              <div>
+                <div class="font-semibold text-on-surface group-hover:text-primary transition-colors">PayPal</div>
+                <div class="text-xs text-on-surface-variant">Баланс PayPal, банковские счета</div>
+              </div>
+            </div>
+            <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-md py-sm border-t border-outline-variant/20 bg-surface-container-low flex justify-end">
+        <button type="button" id="cancelPaymentModalBtn" class="font-label-md text-sm border border-outline-variant text-on-surface hover:bg-surface-container-low px-lg py-2 rounded-lg transition-all">
+          Отмена
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="/static/js/nav.js"></script>
   <script src="/static/js/auth-guard.js"></script>
   <script>requireAuth();</script>
@@ -514,8 +571,54 @@
     }
 
     // ============================================================
-    // Plan selection → Stripe Checkout
+    // Plan selection & Payment selection Modal
     // ============================================================
+    let pendingPlan = null;
+    
+    const paymentModal = document.getElementById('paymentModal');
+    const paymentModalCard = document.getElementById('paymentModalCard');
+    const selectedPlanName = document.getElementById('selectedPlanName');
+    const closePaymentModalBtn = document.getElementById('closePaymentModalBtn');
+    const cancelPaymentModalBtn = document.getElementById('cancelPaymentModalBtn');
+    const payWithStripeBtn = document.getElementById('payWithStripeBtn');
+    const payWithPaypalBtn = document.getElementById('payWithPaypalBtn');
+
+    function openPaymentModal(plan) {
+      pendingPlan = plan;
+      selectedPlanName.textContent = plan.toUpperCase();
+      paymentModal.classList.remove('hidden');
+      paymentModal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closePaymentModal() {
+      paymentModal.classList.add('hidden');
+      paymentModal.classList.remove('flex');
+      document.body.style.overflow = '';
+      pendingPlan = null;
+    }
+
+    closePaymentModalBtn.addEventListener('click', closePaymentModal);
+    cancelPaymentModalBtn.addEventListener('click', closePaymentModal);
+    
+    paymentModal.addEventListener('click', (e) => {
+      if (e.target === paymentModal) {
+        closePaymentModal();
+      }
+    });
+
+    payWithStripeBtn.addEventListener('click', () => {
+      if (pendingPlan) {
+        executeCheckout(pendingPlan, 'stripe');
+      }
+    });
+
+    payWithPaypalBtn.addEventListener('click', () => {
+      if (pendingPlan) {
+        executeCheckout(pendingPlan, 'paypal');
+      }
+    });
+
     async function selectPlan(plan) {
       const user = getUser();
       if (!user || !user.id) {
@@ -539,6 +642,16 @@
         if (!confirmUpgrade) return;
       }
 
+      if (plan === 'basic') {
+        executeCheckout(plan, 'stripe');
+      } else {
+        openPaymentModal(plan);
+      }
+    }
+
+    async function executeCheckout(plan, provider) {
+      closePaymentModal();
+      
       const btn = document.getElementById(`btn${plan.charAt(0).toUpperCase() + plan.slice(1)}`);
       if (btn) {
         btn.disabled = true;
@@ -552,7 +665,12 @@
             'Content-Type': 'application/json',
             ...authHeaders()
           },
-          body: JSON.stringify({ user_id: user.id, plan: plan, origin: window.location.origin })
+          body: JSON.stringify({ 
+            user_id: getUser().id, 
+            plan: plan, 
+            provider: provider,
+            origin: window.location.origin 
+          })
         });
 
         const data = await resp.json();
@@ -565,13 +683,14 @@
           window.location.href = data.checkout_url;
         } else {
           // Basic plan — no payment needed
-          const updated = { ...user, plan: 'basic' };
+          const updated = { ...getUser(), plan: 'basic' };
           localStorage.setItem('user', JSON.stringify(updated));
           renderProfile(updated);
           alert('Вы переключились на Basic план.');
         }
       } catch (err) {
         alert('Ошибка: ' + err.message);
+      } finally {
         if (btn) {
           btn.disabled = false;
           btn.textContent = plan === 'basic' ? 'Перейти на Basic' : `Улучшить до ${plan.charAt(0).toUpperCase() + plan.slice(1)}`;

@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -67,7 +67,8 @@ def fixture_test_data(db_session):
         provider="paypal",
         provider_subscription_id="I-TESTSUBSCRIPTION1",
         provider_customer_id="payer-id-123",
-        status="inactive"
+        status="inactive",
+        plan_type="pro"
     )
     db_session.add(sub)
     db_session.commit()
@@ -153,6 +154,11 @@ class TestPayPalWebhook:
         assert test_data["subscription"].status == "active"
         assert test_data["subscription"].current_period_start is not None
         assert test_data["subscription"].provider_event_data == payload
+        
+        # Verify user profile plan is active
+        db_session.refresh(test_data["user"])
+        assert test_data["user"].plan_type == "pro"
+        assert test_data["user"].subscription_status == "active"
 
     @patch("app.services.paypal_service.verify_webhook_signature", new_callable=AsyncMock)
     def test_webhook_cancels_subscription(self, mock_verify, db_session, test_data):
@@ -160,6 +166,8 @@ class TestPayPalWebhook:
         
         # Set to active first
         test_data["subscription"].status = "active"
+        test_data["user"].plan_type = "pro"
+        test_data["user"].subscription_status = "active"
         db_session.commit()
         
         headers = {
@@ -187,6 +195,11 @@ class TestPayPalWebhook:
         db_session.refresh(test_data["subscription"])
         assert test_data["subscription"].status == "canceled"
         assert test_data["subscription"].canceled_at is not None
+        
+        # Verify user profile is downgraded to basic
+        db_session.refresh(test_data["user"])
+        assert test_data["user"].plan_type == "basic"
+        assert test_data["user"].subscription_status == "canceled"
 
     @patch("app.services.paypal_service.verify_webhook_signature", new_callable=AsyncMock)
     def test_webhook_payment_completed(self, mock_verify, db_session, test_data):
@@ -220,6 +233,11 @@ class TestPayPalWebhook:
         if actual_dt and actual_dt.tzinfo is not None:
             actual_dt = actual_dt.replace(tzinfo=None)
         assert actual_dt == datetime.fromisoformat("2026-06-17T06:00:00")
+        
+        # Verify user profile plan is active
+        db_session.refresh(test_data["user"])
+        assert test_data["user"].plan_type == "pro"
+        assert test_data["user"].subscription_status == "active"
 
     @patch("app.services.paypal_service.verify_webhook_signature", new_callable=AsyncMock)
     def test_webhook_subscription_not_found(self, mock_verify, db_session):
@@ -246,3 +264,54 @@ class TestPayPalWebhook:
         # Should return error status in payload rather than HTTP error
         assert response.json()["status"] == "error"
         assert "skipped or failed" in response.json()["message"]
+
+    @patch("app.services.paypal_service.get_paypal_access_token", new_callable=AsyncMock)
+    @patch("httpx.AsyncClient.post", new_callable=AsyncMock)
+    @patch("app.services.subscription_service.billing_manager.get_profile")
+    def test_checkout_paypal_success(self, mock_get_profile, mock_post, mock_token, db_session, test_data):
+        mock_token.return_value = "fake-paypal-token"
+        mock_get_profile.return_value = {
+            "id": "test-user-id",
+            "email": "test_user@example.com",
+            "plan_type": "basic",
+            "subscription_status": "inactive"
+        }
+        
+        # Mock the response from PayPal API creating a subscription
+        mock_response = MagicMock()
+        mock_response.status_code = 201
+        mock_response.json.return_value = {
+            "id": "I-NEWPAYPALSUBSCRIPTION",
+            "status": "APPROVAL_PENDING",
+            "links": [
+                {
+                    "href": "https://www.sandbox.paypal.com/checkoutnow?token=I-NEWPAYPALSUBSCRIPTION",
+                    "rel": "approve",
+                    "method": "GET"
+                }
+            ]
+        }
+        mock_post.return_value = mock_response
+        
+        payload = {
+            "user_id": "test-user-id",
+            "plan": "pro",
+            "provider": "paypal",
+            "origin": "http://localhost:8000"
+        }
+        
+        response = client.post("/api/subscriptions/checkout", json=payload)
+        
+        assert response.status_code == 200
+        assert response.json()["checkout_url"] == "https://www.sandbox.paypal.com/checkoutnow?token=I-NEWPAYPALSUBSCRIPTION"
+        
+        # Verify database record
+        new_sub = db_session.query(Subscription).filter(
+            Subscription.provider_subscription_id == "I-NEWPAYPALSUBSCRIPTION"
+        ).first()
+        
+        assert new_sub is not None
+        assert new_sub.user_id == "test-user-id"
+        assert new_sub.provider == "paypal"
+        assert new_sub.status == "inactive"
+        assert new_sub.plan_type == "pro"

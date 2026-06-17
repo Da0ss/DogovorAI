@@ -1,8 +1,11 @@
 import logging
-from fastapi import APIRouter, Request, HTTPException, status
+from fastapi import APIRouter, Request, HTTPException, status, Depends
 from pydantic import BaseModel
 from typing import Optional
+from sqlalchemy.orm import Session
 
+from app.models.database import get_db
+from app.services import paypal_service
 from app.services.subscription_service import billing_manager
 
 logger = logging.getLogger(__name__)
@@ -13,6 +16,7 @@ router = APIRouter(prefix="/subscriptions", tags=["Subscriptions"])
 class CheckoutRequest(BaseModel):
     user_id: str
     plan: str
+    provider: Optional[str] = "stripe"
     origin: Optional[str] = None
 
 
@@ -29,7 +33,7 @@ class UsageResponse(BaseModel):
 
 
 @router.post("/checkout", response_model=CheckoutResponse)
-def create_checkout(req: CheckoutRequest) -> CheckoutResponse:
+async def create_checkout(req: CheckoutRequest, db: Session = Depends(get_db)) -> CheckoutResponse:
     plan_ranks = {"basic": 0, "pro": 1, "max": 2}
     new_rank = plan_ranks.get(req.plan.lower(), 0)
     
@@ -44,10 +48,36 @@ def create_checkout(req: CheckoutRequest) -> CheckoutResponse:
              raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You are already on this plan.")
 
     try:
-        url = billing_manager.create_checkout(req.user_id, req.plan, origin=req.origin)
-        if url is None:
-            return CheckoutResponse(checkout_url=None, message="Switched to Basic")
-        return CheckoutResponse(checkout_url=url, message="Redirect to Stripe")
+        provider = (req.provider or "stripe").lower()
+        if provider == "stripe":
+            url = billing_manager.create_checkout(req.user_id, req.plan, origin=req.origin)
+            if url is None:
+                return CheckoutResponse(checkout_url=None, message="Switched to Basic")
+            return CheckoutResponse(checkout_url=url, message="Redirect to Stripe")
+        elif provider == "paypal":
+            if req.plan.lower() == "basic":
+                from app.models.models import User
+                db.query(User).filter(User.id == req.user_id).update({
+                    "plan_type": "basic",
+                    "subscription_status": "active"
+                })
+                db.commit()
+                return CheckoutResponse(checkout_url=None, message="Switched to Basic")
+                
+            profile_data = billing_manager.get_profile(req.user_id)
+            if not profile_data:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+                
+            url = await paypal_service.create_paypal_subscription(
+                db=db,
+                user_id=req.user_id,
+                plan_name=req.plan.lower(),
+                email=profile_data.get("email", ""),
+                origin=req.origin
+            )
+            return CheckoutResponse(checkout_url=url, message="Redirect to PayPal")
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid provider. Must be stripe or paypal.")
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:

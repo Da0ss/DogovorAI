@@ -76,6 +76,8 @@ class Settings(BaseSettings):
     paypal_client_secret: Optional[str] = None
     paypal_webhook_id: Optional[str] = None
     paypal_mode: str = "sandbox"
+    paypal_plan_id_pro: Optional[str] = None
+    paypal_plan_id_max: Optional[str] = None
 
     # Admin access (comma-separated emails)
     admin_emails: str = ""

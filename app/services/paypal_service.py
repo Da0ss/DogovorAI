@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from typing import Dict, Any, Optional
 import httpx
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from config.settings import settings
@@ -107,6 +108,99 @@ async def verify_webhook_signature(headers: Dict[str, str], body: Dict[str, Any]
             return False
 
 
+async def create_paypal_subscription(
+    db: Session,
+    user_id: str,
+    plan_name: str,
+    email: str,
+    origin: Optional[str] = None
+) -> Optional[str]:
+    """
+    Create a PayPal subscription via the PayPal API and save an inactive record to the database.
+    Returns the approval checkout URL.
+    """
+    token = await get_paypal_access_token()
+    
+    plan_id = None
+    if plan_name == "pro":
+        plan_id = settings.paypal_plan_id_pro or "P-TESTPROPLAN"
+    elif plan_name == "max":
+        plan_id = settings.paypal_plan_id_max or "P-TESTMAXPLAN"
+    else:
+        raise ValueError(f"Unknown plan: {plan_name}")
+        
+    base_url = origin or settings.app_url
+    if base_url.endswith("/"):
+        base_url = base_url[:-1]
+        
+    api_url = "https://api-m.paypal.com" if settings.paypal_mode == "live" else "https://api-m.sandbox.paypal.com"
+    url = f"{api_url}/v1/billing/subscriptions"
+    
+    payload = {
+        "plan_id": plan_id,
+        "return_url": f"{base_url}/app/profile?payment=success",
+        "cancel_url": f"{base_url}/app/profile?payment=canceled",
+        "subscriber": {
+            "email_address": email
+        },
+        "application_context": {
+            "brand_name": "DogovorAI",
+            "locale": "ru-RU",
+            "shipping_preference": "NO_SHIPPING",
+            "user_action": "SUBSCRIBE_NOW"
+        }
+    }
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            url,
+            json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json"
+            },
+            timeout=15.0
+        )
+        
+        if resp.status_code != 201:
+            logger.error(f"Failed to create PayPal subscription. Status: {resp.status_code}, Body: {resp.text}")
+            raise HTTPException(status_code=500, detail="Failed to initiate PayPal subscription")
+            
+        result = resp.json()
+        paypal_sub_id = result.get("id")
+        
+        # Find approval url
+        approval_url = None
+        for link in result.get("links", []):
+            if link.get("rel") == "approve":
+                approval_url = link.get("href")
+                break
+                
+        if not approval_url:
+            raise ValueError("No approval link found in PayPal response")
+            
+        # Clean up any existing inactive PayPal subscription for this user to keep it clean
+        db.query(Subscription).filter(
+            Subscription.user_id == user_id,
+            Subscription.provider == "paypal",
+            Subscription.status == "inactive"
+        ).delete(synchronize_session=False)
+        
+        sub = Subscription(
+            user_id=user_id,
+            provider="paypal",
+            provider_subscription_id=paypal_sub_id,
+            plan_type=plan_name,
+            status="inactive",
+            provider_event_data=result
+        )
+        db.add(sub)
+        db.commit()
+        
+        return approval_url
+
+
 async def process_webhook_event(db: Session, event_data: Dict[str, Any]) -> bool:
     """
     Process verified PayPal webhook events and update the subscriptions table.
@@ -145,25 +239,39 @@ async def process_webhook_event(db: Session, event_data: Dict[str, Any]) -> bool
         start_time_str = resource.get("start_time")
         if start_time_str:
             sub.current_period_start = parse_iso_datetime(start_time_str)
+        if sub.user:
+            sub.user.plan_type = sub.plan_type
+            sub.user.subscription_status = "active"
             
     elif event_type == "BILLING.SUBSCRIPTION.CANCELLED":
         sub.status = "canceled"
         canceled_time_str = resource.get("status_update_time")
         if canceled_time_str:
             sub.canceled_at = parse_iso_datetime(canceled_time_str)
+        if sub.user:
+            sub.user.plan_type = "basic"
+            sub.user.subscription_status = "canceled"
             
     elif event_type == "BILLING.SUBSCRIPTION.EXPIRED":
         sub.status = "expired"
-        
+        if sub.user:
+            sub.user.plan_type = "basic"
+            sub.user.subscription_status = "expired"
+            
     elif event_type in ("BILLING.SUBSCRIPTION.SUSPENDED", "BILLING.SUBSCRIPTION.PAYMENT.FAILED"):
         sub.status = "suspended"
-        
+        if sub.user:
+            sub.user.subscription_status = "suspended"
+            
     elif event_type == "PAYMENT.SALE.COMPLETED":
         sub.status = "active"
         # Extend billing period using sale create time if available
         create_time_str = resource.get("create_time")
         if create_time_str:
             sub.current_period_start = parse_iso_datetime(create_time_str)
+        if sub.user:
+            sub.user.plan_type = sub.plan_type
+            sub.user.subscription_status = "active"
 
     # Save event data log
     sub.provider_event_data = event_data
