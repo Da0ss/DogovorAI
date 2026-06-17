@@ -146,3 +146,56 @@ class TestStripeWebhook:
         user = db_session.query(User).filter(User.id == "test-user-id").first()
         assert user.plan_type == "max"
         assert user.subscription_status == "active"
+
+    @patch("app.services.auth_context.resolve_authenticated_user")
+    @patch("stripe.checkout.Session.retrieve")
+    def test_verify_session_success(self, mock_retrieve, mock_resolve_user, db_session, test_data):
+        mock_resolve_user.return_value = {
+            "id": "test-user-id",
+            "email": "test_user@example.com",
+            "is_verified": True
+        }
+        
+        mock_retrieve.return_value = {
+            "id": "cs_test_999",
+            "customer": "cus_test_999",
+            "subscription": "sub_test_999",
+            "payment_status": "paid",
+            "metadata": {
+                "supabase_user_id": "test-user-id",
+                "plan": "pro"
+            }
+        }
+        
+        response = client.post(
+            "/api/subscriptions/verify-session",
+            json={"session_id": "cs_test_999", "user_id": "test-user-id"},
+            headers={"Authorization": "Bearer local-token-test-user-id"}
+        )
+        
+        assert response.status_code == 200
+        assert response.json()["status"] == "ok"
+        
+        # Verify db changes
+        db_session.expire_all()
+        user = db_session.query(User).filter(User.id == "test-user-id").first()
+        assert user.plan_type == "pro"
+        assert user.subscription_status == "active"
+        assert user.analyses_limit == 30
+
+    @patch("app.services.auth_context.resolve_authenticated_user")
+    def test_verify_session_unauthorized_user_mismatch(self, mock_resolve_user, db_session, test_data):
+        mock_resolve_user.return_value = {
+            "id": "different-user-id",
+            "email": "diff@example.com",
+            "is_verified": True
+        }
+        
+        response = client.post(
+            "/api/subscriptions/verify-session",
+            json={"session_id": "cs_test_999", "user_id": "test-user-id"},
+            headers={"Authorization": "Bearer local-token-different-user-id"}
+        )
+        
+        assert response.status_code == 403
+        assert "mismatch" in response.json()["detail"]

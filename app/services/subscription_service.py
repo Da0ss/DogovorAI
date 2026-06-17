@@ -108,12 +108,43 @@ class BillingManager:
             customer=customer_id,
             mode="subscription",
             line_items=[{"price": price_id, "quantity": 1}],
-            success_url=f"{base_url}/app/profile?payment=success",
+            success_url=f"{base_url}/app/profile?payment=success&session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{base_url}/app/profile?payment=canceled",
             metadata={"supabase_user_id": user_id, "plan": plan_name}
         )
 
         return session.url
+
+    def verify_checkout_session(self, session_id: str, user_id: str, db: Optional[Any] = None) -> Dict[str, Any]:
+        import stripe
+        stripe.api_key = settings.stripe_secret_key or ""
+        
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+        except Exception as e:
+            logger.error(f"Failed to retrieve Stripe session {session_id}: {e}")
+            raise ValueError("Invalid Stripe session ID.")
+            
+        metadata = session.get("metadata", {}) or {}
+        session_user_id = metadata.get("supabase_user_id")
+        if session_user_id != user_id:
+            logger.error(f"Stripe session user ID mismatch: session={session_user_id}, user={user_id}")
+            raise ValueError("Session ownership verification failed.")
+            
+        if session.get("payment_status") != "paid":
+            logger.error(f"Stripe session not paid: {session.get('payment_status')}")
+            raise ValueError("Payment verification failed. Session status is not paid.")
+            
+        if db is not None:
+            return self._on_checkout_completed(session, db)
+
+        from app.models.database import SessionLocal
+        db_session = SessionLocal()
+        try:
+            res = self._on_checkout_completed(session, db_session)
+            return res
+        finally:
+            db_session.close()
 
     def handle_webhook(self, payload: bytes, sig: str, db: Optional[Any] = None) -> Dict[str, Any]:
         import stripe

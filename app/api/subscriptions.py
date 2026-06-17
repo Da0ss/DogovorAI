@@ -123,3 +123,25 @@ def get_subscription_profile(user_id: str) -> dict:
         "analyses_limit": billing_manager.get_plan_limit(profile.get("plan_type", "basic")),
         "stripe_customer_id": profile.get("stripe_customer_id"),
     }
+
+
+class VerifySessionRequest(BaseModel):
+    session_id: str
+    user_id: str
+
+
+@router.post("/verify-session")
+async def verify_session(req: VerifySessionRequest, request: Request, db: Session = Depends(get_db)):
+    from app.services.auth_context import resolve_authenticated_user
+    current_user = resolve_authenticated_user(request, db)
+    if current_user["id"] != req.user_id:
+         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied: user ID mismatch")
+         
+    try:
+        res = billing_manager.verify_checkout_session(req.session_id, req.user_id, db=db)
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Session verification failed: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

@@ -401,6 +401,17 @@
     </div>
   </div>
 
+  <!-- Verification Overlay Loader -->
+  <div id="verifyOverlay" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-8 max-w-sm w-full flex flex-col items-center text-center gap-4 shadow-2xl">
+      <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      <h3 class="font-title-md text-lg font-bold text-on-surface">Подтверждение оплаты</h3>
+      <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">
+        Мы проверяем статус платежа через Stripe. Пожалуйста, не закрывайте эту страницу...
+      </p>
+    </div>
+  </div>
+
   <script src="/static/js/nav.js"></script>
   <script src="/static/js/auth-guard.js"></script>
   <script>requireAuth();</script>
@@ -413,6 +424,19 @@
     // ============================================================
     // Load & render profile
     // ============================================================
+    function showVerificationModal(show) {
+      const overlay = document.getElementById('verifyOverlay');
+      if (overlay) {
+        if (show) {
+          overlay.classList.remove('hidden');
+          overlay.classList.add('flex');
+        } else {
+          overlay.classList.add('hidden');
+          overlay.classList.remove('flex');
+        }
+      }
+    }
+
     async function loadProfile() {
       if (!isAuthenticated()) {
         window.location.replace('/app/login?next=/app/profile');
@@ -421,6 +445,41 @@
 
       let user = getUser() || {};
       let usage = null;
+
+      // Check for Stripe Checkout success session verification
+      const params = new URLSearchParams(window.location.search);
+      const isSuccess = params.get('payment') === 'success';
+      const sessionId = params.get('session_id');
+
+      if (isSuccess && sessionId) {
+        showVerificationModal(true);
+        try {
+          const verifyResp = await fetch('/api/subscriptions/verify-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...authHeaders()
+            },
+            body: JSON.stringify({
+              session_id: sessionId,
+              user_id: user.id || (getUser() && getUser().id)
+            })
+          });
+          if (verifyResp.ok) {
+            // Clear URL params to prevent infinite re-verification on page reload
+            window.history.replaceState({}, document.title, window.location.pathname);
+            alert('Подписка успешно активирована! Спасибо за покупку.');
+          } else {
+            const errData = await verifyResp.json().catch(() => ({}));
+            alert('Ошибка верификации платежа: ' + (errData.detail || 'Не удалось активировать подписку.'));
+          }
+        } catch (err) {
+          console.error('Session verification error:', err);
+          alert('Не удалось связаться с сервером для подтверждения платежа.');
+        } finally {
+          showVerificationModal(false);
+        }
+      }
 
       try {
         const [profileResp, usageResp] = await Promise.all([
