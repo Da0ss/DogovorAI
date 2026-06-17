@@ -125,23 +125,26 @@ class BillingManager:
             logger.error(f"Failed to retrieve Stripe session {session_id}: {e}")
             raise ValueError("Invalid Stripe session ID.")
             
-        metadata = session.get("metadata", {}) or {}
+        # Convert Stripe object to dict for backward compatibility and uniform dictionary access
+        session_dict = session.to_dict() if hasattr(session, "to_dict") else session
+            
+        metadata = session_dict.get("metadata", {}) or {}
         session_user_id = metadata.get("supabase_user_id")
         if session_user_id != user_id:
             logger.error(f"Stripe session user ID mismatch: session={session_user_id}, user={user_id}")
             raise ValueError("Session ownership verification failed.")
             
-        if session.get("payment_status") != "paid":
-            logger.error(f"Stripe session not paid: {session.get('payment_status')}")
+        if session_dict.get("payment_status") != "paid":
+            logger.error(f"Stripe session not paid: {session_dict.get('payment_status')}")
             raise ValueError("Payment verification failed. Session status is not paid.")
             
         if db is not None:
-            return self._on_checkout_completed(session, db)
+            return self._on_checkout_completed(session_dict, db)
 
         from app.models.database import SessionLocal
         db_session = SessionLocal()
         try:
-            res = self._on_checkout_completed(session, db_session)
+            res = self._on_checkout_completed(session_dict, db_session)
             return res
         finally:
             db_session.close()
