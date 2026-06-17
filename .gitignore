@@ -57,3 +57,5 @@ fix_column_types.sql
 
 # Admin maintenance mode flag
 .maintenance_mode
+.vercel
+.env*

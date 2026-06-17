@@ -25,6 +25,7 @@ from app.api import contracts
 from app.api import metrics
 from app.api import history
 from app.api import admin
+from app.api import paypal
 
 # Настройка логирования
 logging.basicConfig(
@@ -322,6 +323,7 @@ app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
 app.include_router(auth.router, prefix="/api", tags=["Authentication"])
 app.include_router(subscriptions.router, prefix="/api", tags=["Subscriptions"])
+app.include_router(paypal.router, prefix="/api", tags=["PayPal"])
 app.include_router(contracts.router, prefix="/api", tags=["Contracts"])
 
 app.include_router(metrics.router, prefix="/api", tags=["Metrics"])

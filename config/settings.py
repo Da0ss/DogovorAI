@@ -71,6 +71,12 @@ class Settings(BaseSettings):
     stripe_price_id_max: Optional[str] = None
     app_url: str = os.getenv("APP_URL") or os.getenv("NEXT_PUBLIC_APP_URL") or "https://www.dogovorai.xyz"
 
+    # PayPal
+    paypal_client_id: Optional[str] = None
+    paypal_client_secret: Optional[str] = None
+    paypal_webhook_id: Optional[str] = None
+    paypal_mode: str = "sandbox"
+
     # Admin access (comma-separated emails)
     admin_emails: str = ""
 
