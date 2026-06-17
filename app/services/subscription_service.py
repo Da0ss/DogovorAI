@@ -115,38 +115,66 @@ class BillingManager:
 
         return session.url
 
-    def handle_webhook(self, payload: bytes, sig: str) -> Dict[str, Any]:
+    def handle_webhook(self, payload: bytes, sig: str, db: Optional[Any] = None) -> Dict[str, Any]:
         import stripe
         stripe.api_key = settings.stripe_secret_key or ""
-        event = stripe.Webhook.construct_event(payload, sig, WEBHOOK_SECRET)
+        
+        # Determine if we can bypass signature verification
+        bypass_verification = False
+        if not WEBHOOK_SECRET:
+            from app.services.auth_context import is_debug_or_test
+            if is_debug_or_test() or settings.debug:
+                bypass_verification = True
+            else:
+                logger.error("❌ STRIPE_WEBHOOK_SECRET is not configured in production. Cannot verify Stripe webhooks.")
+                raise ValueError("STRIPE_WEBHOOK_SECRET is not configured.")
+
+        if bypass_verification:
+            import json
+            logger.warning("⚠️ STRIPE_WEBHOOK_SECRET is not configured. Parsing Stripe webhook payload directly in debug/test mode.")
+            event = json.loads(payload.decode("utf-8"))
+        else:
+            event = stripe.Webhook.construct_event(payload, sig, WEBHOOK_SECRET)
+            
         event_type = event["type"]
         obj = event["data"]["object"]
 
         logger.info(f"🔔 Received Stripe Webhook event: {event_type}")
 
+        if db is not None:
+            return self._handle_webhook_events(event_type, obj, db)
+
+        from app.models.database import SessionLocal
+        db_session = SessionLocal()
+        try:
+            return self._handle_webhook_events(event_type, obj, db_session)
+        finally:
+            db_session.close()
+
+    def _handle_webhook_events(self, event_type: str, obj: dict, db) -> Dict[str, Any]:
         if event_type == "checkout.session.completed":
-            res = self._on_checkout_completed(obj)
+            res = self._on_checkout_completed(obj, db)
             logger.info(f"Result for checkout.session.completed: {res}")
             return res
 
         if event_type == "customer.subscription.deleted":
-            res = self._on_subscription_deleted(obj)
+            res = self._on_subscription_deleted(obj, db)
             logger.info(f"Result for customer.subscription.deleted: {res}")
             return res
 
         if event_type == "customer.subscription.updated":
-            res = self._on_subscription_updated(obj)
+            res = self._on_subscription_updated(obj, db)
             logger.info(f"Result for customer.subscription.updated: {res}")
             return res
 
         if event_type == "invoice.payment_failed":
-            res = self._on_payment_failed(obj)
+            res = self._on_payment_failed(obj, db)
             logger.info(f"Result for invoice.payment_failed: {res}")
             return res
 
         return {"status": "ignored", "event": event_type}
 
-    def _resolve_user(self, obj: dict) -> Optional[str]:
+    def _resolve_user(self, obj: dict, db) -> Optional[str]:
         metadata = obj.get("metadata", {}) or {}
         user_id = metadata.get("supabase_user_id")
         logger.info(f"🔍 Resolving user: metadata.supabase_user_id = {user_id}")
@@ -158,15 +186,14 @@ class BillingManager:
         if not customer_id:
             return None
 
-        result = self.supabase.table("profiles").select("id").eq(
-            "stripe_customer_id", customer_id
-        ).execute()
-        resolved_id = result.data[0]["id"] if result.data else None
+        from app.models.models import User
+        user = db.query(User).filter(User.stripe_customer_id == customer_id).first()
+        resolved_id = str(user.id) if user else None
         logger.info(f"🔍 Resolved user ID from database: {resolved_id}")
         return resolved_id
 
-    def _on_checkout_completed(self, session_obj: dict) -> Dict[str, Any]:
-        user_id = self._resolve_user(session_obj)
+    def _on_checkout_completed(self, session_obj: dict, db) -> Dict[str, Any]:
+        user_id = self._resolve_user(session_obj, db)
         plan = session_obj.get("metadata", {}).get("plan", "pro")
         logger.info(f"Processing checkout completed for user_id={user_id}, plan={plan}")
 
@@ -174,49 +201,151 @@ class BillingManager:
             logger.error(f"Checkout completed failed: user not found in metadata: {session_obj.get('metadata')}")
             return {"status": "error", "reason": "user_not_found"}
 
-        update_res = self.supabase.table("profiles").update({
-            "plan_type": plan,
-            "subscription_status": "active"
-        }).eq("id", user_id).execute()
-        logger.info(f"Supabase update result: {update_res}")
+        from app.models.models import User, Subscription
+        
+        # 1. Update profiles table
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.plan_type = plan
+            user.subscription_status = "active"
+            user.analyses_limit = self.get_plan_limit(plan)
+            stripe_cust_id = session_obj.get("customer")
+            if stripe_cust_id:
+                user.stripe_customer_id = stripe_cust_id
+
+        # 2. Update/create record in subscriptions table
+        stripe_sub_id = session_obj.get("subscription")
+        stripe_cust_id = session_obj.get("customer")
+        
+        sub = db.query(Subscription).filter(
+            Subscription.user_id == user_id,
+            Subscription.provider == "stripe"
+        ).first()
+        
+        if not sub:
+            sub = Subscription(
+                user_id=user_id,
+                provider="stripe",
+                plan_type=plan,
+            )
+            db.add(sub)
+            
+        sub.stripe_subscription_id = stripe_sub_id
+        sub.provider_subscription_id = stripe_sub_id
+        sub.stripe_customer_id = stripe_cust_id
+        sub.provider_customer_id = stripe_cust_id
+        sub.status = "active"
+        sub.plan_type = plan
+        sub.provider_event_data = session_obj
+        
+        db.commit()
 
         logger.info(f"Subscription activated: user={user_id}, plan={plan}")
         return {"status": "ok", "user_id": user_id, "plan": plan}
 
-    def _on_subscription_deleted(self, sub_obj: dict) -> Dict[str, Any]:
-        user_id = self._resolve_user(sub_obj)
+    def _on_subscription_deleted(self, sub_obj: dict, db) -> Dict[str, Any]:
+        from app.models.models import Subscription, User
+        
+        stripe_sub_id = sub_obj.get("id")
+        sub = db.query(Subscription).filter(
+            Subscription.provider == "stripe",
+            Subscription.stripe_subscription_id == stripe_sub_id
+        ).first()
+        
+        if sub:
+            sub.status = "canceled"
+            if sub.user:
+                sub.user.plan_type = "basic"
+                sub.user.subscription_status = "canceled"
+                sub.user.analyses_limit = 3
+            db.commit()
+            return {"status": "ok", "user_id": sub.user_id, "plan": "basic"}
+            
+        user_id = self._resolve_user(sub_obj, db)
         if not user_id:
             return {"status": "error", "reason": "customer_not_found"}
+            
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.plan_type = "basic"
+            user.subscription_status = "canceled"
+            user.analyses_limit = 3
+            db.commit()
+            return {"status": "ok", "user_id": user_id, "plan": "basic"}
+            
+        return {"status": "error", "reason": "user_not_found"}
 
-        self.supabase.table("profiles").update({
-            "plan_type": "basic",
-            "subscription_status": "canceled"
-        }).eq("id", user_id).execute()
-
-        logger.info(f"Subscription canceled: user={user_id}")
-        return {"status": "ok", "user_id": user_id, "plan": "basic"}
-
-    def _on_subscription_updated(self, sub_obj: dict) -> Dict[str, Any]:
-        user_id = self._resolve_user(sub_obj)
+    def _on_subscription_updated(self, sub_obj: dict, db) -> Dict[str, Any]:
+        from app.models.models import Subscription, User
+        
+        stripe_sub_id = sub_obj.get("id")
+        stripe_status = sub_obj.get("status")
+        status = "active" if stripe_status == "active" else "past_due"
+        
+        # Find plan from price_id in sub_obj if possible
+        items = sub_obj.get("items", {}).get("data", [])
+        plan = None
+        if items:
+            price_id = items[0].get("price", {}).get("id")
+            for name, cfg in PLANS.items():
+                if cfg["price_id"] == price_id:
+                    plan = name
+                    break
+        
+        sub = db.query(Subscription).filter(
+            Subscription.provider == "stripe",
+            Subscription.stripe_subscription_id == stripe_sub_id
+        ).first()
+        
+        if sub:
+            sub.status = status
+            sub.provider_event_data = sub_obj
+            if plan:
+                sub.plan_type = plan
+            if sub.user:
+                sub.user.subscription_status = status
+                if plan:
+                    sub.user.plan_type = plan
+                    sub.user.analyses_limit = self.get_plan_limit(plan)
+            db.commit()
+            return {"status": "ok", "user_id": sub.user_id, "subscription_status": status}
+            
+        user_id = self._resolve_user(sub_obj, db)
         if not user_id:
             return {"status": "error", "reason": "customer_not_found"}
+            
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.subscription_status = status
+            if plan:
+                user.plan_type = plan
+                user.analyses_limit = self.get_plan_limit(plan)
+            db.commit()
+            return {"status": "ok", "user_id": user_id, "subscription_status": status}
+            
+        return {"status": "error", "reason": "user_not_found"}
 
-        status = "active" if sub_obj.get("status") == "active" else "past_due"
-        self.supabase.table("profiles").update({
-            "subscription_status": status
-        }).eq("id", user_id).execute()
-
-        return {"status": "ok", "user_id": user_id, "subscription_status": status}
-
-    def _on_payment_failed(self, invoice_obj: dict) -> Dict[str, Any]:
-        user_id = self._resolve_user(invoice_obj)
+    def _on_payment_failed(self, invoice_obj: dict, db) -> Dict[str, Any]:
+        from app.models.models import Subscription, User
+        
+        user_id = self._resolve_user(invoice_obj, db)
         if not user_id:
             return {"status": "error", "reason": "customer_not_found"}
-
-        self.supabase.table("profiles").update({
-            "subscription_status": "past_due"
-        }).eq("id", user_id).execute()
-
+            
+        stripe_sub_id = invoice_obj.get("subscription")
+        if stripe_sub_id:
+            sub = db.query(Subscription).filter(
+                Subscription.provider == "stripe",
+                Subscription.stripe_subscription_id == stripe_sub_id
+            ).first()
+            if sub:
+                sub.status = "past_due"
+                
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.subscription_status = "past_due"
+            
+        db.commit()
         return {"status": "ok", "user_id": user_id, "subscription_status": "past_due"}
 
     def get_plan_limit(self, plan_name: str) -> Optional[int]:
@@ -224,21 +353,26 @@ class BillingManager:
         return config["limit"] if config else 3
 
     def increment_usage(self, user_id: str) -> bool:
-        profile = self.get_profile(user_id)
-        if not profile:
-            return False
+        from app.models.database import SessionLocal
+        from app.models.models import User
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return False
 
-        plan = profile.get("plan_type", "basic")
-        limit = self.get_plan_limit(plan)
-        used = profile.get("analyses_used", 0)
+            plan = user.plan_type or "basic"
+            limit = self.get_plan_limit(plan)
+            used = user.analyses_used or 0
 
-        if limit is not None and used >= limit:
-            return False
+            if limit is not None and used >= limit:
+                return False
 
-        self.supabase.table("profiles").update({
-            "analyses_used": used + 1
-        }).eq("id", user_id).execute()
-        return True
+            user.analyses_used = used + 1
+            db.commit()
+            return True
+        finally:
+            db.close()
 
     def get_usage(self, user_id: str) -> Dict[str, Any]:
         profile = self.get_profile(user_id)

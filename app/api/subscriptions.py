@@ -88,11 +88,11 @@ async def create_checkout(req: CheckoutRequest, db: Session = Depends(get_db)) -
 
 
 @router.post("/webhook")
-async def stripe_webhook(request: Request):
+async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
     try:
-        result = billing_manager.handle_webhook(payload, sig)
+        result = billing_manager.handle_webhook(payload, sig, db=db)
         return result
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid payload")

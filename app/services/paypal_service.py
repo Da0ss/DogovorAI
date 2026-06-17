@@ -234,6 +234,8 @@ async def process_webhook_event(db: Session, event_data: Dict[str, Any]) -> bool
     old_status = sub.status
     
     # PayPal subscription state transition logic
+    limit_map = {"basic": 3, "pro": 30, "max": None}
+    
     if event_type == "BILLING.SUBSCRIPTION.ACTIVATED":
         sub.status = "active"
         start_time_str = resource.get("start_time")
@@ -242,6 +244,7 @@ async def process_webhook_event(db: Session, event_data: Dict[str, Any]) -> bool
         if sub.user:
             sub.user.plan_type = sub.plan_type
             sub.user.subscription_status = "active"
+            sub.user.analyses_limit = limit_map.get((sub.plan_type or "pro").lower(), 30)
             
     elif event_type == "BILLING.SUBSCRIPTION.CANCELLED":
         sub.status = "canceled"
@@ -251,12 +254,14 @@ async def process_webhook_event(db: Session, event_data: Dict[str, Any]) -> bool
         if sub.user:
             sub.user.plan_type = "basic"
             sub.user.subscription_status = "canceled"
+            sub.user.analyses_limit = 3
             
     elif event_type == "BILLING.SUBSCRIPTION.EXPIRED":
         sub.status = "expired"
         if sub.user:
             sub.user.plan_type = "basic"
             sub.user.subscription_status = "expired"
+            sub.user.analyses_limit = 3
             
     elif event_type in ("BILLING.SUBSCRIPTION.SUSPENDED", "BILLING.SUBSCRIPTION.PAYMENT.FAILED"):
         sub.status = "suspended"
@@ -272,6 +277,7 @@ async def process_webhook_event(db: Session, event_data: Dict[str, Any]) -> bool
         if sub.user:
             sub.user.plan_type = sub.plan_type
             sub.user.subscription_status = "active"
+            sub.user.analyses_limit = limit_map.get((sub.plan_type or "pro").lower(), 30)
 
     # Save event data log
     sub.provider_event_data = event_data
