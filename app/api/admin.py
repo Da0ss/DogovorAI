@@ -23,7 +23,7 @@ from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from app.models.database import get_db
-from app.models.models import AnalysisResult, Document, User
+from app.models.models import AnalysisResult, Document, User, Subscription
 
 logger = logging.getLogger(__name__)
 
@@ -219,6 +219,14 @@ def admin_stats(
         or 0
     )
 
+    # Дополнительные бизнес-метрики и KPI
+    active_subscriptions = db.query(func.count(Subscription.id)).filter(Subscription.status == "active").scalar() or 0
+    total_tokens = int(db.query(func.sum(AnalysisResult.ai_tokens_used)).scalar() or 0)
+    avg_risks = round(float(db.query(func.avg(AnalysisResult.total_risks)).scalar() or 0.0), 1)
+    
+    paying_users = plans.get("pro", 0) + plans.get("max", 0)
+    conversion_rate = round((paying_users / total_users * 100), 1) if total_users > 0 else 0.0
+
     return {
         "total_users": total_users,
         "verified_users": verified,
@@ -228,7 +236,12 @@ def admin_stats(
         "new_users_7d": new_7d,
         "banned_users": banned,
         "maintenance_mode": is_maintenance_mode(),
+        "active_subscriptions": active_subscriptions,
+        "total_tokens": total_tokens,
+        "avg_risks": avg_risks,
+        "conversion_rate": conversion_rate,
     }
+
 
 
 # ════════════════════════════════════════════════════════════════
