@@ -260,6 +260,9 @@ async function handleGoogleRegister() {
     }
 
     if (data.url) {
+      if (data.code_verifier) {
+        localStorage.setItem('google_code_verifier', data.code_verifier);
+      }
       // Redirect to Google OAuth consent screen
       window.location.href = data.url;
     } else {

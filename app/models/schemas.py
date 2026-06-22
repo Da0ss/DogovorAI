@@ -84,6 +84,7 @@ class GoogleAuthURL(BaseModel):
     Schema for Google OAuth redirect URL response
     """
     url: str
+    code_verifier: Optional[str] = None
     message: str = "Redirect to Google for authentication"
 
 

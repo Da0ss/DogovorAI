@@ -346,7 +346,7 @@ class SupabaseAuthService:
             redirect_to: URL to redirect after successful auth
 
         Returns:
-            Dict with 'url' key containing the Google OAuth URL
+            Dict with 'url' key containing the Google OAuth URL and optional 'code_verifier'
 
         Raises:
             Exception: If URL generation fails
@@ -362,18 +362,38 @@ class SupabaseAuthService:
                     }
                 }
             })
+
+            # Extract code verifier from client storage
+            code_verifier = None
+            try:
+                storage_key = f"{self.client.auth._storage_key}-code-verifier"
+                code_verifier = self.client.auth._storage.get_item(storage_key)
+            except Exception as se:
+                logger.warning(f"⚠️ Could not extract code verifier: {se}")
+
             logger.info("✅ Google OAuth URL generated")
-            return response
+
+            url = None
+            if hasattr(response, 'url'):
+                url = response.url
+            elif isinstance(response, dict):
+                url = response.get('url')
+
+            return {
+                "url": url,
+                "code_verifier": code_verifier
+            }
         except Exception as e:
             logger.error(f"❌ Google OAuth URL generation failed: {str(e)}")
             raise
 
-    def exchange_code_for_session(self, code: str) -> Dict[str, Any]:
+    def exchange_code_for_session(self, code: str, code_verifier: Optional[str] = None) -> Dict[str, Any]:
         """
         Exchange authorization code for a Supabase session.
 
         Args:
             code: Authorization code from OAuth callback
+            code_verifier: Optional PKCE code verifier
 
         Returns:
             Dict containing session and user data
@@ -382,9 +402,13 @@ class SupabaseAuthService:
             Exception: If code exchange fails
         """
         try:
-            response = self.client.auth.exchange_code_for_session({
+            params = {
                 "auth_code": code
-            })
+            }
+            if code_verifier:
+                params["code_verifier"] = code_verifier
+
+            response = self.client.auth.exchange_code_for_session(params)
             logger.info("✅ OAuth code exchanged for session")
 
             # Extract user and session data

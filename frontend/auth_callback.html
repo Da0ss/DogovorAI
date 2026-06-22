@@ -88,7 +88,10 @@
         try {
           statusEl.textContent = 'Обмен кода на сессию...';
 
-          const response = await fetch(`${API_CALLBACK}?code=${encodeURIComponent(code)}`);
+          const codeVerifier = localStorage.getItem('google_code_verifier') || '';
+          localStorage.removeItem('google_code_verifier');
+
+          const response = await fetch(`${API_CALLBACK}?code=${encodeURIComponent(code)}&code_verifier=${encodeURIComponent(codeVerifier)}`);
           const data = await response.json();
 
           if (!response.ok) {

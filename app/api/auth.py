@@ -354,10 +354,12 @@ def google_auth_initiate(consent: bool = False):
 
         # Supabase returns an object with url attribute
         oauth_url = None
-        if hasattr(response, 'url'):
+        code_verifier = None
+        if isinstance(response, dict):
+            oauth_url = response.get('url')
+            code_verifier = response.get('code_verifier')
+        elif hasattr(response, 'url'):
             oauth_url = response.url
-        elif isinstance(response, dict) and 'url' in response:
-            oauth_url = response['url']
 
         if not oauth_url:
             raise HTTPException(
@@ -365,7 +367,7 @@ def google_auth_initiate(consent: bool = False):
                 detail="Failed to generate Google OAuth URL"
             )
 
-        return GoogleAuthURL(url=oauth_url)
+        return GoogleAuthURL(url=oauth_url, code_verifier=code_verifier)
 
     except HTTPException:
         raise
@@ -378,7 +380,7 @@ def google_auth_initiate(consent: bool = False):
 
 
 @router.get("/google/callback", response_model=OAuthCallbackResponse)
-def google_auth_callback(code: str = None, error: str = None, db: Session = Depends(get_db)):
+def google_auth_callback(code: str = None, code_verifier: str = None, error: str = None, db: Session = Depends(get_db)):
     """
     Handle Google OAuth callback.
     Exchanges the authorization code for a Supabase session.
@@ -397,7 +399,7 @@ def google_auth_callback(code: str = None, error: str = None, db: Session = Depe
         )
 
     try:
-        result = google_auth_service.exchange_code_for_session(code)
+        result = google_auth_service.exchange_code_for_session(code, code_verifier)
         user_data = result.get("user") or {}
         if user_data.get("email"):
             _user_response_from_profile(db, user_data, provider="supabase", consent_accepted=True)

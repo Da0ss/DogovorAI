@@ -209,6 +209,9 @@ async function handleGoogleLogin() {
     }
 
     if (data.url) {
+      if (data.code_verifier) {
+        localStorage.setItem('google_code_verifier', data.code_verifier);
+      }
       window.location.href = data.url;
     } else {
       showMessage('Ошибка: не получен URL для авторизации.');
