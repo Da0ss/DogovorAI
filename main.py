@@ -26,6 +26,14 @@ from app.api import metrics
 from app.api import history
 from app.api import admin
 from app.api import paypal
+import os
+from posthog import Posthog
+
+# Инициализация PostHog через переменные окружения Antigravity
+posthog = Posthog(
+    os.getenv('POSTHOG_API_KEY'),
+    host=os.getenv('POSTHOG_HOST', 'https://us.posthog.com')
+)
 
 # Настройка логирования
 logging.basicConfig(
