@@ -59,3 +59,7 @@ fix_column_types.sql
 .maintenance_mode
 .vercel
 .env*
+
+# Node modules
+node_modules/
+

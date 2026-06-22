@@ -215,6 +215,11 @@ async function handleVerify(event) {
     setMessage('Аккаунт подтвержден успешно. Перенаправление...', 'success');
     verifyForm.classList.add('hidden');
 
+    // GA4: трекинг регистрации через email
+    if (typeof trackEvent === 'function') {
+      trackEvent('user_registration', { method: 'email' });
+    }
+
     // Redirect to login page after successful verification
     setTimeout(() => {
       window.location.href = '/app/login';
@@ -234,6 +239,11 @@ async function handleGoogleRegister() {
   setMessage('');
 
   if (!requireConsent()) return;
+
+  // GA4: трекинг начала регистрации через Google
+  if (typeof trackEvent === 'function') {
+    trackEvent('user_registration', { method: 'google' });
+  }
 
   googleRegisterBtn.setAttribute('disabled', 'disabled');
   setMessage('Перенаправление на Google...', 'success');

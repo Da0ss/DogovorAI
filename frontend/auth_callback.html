@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-G6SYPHRVJL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-G6SYPHRVJL');
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DogovorAI — Авторизация...</title>
@@ -23,6 +31,7 @@
     </section>
   </main>
 
+  <script src="/static/js/analytics_helper.js"></script>
   <script>
     /**
      * OAuth Callback Handler
@@ -96,6 +105,18 @@
 
           // Save session data
           saveAuthData(data);
+
+          // GA4: идентификация пользователя и трекинг входа/регистрации через Google
+          const userId = data.user && data.user.id ? data.user.id : null;
+          if (userId && typeof identifyUser === 'function') identifyUser(userId);
+          const isNewUser = data.user && data.user.created_at &&
+            (Date.now() - new Date(data.user.created_at).getTime()) < 60000;
+          if (typeof trackEvent === 'function') {
+            if (isNewUser) {
+              trackEvent('user_registration', { method: 'google', user_id: userId || 'unknown' });
+            }
+            trackEvent('login', { method: 'google', user_id: userId || 'unknown' });
+          }
 
           showSuccess('Перенаправление на главную страницу...');
 

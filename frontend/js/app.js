@@ -200,6 +200,11 @@ async function startAnalysis() {
 
     if (!fileToUpload) return;
 
+    // GA4: трекинг начала анализа
+    if (typeof trackEvent === 'function') {
+      trackEvent('feature_usage', { feature_name: 'contract_analysis', input_type: tab });
+    }
+
     analyzeBtn.disabled = true;
     analyzeBtn.classList.add('loading');
     analyzeBtn.setAttribute('data-was-loading', 'true');
@@ -245,6 +250,11 @@ async function startAnalysis() {
         const data = await response.json();
         displayResults(data);
 
+        // GA4: трекинг успешного анализа
+        if (typeof trackEvent === 'function') {
+          trackEvent('feature_usage', { feature_name: 'contract_analysis_success' });
+        }
+
         // Refresh usage bar after successful analysis
         if (typeof loadUsageInfo === 'function') loadUsageInfo();
 
@@ -252,6 +262,11 @@ async function startAnalysis() {
         console.error('Analysis error:', error);
         progressContainer.style.display = 'none';
         uploadCard.style.display = 'block';
+
+        // GA4: трекинг ошибки анализа
+        if (typeof trackError === 'function') {
+          trackError('analysis_failed', error.message, 'index');
+        }
 
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
             showError('Не удалось подключиться к серверу. Убедитесь что сервер запущен.');

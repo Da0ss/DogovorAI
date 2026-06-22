@@ -136,6 +136,8 @@ class FileService:
     def extract_text_from_pdf(file_bytes: bytes) -> tuple[str, int]:
         """
         Извлекает текст из PDF-файла через pypdf.
+        Если извлечённый текст страницы пустой, пробует извлечь встроенные изображения
+        и распознать текст на них через OCR.
 
         Args:
             file_bytes: Байты PDF-файла
@@ -156,8 +158,26 @@ class FileService:
             for page_num in range(page_count):
                 page = doc.pages[page_num]
                 page_text = page.extract_text() or ""
+                
                 if page_text.strip():
                     text_parts.append(f"[Страница {page_num + 1}]\n{page_text}")
+                else:
+                    # Попробуем OCR картинок на этой странице (для отсканированных PDF)
+                    page_images_text = []
+                    for img_idx, img in enumerate(page.images):
+                        try:
+                            img_bytes = img.data
+                            img_text, _ = FileService.extract_text_from_image_ocr(img_bytes)
+                            if img_text.strip():
+                                page_images_text.append(img_text)
+                        except Exception as ocr_err:
+                            logger.warning(
+                                f"⚠️ Ошибка OCR картинки {img_idx} в PDF на стр {page_num + 1}: {ocr_err}"
+                            )
+                    
+                    if page_images_text:
+                        combined_text = "\n".join(page_images_text)
+                        text_parts.append(f"[Страница {page_num + 1} (OCR)]\n{combined_text}")
 
             full_text = "\n\n".join(text_parts)
             logger.info(f"✅ PDF обработан: {page_count} стр., {len(full_text)} символов")

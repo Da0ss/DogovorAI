@@ -158,6 +158,13 @@ async function handleVerifyOtp(event) {
     // Save auth data
     saveAuthData(data);
 
+    // GA4: идентификация пользователя и трекинг входа
+    const userId = data.user && data.user.id ? data.user.id : null;
+    if (userId && typeof identifyUser === 'function') identifyUser(userId);
+    if (typeof trackEvent === 'function') {
+      trackEvent('login', { method: 'email', user_id: userId || 'unknown' });
+    }
+
     showMessage('Вход выполнен успешно! Перенаправление...', 'success');
 
     setTimeout(() => {
@@ -188,6 +195,8 @@ function handleChangeEmail() {
 async function handleGoogleLogin() {
   googleLoginBtn.setAttribute('disabled', 'disabled');
   showMessage('Перенаправление на Google...', 'success');
+  // GA4: трекинг начала входа через Google
+  if (typeof trackEvent === 'function') trackEvent('login', { method: 'google' });
 
   try {
     const response = await fetch(GOOGLE_AUTH_URL);

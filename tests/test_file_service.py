@@ -191,3 +191,23 @@ class TestTextExtraction:
             mock_settings.is_production = True
             with pytest.raises(ValueError, match="GOOGLE_CLOUD_VISION_API_KEY"):
                 FileService.extract_text_from_image_ocr(b"image")
+
+    def test_extract_pdf_scanned_ocr_fallback(self):
+        """If PDF page has no text, it should fallback to page.images OCR."""
+        mock_image = MagicMock()
+        mock_image.data = b"some-fake-image-bytes"
+
+        mock_page = MagicMock()
+        mock_page.extract_text.return_value = ""
+        mock_page.images = [mock_image]
+
+        mock_reader = MagicMock()
+        mock_reader.pages = [mock_page]
+
+        with patch("pypdf.PdfReader", return_value=mock_reader):
+            with patch.object(FileService, "extract_text_from_image_ocr", return_value=("Распознанный текст на картинке", 1)) as mock_ocr:
+                text, pages = FileService.extract_text_from_pdf(b"fake-pdf-content")
+                
+                mock_ocr.assert_called_once_with(b"some-fake-image-bytes")
+                assert "Распознанный текст на картинке" in text
+                assert pages == 1
