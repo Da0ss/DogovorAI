@@ -59,6 +59,18 @@ class TestHealthEndpoints:
         # May return 503 if database not configured
         assert response.status_code in [200, 503]
 
+    def test_analytics_config_endpoint(self):
+        """
+        Test public analytics tracking configuration endpoint
+        """
+        response = client.get("/api/config/analytics")
+        assert response.status_code == 200
+        data = response.json()
+        assert "posthog_api_key" in data
+        assert "posthog_host" in data
+        assert "ga_measurement_id" in data
+        assert "gtm_id" in data
+
 
 class TestAPIDocumentation:
     """API documentation tests"""

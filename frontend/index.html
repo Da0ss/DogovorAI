@@ -2,21 +2,7 @@
 <html class="light" lang="ru">
 
 <head>
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-KSV7XQ6S');</script>
-  <!-- End Google Tag Manager -->
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-G6SYPHRVJL"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-G6SYPHRVJL');
-  </script>
+
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>Dogovor AI — Умный анализ договоров</title>
@@ -158,10 +144,7 @@
 </head>
 
 <body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px] pb-[100px]">
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KSV7XQ6S"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
+
 
   <!-- Nav rendered by nav.js -->
   <div id="nav-root"></div>
@@ -223,61 +206,61 @@
         </div>
 
         <form class="upload-card" id="uploadCard" enctype="multipart/form-data" onsubmit="return false;">
-          <!-- Tabs -->
-          <div class="flex border-b border-outline-variant bg-surface-container-low">
-            <button type="button" class="flex-grow py-4 font-label-md text-label-md text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2" id="tabFile" onclick="switchTab('file')">
+          <!-- Tabs using design-system-ext.css classes -->
+          <div class="smart-input-tabs">
+            <button type="button" class="smart-tab active" id="tabFile" onclick="switchTab('file')">
               <span class="material-symbols-outlined text-[20px]">file_upload</span>
               Файл
             </button>
-            <button type="button" class="flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2" id="tabText" onclick="switchTab('text')">
+            <button type="button" class="smart-tab" id="tabText" onclick="switchTab('text')">
               <span class="material-symbols-outlined text-[20px]">notes</span>
               Текст договора
             </button>
-            <button type="button" class="flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2" id="tabUrl" onclick="switchTab('url')">
+            <button type="button" class="smart-tab" id="tabUrl" onclick="switchTab('url')">
               <span class="material-symbols-outlined text-[20px]">link</span>
-              Ссылка на document
+              Ссылка на документ
             </button>
           </div>
 
-          <!-- Content Area -->
-          <div class="p-lg md:p-xl min-h-[360px] flex flex-col justify-center bg-surface-container-lowest relative">
+          <!-- Content Area (Clean glassmorphic look without white background) -->
+          <div class="min-h-[340px] flex flex-col justify-center relative">
             
             <!-- Panel: File Drag & Drop -->
             <div class="smart-input-panel active" id="panelFile">
-              <div class="w-full flex flex-col items-center justify-center border-2 border-dashed border-outline-variant rounded-xl p-lg hover:border-primary hover:bg-primary-fixed/30 transition-all cursor-pointer group" id="dropZone">
-                <div class="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center text-primary mb-md group-hover:scale-110 transition-transform">
-                  <span class="material-symbols-outlined text-[36px]">document_scanner</span>
+              <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-icon">
+                  <span class="material-symbols-outlined text-[48px]">document_scanner</span>
                 </div>
-                <h3 class="font-title-md text-title-md text-on-surface mb-2">Перетащите договор сюда</h3>
-                <p class="font-body-sm text-body-sm text-on-surface-variant mb-lg text-center max-w-sm">Поддерживаются форматы PDF, DOCX, JPG, PNG до 20 МБ. Текст будет автоматически распознан AI.</p>
-                <button type="button" class="bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg hover:bg-primary/95 transition-colors shadow-sm">
+                <h3 class="drop-zone-title">Перетащите договор сюда</h3>
+                <p class="drop-zone-subtitle">Поддерживаются форматы PDF, DOCX, JPG, PNG до 20 МБ. Текст будет автоматически распознан AI.</p>
+                <button type="button" class="px-6 py-2.5 rounded-lg font-semibold bg-white/10 hover:bg-white/20 text-white transition-all border border-white/10 shadow-sm">
                   Выбрать файл
                 </button>
               </div>
               <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" style="display:none">
 
               <!-- File Preview (hidden by default) -->
-              <div class="w-full flex items-center gap-4 p-4 border border-outline-variant rounded-xl bg-surface-container-low" id="filePreview" style="display:none">
-                <div class="w-10 h-10 rounded bg-primary-container text-on-primary-container flex items-center justify-center text-lg font-bold" id="filePreviewIcon">📄</div>
-                <div class="flex-grow">
-                  <h4 class="font-title-md text-sm text-on-surface truncate max-w-md" id="fileName">document.pdf</h4>
-                  <p class="font-body-sm text-xs text-on-surface-variant" id="fileSize">2.3 MB</p>
+              <div class="file-preview" id="filePreview" style="display:none">
+                <div class="file-preview-icon" id="filePreviewIcon">📄</div>
+                <div class="file-preview-info">
+                  <h4 class="file-preview-name" id="fileName">document.pdf</h4>
+                  <p class="file-preview-size" id="fileSize">2.3 MB</p>
                 </div>
-                <button type="button" class="text-outline-variant hover:text-error text-2xl font-bold p-2 transition-colors" id="removeFile" title="Удалить файл">×</button>
+                <button type="button" class="file-remove-btn" id="removeFile" title="Удалить файл">×</button>
               </div>
             </div>
 
             <!-- Panel: Text Paste -->
             <div class="smart-input-panel" id="panelText">
-              <textarea class="w-full bg-white border-2 border-outline-variant/60 rounded-xl px-5 py-4 font-body-md text-body-md text-on-surface shadow-sm hover:border-primary/50 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-outline/70" id="textInput" placeholder="Вставьте текст договора сюда... Минимум 100 символов для AI-анализа." style="min-height: 300px; resize: vertical;"></textarea>
-              <div id="textInputInfo" class="font-label-md text-xs text-right mt-2 text-outline">0 / мин. 100 символов</div>
+              <textarea class="smart-text-input" id="textInput" placeholder="Вставьте текст договора сюда... Минимум 100 символов для AI-анализа." style="min-height: 250px;"></textarea>
+              <div id="textInputInfo" class="font-label-md text-xs text-right mt-2 text-outline-variant/60">0 / мин. 100 символов</div>
             </div>
 
             <!-- Panel: Cloud Link -->
             <div class="smart-input-panel" id="panelUrl">
               <div class="relative w-full">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-[24px]">link</span>
-                <input class="w-full bg-white border-2 border-outline-variant/60 rounded-xl pl-12 pr-5 py-4 font-body-md text-body-md text-on-surface shadow-sm hover:border-primary/50 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-outline/70" id="urlInput" placeholder="Вставьте ссылку на файл (https://...)" type="url" />
+                <input class="smart-url-input pl-12" id="urlInput" placeholder="Вставьте ссылку на файл (https://...)" type="url" />
               </div>
               <p class="font-body-sm text-xs text-on-surface-variant mt-3 ml-1 flex items-center gap-1">
                 <span class="material-symbols-outlined text-[14px]">info</span>
@@ -286,12 +269,10 @@
             </div>
 
             <!-- Analyze Action Button -->
-            <div class="mt-8 flex justify-center">
-              <button type="submit" class="bg-primary text-on-primary font-label-md text-label-md px-12 py-3 rounded-lg hover:bg-primary/95 disabled:bg-outline-variant disabled:text-outline disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2" id="analyzeBtn" disabled>
-                <span class="material-symbols-outlined">bolt</span>
-                Анализировать договор
-              </button>
-            </div>
+            <button type="submit" class="analyze-btn" id="analyzeBtn" disabled>
+              <span class="material-symbols-outlined">bolt</span>
+              Анализировать договор
+            </button>
 
           </div>
         </form>
@@ -591,13 +572,13 @@
       
       [btnFile, btnText, btnUrl].forEach(btn => {
         if (btn) {
-          btn.className = "flex-grow py-4 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors flex items-center justify-center gap-2";
+          btn.classList.remove('active');
         }
       });
       
       const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
       if (activeBtn) {
-        activeBtn.className = "flex-grow py-4 font-label-md text-label-md text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2";
+        activeBtn.classList.add('active');
       }
 
       // Show/hide panels using 'active' class (matches design-system-ext.css)

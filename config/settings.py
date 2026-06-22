@@ -82,6 +82,12 @@ class Settings(BaseSettings):
     # Admin access (comma-separated emails)
     admin_emails: str = ""
 
+    # Analytics / Telemetry
+    posthog_api_key: Optional[str] = "phc_nJvUqL8Gbc2WdsY5rfX5w8xuok5uVgMJc68zKLKN4nmk"
+    posthog_host: str = "https://us.i.posthog.com"
+    ga_measurement_id: Optional[str] = "G-G6SYPHRVJL"
+    gtm_id: Optional[str] = "GTM-KSV7XQ6S"
+
     @property
     def email_configured(self) -> bool:
         return bool(

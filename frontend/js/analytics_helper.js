@@ -15,52 +15,126 @@
 (function () {
   'use strict';
 
-  const GA_MEASUREMENT_ID = 'G-G6SYPHRVJL';
+  // Состояние инициализации
+  var _isInitialized = false;
+  var _config = null;
+  var _queue = [];
+  var _debugMode = false;
 
-  // ── Инициализация PostHog ──────────────────────────────────────────────────
-  (function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}var c=e;for(void 0!==a?c=e[a]=[]:a="posthog",c.people=c.people||[],c.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},c.people.toString=function(){return c.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures onSessionId".split(" "),n=0;n<o.length;n++)g(c,o[n]);e._i.push([i,s,a])},e.__SV=1.6,o=t.createElement("script"),o.type="text/javascript",o.async=!0,o.src="https://us.posthog.com/static/array.js",n=t.getElementsByTagName("script")[0],n.parentNode.insertBefore(o,n))}(document,window.posthog||[]);
+  // Определение режима отладки (?ga_debug в URL)
+  try {
+    _debugMode = new URLSearchParams(window.location.search).has('ga_debug');
+  } catch (e) {
+    // ignore
+  }
 
-  posthog.init('phc_nJvUqL8Gbc2WdsY5rfX5w8xuok5uVgMJc68zKLKN4nmk', {
-    api_host: 'https://us.i.posthog.com',
-    person_profiles: 'identified_only'
-  });
-
-  // ── Безопасная обёртка над gtag ────────────────────────────────────────────
+  // Безопасная обёртка для работы с dataLayer
   function _gtag() {
-    if (typeof gtag === 'function') {
-      gtag.apply(null, arguments);
-    } else {
-      // gtag ещё не загрузился — ставим в очередь dataLayer
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push(arguments);
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(arguments);
+  }
+
+  // Запуск загрузки настроек
+  fetch('/api/config/analytics')
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('HTTP error ' + response.status);
+      }
+      return response.json();
+    })
+    .then(function (configData) {
+      initAnalytics(configData);
+    })
+    .catch(function (error) {
+      console.warn('[Analytics] Failed to fetch config, falling back to default keys:', error);
+      // Дефолтные значения для обратной совместимости
+      initAnalytics({
+        posthog_api_key: 'phc_nJvUqL8Gbc2WdsY5rfX5w8xuok5uVgMJc68zKLKN4nmk',
+        posthog_host: 'https://us.i.posthog.com',
+        ga_measurement_id: 'G-G6SYPHRVJL',
+        gtm_id: 'GTM-KSV7XQ6S'
+      });
+    });
+
+  // Функция инициализации трекеров
+  function initAnalytics(configData) {
+    _config = configData;
+
+    if (_debugMode) {
+      console.info('[Analytics] Инициализация аналитики с конфигом:', _config);
+    }
+
+    // 1. Инициализация PostHog
+    if (_config.posthog_api_key) {
+      (function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}var c=e;for(void 0!==a?c=e[a]=[]:a="posthog",c.people=c.people||[],c.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},c.people.toString=function(){return c.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures onSessionId".split(" "),n=0;n<o.length;n++)g(c,o[n]);e._i.push([i,s,a])},e.__SV=1.6,o=t.createElement("script"),o.type="text/javascript",o.async=!0,o.src=_config.posthog_host + "/static/array.js",n=t.getElementsByTagName("script")[0],n.parentNode.insertBefore(o,n))}(document,window.posthog||[]);
+
+      window.posthog.init(_config.posthog_api_key, {
+        api_host: _config.posthog_host,
+        person_profiles: 'identified_only'
+      });
+    }
+
+    // 2. Инициализация Google Analytics 4 (gtag.js)
+    if (_config.ga_measurement_id) {
+      // Динамическая вставка скрипта
+      var gaScript = document.createElement('script');
+      gaScript.async = true;
+      gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=' + _config.ga_measurement_id;
+      document.head.appendChild(gaScript);
+
+      _gtag('js', new Date());
+      var gaParams = {};
+      if (_debugMode) {
+        gaParams.debug_mode = true;
+      }
+      _gtag('config', _config.ga_measurement_id, gaParams);
+    }
+
+    // 3. Инициализация Google Tag Manager (GTM)
+    if (_config.gtm_id) {
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer',_config.gtm_id);
+    }
+
+    // Восстановление user_id из localStorage
+    _restoreUser();
+
+    // Пометка об успешной инициализации
+    _isInitialized = true;
+
+    // Выполнение накопившихся в очереди событий
+    if (_debugMode && _queue.length > 0) {
+      console.info('[Analytics] Выполнение событий из очереди:', _queue.length);
+    }
+    while (_queue.length > 0) {
+      var task = _queue.shift();
+      try {
+        task();
+      } catch (err) {
+        console.error('[Analytics] Ошибка выполнения отложенного события:', err);
+      }
+    }
+
+    if (_debugMode) {
+      console.info('[Analytics] Инициализация завершена успешно.');
     }
   }
 
-  // ── Определяем режим отладки (DebugView) ───────────────────────────────────
-  // Активируется при наличии ?ga_debug в URL.
-  var _debugMode = (function () {
-    try {
-      return new URLSearchParams(window.location.search).has('ga_debug');
-    } catch (e) {
-      return false;
-    }
-  })();
-
-  if (_debugMode) {
-    console.info('[Analytics] DebugView mode ON — события видны в GA4 & PostHog');
-    _gtag('config', GA_MEASUREMENT_ID, { debug_mode: true });
-  }
-
-  // ── Восстановление user_id из localStorage при загрузке страницы ───────────
-  (function _restoreUser() {
+  // Внутренняя функция авторизации/восстановления пользователя
+  function _restoreUser() {
     try {
       var raw = localStorage.getItem('user');
       if (!raw) return;
       var user = JSON.parse(raw);
       if (user && user.id) {
         var uid = String(user.id);
-        _gtag('config', GA_MEASUREMENT_ID, { user_id: uid });
-        _gtag('set', 'user_properties', { user_id: uid });
+        if (_config && _config.ga_measurement_id) {
+          _gtag('config', _config.ga_measurement_id, { user_id: uid });
+          _gtag('set', 'user_properties', { user_id: uid });
+        }
         if (window.posthog) {
           window.posthog.identify(uid);
         }
@@ -69,9 +143,9 @@
         }
       }
     } catch (e) {
-      // ignore parse errors
+      // ignore
     }
-  })();
+  }
 
   // ── PUBLIC API ─────────────────────────────────────────────────────────────
 
@@ -81,18 +155,28 @@
    * @param {Object} [params]   — параметры события
    */
   window.trackEvent = function (eventName, params) {
-    try {
-      var payload = Object.assign({}, params || {});
-      if (_debugMode) {
-        payload.debug_mode = true;
-        console.info('[Analytics] trackEvent:', eventName, payload);
+    var runTrack = function () {
+      try {
+        var payload = Object.assign({}, params || {});
+        if (_debugMode) {
+          payload.debug_mode = true;
+          console.info('[Analytics] trackEvent:', eventName, payload);
+        }
+        if (_config && _config.ga_measurement_id) {
+          _gtag('event', eventName, payload);
+        }
+        if (window.posthog) {
+          window.posthog.capture(eventName, payload);
+        }
+      } catch (e) {
+        console.warn('[Analytics] trackEvent failed:', e);
       }
-      _gtag('event', eventName, payload);
-      if (window.posthog) {
-        window.posthog.capture(eventName, payload);
-      }
-    } catch (e) {
-      console.warn('[Analytics] trackEvent failed:', e);
+    };
+
+    if (!_isInitialized) {
+      _queue.push(runTrack);
+    } else {
+      runTrack();
     }
   };
 
@@ -103,18 +187,29 @@
    */
   window.identifyUser = function (userId) {
     if (!userId) return;
-    try {
-      var uid = String(userId);
-      _gtag('config', GA_MEASUREMENT_ID, { user_id: uid });
-      _gtag('set', 'user_properties', { user_id: uid });
-      if (window.posthog) {
-        window.posthog.identify(uid);
+    
+    var runIdentify = function () {
+      try {
+        var uid = String(userId);
+        if (_config && _config.ga_measurement_id) {
+          _gtag('config', _config.ga_measurement_id, { user_id: uid });
+          _gtag('set', 'user_properties', { user_id: uid });
+        }
+        if (window.posthog) {
+          window.posthog.identify(uid);
+        }
+        if (_debugMode) {
+          console.info('[Analytics] identifyUser:', uid);
+        }
+      } catch (e) {
+        console.warn('[Analytics] identifyUser failed:', e);
       }
-      if (_debugMode) {
-        console.info('[Analytics] identifyUser:', uid);
-      }
-    } catch (e) {
-      console.warn('[Analytics] identifyUser failed:', e);
+    };
+
+    if (!_isInitialized) {
+      _queue.push(runIdentify);
+    } else {
+      runIdentify();
     }
   };
 
@@ -147,7 +242,6 @@
   });
 
   if (_debugMode) {
-    console.info('[Analytics] analytics_helper.js loaded with GA4 & PostHog.');
+    console.info('[Analytics] analytics_helper.js loaded.');
   }
 })();
-

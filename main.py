@@ -180,11 +180,11 @@ async def security_headers_middleware(request: Request, call_next):
     # 7. Content-Security-Policy (CSP): Restrict script, stylesheet, and API request sources
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://us.posthog.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://*.posthog.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://fonts.cdnfonts.com; "
         "font-src 'self' data: https://fonts.gstatic.com https://fonts.cdnfonts.com; "
         "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.google-analytics.com https://*.googletagmanager.com; "
-        "connect-src 'self' https://*.supabase.co https://www.google.com https://*.supabase.net https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://us.i.posthog.com https://us.posthog.com; "
+        "connect-src 'self' https://*.supabase.co https://www.google.com https://*.supabase.net https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://*.posthog.com https://*.i.posthog.com; "
         "frame-src 'self' https://www.google.com https://www.googletagmanager.com;"
     )
     response.headers["Content-Security-Policy"] = csp_policy
@@ -313,8 +313,22 @@ async def health_check() -> dict:
         dict: Health status
     """
     return {
-        "status": "\U0001F7E2 OK",
+        "status": "🟢 OK",
         "service": settings.app_name
+    }
+
+
+# Analytics Configuration endpoint
+@app.get("/api/config/analytics", tags=["Config"])
+async def get_analytics_config() -> dict:
+    """
+    Get public analytics tracking IDs and configurations.
+    """
+    return {
+        "posthog_api_key": settings.posthog_api_key,
+        "posthog_host": settings.posthog_host,
+        "ga_measurement_id": settings.ga_measurement_id,
+        "gtm_id": settings.gtm_id
     }
 
 
