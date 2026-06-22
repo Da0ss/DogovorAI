@@ -180,12 +180,12 @@ async def security_headers_middleware(request: Request, call_next):
     # 7. Content-Security-Policy (CSP): Restrict script, stylesheet, and API request sources
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://us.posthog.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://fonts.cdnfonts.com; "
         "font-src 'self' data: https://fonts.gstatic.com https://fonts.cdnfonts.com; "
-        "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com; "
-        "connect-src 'self' https://*.supabase.co https://www.google.com https://*.supabase.net; "
-        "frame-src 'self' https://www.google.com;"
+        "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.google-analytics.com https://*.googletagmanager.com; "
+        "connect-src 'self' https://*.supabase.co https://www.google.com https://*.supabase.net https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://us.i.posthog.com https://us.posthog.com; "
+        "frame-src 'self' https://www.google.com https://www.googletagmanager.com;"
     )
     response.headers["Content-Security-Policy"] = csp_policy
     
