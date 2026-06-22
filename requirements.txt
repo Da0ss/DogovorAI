@@ -41,3 +41,4 @@ Pillow>=11.0.0,<12.0.0
 # AI / Payments
 openai>=1.50.0
 stripe>=15.0.0
+posthog>=3.5.0
