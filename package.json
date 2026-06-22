@@ -1,7 +1,16 @@
 {
+  "scripts": {
+    "build:css": "tailwindcss -i ./frontend/css/tailwind-input.css -o ./frontend/css/tailwind-built.css --minify"
+  },
   "dependencies": {
     "@opentelemetry/exporter-logs-otlp-http": "^0.219.0",
     "@opentelemetry/resources": "^2.8.0",
     "@opentelemetry/sdk-logs": "^0.219.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.1",
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "tailwindcss": "^4.3.1"
   }
 }
