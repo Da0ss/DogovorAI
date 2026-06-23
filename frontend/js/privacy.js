@@ -14,6 +14,9 @@
     const path = window.location.pathname;
     if (path === '/app/login' || path === '/app/register') return;
 
+    // Если пользователь авторизован — не показываем подтверждение
+    if (localStorage.getItem('access_token')) return;
+
     // Если уже принято — ничего не делаем
     if (localStorage.getItem(STORAGE_KEY) === POLICY_VERSION) return;
 

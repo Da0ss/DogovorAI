@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="ru">
+<html class="dark" lang="ru">
 
 <head>
 
@@ -21,6 +21,7 @@
   <!-- Stylesheets -->
   <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="/static/css/design-system-ext.css">
+  <link rel="stylesheet" href="/static/css/profile.css">
   <link rel="stylesheet" href="/static/css/privacy.css">
 
   <style>
@@ -41,73 +42,73 @@
   <div id="nav-root"></div>
 
   <!-- Main Content Canvas -->
-  <main class="flex-grow w-full max-w-container-max mx-auto px-gutter py-xl">
+  <main class="profile-page container">
     
     <!-- Header -->
-    <div class="mb-lg">
+    <div style="margin-bottom: 24px;">
       <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Личный кабинет</h2>
       <p class="font-body-md text-body-md text-on-surface-variant mt-1">Управляйте своим профилем, отслеживайте лимиты использования и выбирайте тарифные планы.</p>
     </div>
 
     <!-- Profile Page Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start mt-8">
+    <div class="profile-grid">
       
       <!-- LEFT COLUMN: Profile Sidebar -->
-      <aside class="lg:col-span-4 bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-luminous flex flex-col items-center text-center gap-6">
+      <aside class="profile-card">
         
         <!-- Avatar Wrapper -->
-        <div class="relative group cursor-pointer">
-          <img class="w-24 h-24 rounded-full object-cover border-4 border-primary/20 shadow-sm" id="profileAvatar" src="" alt="Avatar" style="display:none">
-          <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-primary to-purple-600 flex items-center justify-center text-white text-3xl font-extrabold shadow-sm border-4 border-primary/20" id="profileAvatarPlaceholder">
+        <div class="profile-avatar-wrapper">
+          <img class="profile-avatar" id="profileAvatar" src="" alt="Avatar" style="display:none">
+          <div class="profile-avatar-placeholder" id="profileAvatarPlaceholder">
             <span id="profileInitial">?</span>
           </div>
-          <span class="absolute bottom-0 right-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white bg-primary shadow" id="profilePlanBadge">Basic</span>
+          <span class="profile-plan-badge badge-basic" id="profilePlanBadge">Basic</span>
         </div>
 
         <!-- User details -->
-        <div class="w-full">
-          <h3 class="font-title-md text-lg font-bold text-on-surface truncate" id="profileName">Загрузка...</h3>
-          <p class="font-body-sm text-xs text-on-surface-variant mt-1 truncate" id="profileEmail"></p>
+        <div style="width: 100%;">
+          <h3 class="profile-name" id="profileName">Загрузка...</h3>
+          <p class="profile-email" id="profileEmail"></p>
         </div>
 
         <!-- Quick Stats Grid -->
-        <div class="grid grid-cols-3 gap-2 w-full">
-          <div class="bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-center">
-            <span class="block text-lg font-extrabold text-primary" id="statAnalyses">0</span>
-            <span class="block text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">Сделано</span>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <span class="profile-stat-value" id="statAnalyses">0</span>
+            <span class="profile-stat-label">Сделано</span>
           </div>
-          <div class="bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-center">
-            <span class="block text-lg font-extrabold text-on-surface" id="statRemaining">0</span>
-            <span class="block text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5">Осталось</span>
+          <div class="profile-stat">
+            <span class="profile-stat-value" id="statRemaining">0</span>
+            <span class="profile-stat-label">Осталось</span>
           </div>
-          <div class="bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/30 text-center">
-            <span class="block text-lg font-extrabold text-on-surface" id="statLimit">0</span>
-            <span class="block text-[9px] text-on-surface-variant font-bold uppercase tracking-wider mt-0.5 font-semibold">Лимит/мес</span>
+          <div class="profile-stat">
+            <span class="profile-stat-value" id="statLimit">0</span>
+            <span class="profile-stat-label">Лимит/мес</span>
           </div>
         </div>
 
-        <div class="w-full h-px bg-outline-variant/50"></div>
+        <div class="profile-divider"></div>
 
         <!-- Meta list details -->
-        <div class="w-full flex flex-col gap-3 font-body-sm text-xs text-left">
-          <div class="flex justify-between items-center">
-            <span class="text-on-surface-variant">Текущий тариф</span>
-            <span class="font-bold text-on-surface" id="metaPlan">Basic</span>
+        <div class="profile-meta">
+          <div class="profile-meta-row">
+            <span class="profile-meta-label">Текущий тариф</span>
+            <span class="profile-meta-value" id="metaPlan">Basic</span>
           </div>
-          <div class="flex justify-between items-center">
-            <span class="text-on-surface-variant">Email подтвержден</span>
-            <span class="font-bold text-on-surface" id="metaVerified">—</span>
+          <div class="profile-meta-row">
+            <span class="profile-meta-label">Email подтвержден</span>
+            <span class="profile-meta-value" id="metaVerified">—</span>
           </div>
-          <div class="flex justify-between items-center">
-            <span class="text-on-surface-variant">В системе с</span>
-            <span class="font-bold text-on-surface" id="metaJoined">—</span>
+          <div class="profile-meta-row">
+            <span class="profile-meta-label">В системе с</span>
+            <span class="profile-meta-value" id="metaJoined">—</span>
           </div>
         </div>
 
-        <div class="w-full h-px bg-outline-variant/50"></div>
+        <div class="profile-divider"></div>
 
         <!-- Logout Button -->
-        <button class="w-full py-2.5 border border-error/30 hover:border-error bg-error-container/10 hover:bg-error-container/20 text-error rounded-xl font-label-md text-sm transition-colors flex items-center justify-center gap-2" id="logoutBtn">
+        <button class="profile-logout-btn" id="logoutBtn">
           <span class="material-symbols-outlined text-sm">logout</span>
           Выйти из аккаунта
         </button>
@@ -115,128 +116,126 @@
       </aside>
 
       <!-- RIGHT COLUMN: Quota / Subscriptions -->
-      <section class="lg:col-span-8 flex flex-col gap-6">
+      <section class="profile-right">
         
         <!-- Usage Quota Card -->
-        <div class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant shadow-luminous">
-          <h3 class="font-title-md text-base font-bold text-on-surface mb-4">Использование лимитов в этом месяце</h3>
+        <div class="usage-card">
+          <h3 class="profile-section-title" style="margin-bottom: 16px;">Использование лимитов в этом месяце</h3>
           
-          <div class="flex justify-between items-center mb-2 font-body-sm text-sm">
-            <span class="text-on-surface-variant">Проверено документов:</span>
-            <span class="font-bold text-on-surface"><span id="usageUsed">0</span> / <span id="usageTotal">3</span></span>
+          <div class="usage-row">
+            <span class="usage-label">Проверено документов:</span>
+            <span class="usage-count"><span id="usageUsed">0</span> / <span id="usageTotal">3</span></span>
           </div>
           
           <!-- Progress Bar -->
-          <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden mb-3">
-            <div class="h-full bg-gradient-to-r from-primary to-purple-600 rounded-full transition-all duration-700" id="usageFill" style="width: 0%"></div>
+          <div class="usage-bar">
+            <div class="usage-fill" id="usageFill" style="width: 0%"></div>
           </div>
 
-          <div class="flex justify-between items-center mt-4">
-            <p class="font-body-sm text-xs text-on-surface-variant" id="usageResetText">Обновляется 1-го числа каждого месяца.</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+            <p id="usageResetText" style="font-size: 12px; color: var(--text-muted); margin: 0;">Обновляется 1-го числа каждого месяца.</p>
             <span class="font-label-md text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20" id="usageRemainingBadge">Осталось: 3</span>
           </div>
         </div>
 
         <!-- Subscriptions Plan Area -->
         <div>
-          <h3 class="font-title-md text-base font-bold text-on-surface mb-6">Доступные тарифные планы</h3>
+          <h3 class="profile-section-title">Доступные тарифные планы</h3>
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="plans-grid">
             
             <!-- Basic Card -->
-            <div class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col h-full hover:shadow transition-shadow" id="planBasicCard">
-              <div class="mb-4">
-                <h4 class="font-title-md text-base font-bold text-on-surface mb-1">Basic</h4>
-                <p class="font-body-sm text-xs text-on-surface-variant mb-3">Для ознакомления и нечастого личного использования.</p>
-                <div class="flex items-baseline gap-1">
-                  <span class="font-headline-lg text-2xl font-bold text-on-surface">$0</span>
-                  <span class="font-body-sm text-xs text-on-surface-variant">/месяц</span>
+            <div class="plan-card plan-basic" id="planBasicCard">
+              <div>
+                <h4 class="plan-name">Basic</h4>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">Для ознакомления и нечастого личного использования.</p>
+                <div class="plan-price">
+                  <span class="plan-price-amount">$0</span>
+                  <span class="plan-price-period">/месяц</span>
                 </div>
               </div>
-              <ul class="flex-grow space-y-2 mb-6 font-body-sm text-xs text-on-surface-variant">
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-secondary text-sm">check_circle</span>
+              <ul class="plan-features">
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>3 анализа в месяц</span>
                 </li>
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-secondary text-sm">check_circle</span>
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>Анализ юридических рисков</span>
                 </li>
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-secondary text-sm">check_circle</span>
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>Ссылки на законы РК</span>
                 </li>
               </ul>
-              <button class="w-full py-2.5 rounded-lg font-label-md text-xs border border-outline-variant text-on-surface hover:bg-surface-container-low transition-all text-center" id="btnBasic" onclick="selectPlan('basic')">
+              <button class="plan-btn plan-btn-basic" id="btnBasic" onclick="selectPlan('basic')">
                 Выбрать Basic
               </button>
             </div>
 
             <!-- Pro Card (Most Popular Highlighted) -->
-            <div class="bg-surface-container-lowest rounded-xl p-5 border-2 border-primary shadow-luminous flex flex-col h-full relative transform md:-translate-y-2 hover:shadow-md transition-shadow" id="planProCard">
-              <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-on-primary font-label-md text-[10px] uppercase tracking-wider px-3.5 py-0.5 rounded-full font-bold">
-                Популярный
-              </div>
-              <div class="mb-4">
-                <h4 class="font-title-md text-base font-bold text-primary mb-1">Pro</h4>
-                <p class="font-body-sm text-xs text-on-surface-variant mb-3">Оптимально для юристов, фрилансеров и малого бизнеса.</p>
-                <div class="flex items-baseline gap-1">
-                  <span class="font-headline-lg text-2xl font-bold text-on-surface">$9</span>
-                  <span class="font-body-sm text-xs text-on-surface-variant">/месяц</span>
+            <div class="plan-card plan-pro" id="planProCard">
+              <div class="plan-popular-badge">Популярный</div>
+              <div>
+                <h4 class="plan-name">Pro</h4>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">Оптимально для юристов, фрилансеров и малого бизнеса.</p>
+                <div class="plan-price">
+                  <span class="plan-price-amount">$9</span>
+                  <span class="plan-price-period">/месяц</span>
                 </div>
               </div>
-              <ul class="flex-grow space-y-2 mb-6 font-body-sm text-xs text-on-surface">
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+              <ul class="plan-features">
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>30 анализов в месяц</span>
                 </li>
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>Глубокий анализ рисков</span>
                 </li>
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>Приоритетная AI поддержка</span>
                 </li>
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>Сохранение всей истории</span>
                 </li>
               </ul>
-              <button class="w-full py-2.5 rounded-lg font-label-md text-xs bg-primary text-on-primary hover:bg-primary/95 transition-all text-center font-bold shadow-sm" id="btnPro" onclick="selectPlan('pro')">
+              <button class="plan-btn plan-btn-pro" id="btnPro" onclick="selectPlan('pro')">
                 Выбрать Pro
               </button>
             </div>
 
             <!-- Max Card -->
-            <div class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col h-full hover:shadow transition-shadow" id="planMaxCard">
-              <div class="mb-4">
-                <h4 class="font-title-md text-base font-bold text-on-surface mb-1">Max</h4>
-                <p class="font-body-sm text-xs text-on-surface-variant mb-3">Для крупных команд и неограниченной работы с договорами.</p>
-                <div class="flex items-baseline gap-1">
-                  <span class="font-headline-lg text-2xl font-bold text-on-surface">$19</span>
-                  <span class="font-body-sm text-xs text-on-surface-variant">/месяц</span>
+            <div class="plan-card plan-max" id="planMaxCard">
+              <div>
+                <h4 class="plan-name">Max</h4>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">Для крупных команд и неограниченной работы с договорами.</p>
+                <div class="plan-price">
+                  <span class="plan-price-amount">$19</span>
+                  <span class="plan-price-period">/месяц</span>
                 </div>
               </div>
-              <ul class="flex-grow space-y-2 mb-6 font-body-sm text-xs text-on-surface-variant">
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                  <span class="text-on-surface font-semibold">Абсолютный безлимит ∞</span>
+              <ul class="plan-features">
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
+                  <span style="font-weight: 600; color: var(--text-primary);">Абсолютный безлимит ∞</span>
                 </li>
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>Мгновенный анализ AI</span>
                 </li>
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>Доступ ко всем новым фичам</span>
                 </li>
-                <li class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+                <li class="plan-feature">
+                  <span class="plan-feature-icon feature-check">✓</span>
                   <span>Выделенный API доступ</span>
                 </li>
               </ul>
-              <button class="w-full py-2.5 rounded-lg font-label-md text-xs bg-surface-container-highest text-on-surface hover:bg-surface-variant transition-all text-center" id="btnMax" onclick="selectPlan('max')">
+              <button class="plan-btn plan-btn-max" id="btnMax" onclick="selectPlan('max')">
                 Выбрать Max
               </button>
             </div>
@@ -251,56 +250,56 @@
   </main>
 
   <!-- Modal Window (overlay) for Payment Method Selection -->
-  <div id="paymentModal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300" role="dialog" aria-modal="true">
-    <div class="relative bg-surface-container-lowest border border-outline-variant/30 rounded-xl max-w-md w-full flex flex-col shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="paymentModalCard">
+  <div id="paymentModal" class="payment-modal-overlay" role="dialog" aria-modal="true">
+    <div class="payment-modal-card" id="paymentModalCard">
       
       <!-- Modal Header -->
-      <div class="flex justify-between items-center px-md py-sm border-b border-outline-variant/20 bg-surface-container-low">
-        <div class="flex items-center gap-sm">
+      <div class="payment-modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
           <span class="material-symbols-outlined text-primary text-2xl">payments</span>
-          <h2 class="font-title-md text-title-md text-on-surface font-bold">Способ оплаты</h2>
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Способ оплаты</h2>
         </div>
-        <button type="button" id="closePaymentModalBtn" class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 p-2 rounded-full transition-colors flex items-center justify-center outline-none">
+        <button type="button" id="closePaymentModalBtn" class="payment-modal-close-btn">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
       </div>
 
       <!-- Modal Body -->
-      <div class="px-md py-md space-y-4">
-        <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">
-          Пожалуйста, выберите удобный для вас способ оплаты для активации тарифа <span id="selectedPlanName" class="font-bold text-primary uppercase"></span>:
+      <div class="payment-modal-body">
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+          Пожалуйста, выберите удобный для вас способ оплаты для активации тарифа <span id="selectedPlanName" style="font-weight: 700; color: var(--accent-indigo, #4f46e5); text-transform: uppercase;"></span>:
         </p>
         
-        <div class="space-y-3">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
           <!-- Stripe Option -->
-          <button type="button" id="payWithStripeBtn" class="w-full flex items-center justify-between p-4 rounded-xl border border-outline-variant hover:border-primary hover:bg-primary/5 transition-all text-left group">
-            <div class="flex items-center gap-3">
+          <button type="button" id="payWithStripeBtn" class="payment-option-btn">
+            <div style="display: flex; align-items: center; gap: 12px;">
               <span class="material-symbols-outlined text-primary text-2xl">credit_card</span>
               <div>
-                <div class="font-semibold text-on-surface group-hover:text-primary transition-colors">Банковская карта (Stripe)</div>
-                <div class="text-xs text-on-surface-variant">Visa, Mastercard, Google Pay</div>
+                <div class="payment-option-title">Банковская карта (Stripe)</div>
+                <div class="payment-option-subtitle">Visa, Mastercard, Google Pay</div>
               </div>
             </div>
-            <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+            <span class="material-symbols-outlined text-outline" style="color: var(--text-muted);">chevron_right</span>
           </button>
           
           <!-- PayPal Option -->
-          <button type="button" id="payWithPaypalBtn" class="w-full flex items-center justify-between p-4 rounded-xl border border-outline-variant hover:border-primary hover:bg-primary/5 transition-all text-left group">
-            <div class="flex items-center gap-3">
+          <button type="button" id="payWithPaypalBtn" class="payment-option-btn">
+            <div style="display: flex; align-items: center; gap: 12px;">
               <span class="material-symbols-outlined text-primary text-2xl">account_balance_wallet</span>
               <div>
-                <div class="font-semibold text-on-surface group-hover:text-primary transition-colors">PayPal</div>
-                <div class="text-xs text-on-surface-variant">Баланс PayPal, банковские счета</div>
+                <div class="payment-option-title">PayPal</div>
+                <div class="payment-option-subtitle">Баланс PayPal, банковские счета</div>
               </div>
             </div>
-            <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+            <span class="material-symbols-outlined text-outline" style="color: var(--text-muted);">chevron_right</span>
           </button>
         </div>
       </div>
 
       <!-- Modal Footer -->
-      <div class="px-md py-sm border-t border-outline-variant/20 bg-surface-container-low flex justify-end">
-        <button type="button" id="cancelPaymentModalBtn" class="font-label-md text-sm border border-outline-variant text-on-surface hover:bg-surface-container-low px-lg py-2 rounded-lg transition-all">
+      <div class="payment-modal-footer">
+        <button type="button" id="cancelPaymentModalBtn" style="padding: 10px 18px; border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.04); color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 500; font-family: var(--font);">
           Отмена
         </button>
       </div>
@@ -308,11 +307,11 @@
   </div>
 
   <!-- Verification Overlay Loader -->
-  <div id="verifyOverlay" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-    <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-8 max-w-sm w-full flex flex-col items-center text-center gap-4 shadow-2xl">
-      <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-      <h3 class="font-title-md text-lg font-bold text-on-surface">Подтверждение оплаты</h3>
-      <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">
+  <div id="verifyOverlay" class="verify-overlay">
+    <div class="verify-card">
+      <div class="verify-spinner"></div>
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin: 0;">Подтверждение оплаты</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 0;">
         Мы проверяем статус платежа через Stripe. Пожалуйста, не закрывайте эту страницу...
       </p>
     </div>
@@ -434,6 +433,7 @@
       const badge = document.getElementById('profilePlanBadge');
       const planTitle = plan.charAt(0).toUpperCase() + plan.slice(1);
       badge.textContent = planTitle;
+      badge.className = `profile-plan-badge badge-${plan}`;
 
       // Details
       document.getElementById('profileName').textContent = user.full_name || user.email || 'Пользователь';
@@ -466,7 +466,11 @@
       const pct = limit === null || limit === Infinity ? 10 : Math.min(100, Math.round((used / limit) * 100));
       const fill = document.getElementById('usageFill');
       fill.style.width = pct + '%';
-      if (pct >= 100) fill.className = "h-full bg-error rounded-full transition-all duration-700";
+      if (pct >= 100) {
+        fill.classList.add('full');
+      } else {
+        fill.classList.remove('full');
+      }
 
       // Quota warning badge
       const badge2 = document.getElementById('usageRemainingBadge');
@@ -511,28 +515,29 @@
 
         const thisRank = PLAN_RANKS[p];
 
+        // Reset state
+        card.classList.remove('active');
+        card.style.opacity = '';
+        btn.classList.remove('current');
+        btn.style.display = 'block';
+        btn.disabled = false;
+
+        if (p === 'basic') btn.textContent = 'Перейти на Basic';
+        if (p === 'pro') btn.textContent = 'Улучшить до Pro';
+        if (p === 'max') btn.textContent = 'Улучшить до Max';
+
         if (p === plan) {
-          card.className = "bg-surface-container-lowest rounded-xl p-5 border-2 border-primary shadow-luminous flex flex-col h-full relative";
+          card.classList.add('active');
           btn.textContent = 'Текущий план';
           btn.disabled = true;
-          btn.style.display = 'block';
-          btn.className = "w-full py-2.5 rounded-lg font-label-md text-xs bg-outline-variant text-outline cursor-not-allowed text-center";
+          btn.classList.add('current');
         } else if (thisRank < currentRank) {
-          card.className = "bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col h-full opacity-70";
+          // Lower tiers are semi-transparent and button hidden
+          card.style.opacity = '0.5';
           btn.style.display = 'none';
         } else {
-          btn.style.display = 'block';
-          if (p === 'pro') {
-            card.className = "bg-surface-container-lowest rounded-xl p-5 border-2 border-primary shadow-luminous flex flex-col h-full relative transform md:-translate-y-2 hover:shadow-md transition-shadow";
-            btn.className = "w-full py-2.5 rounded-lg font-label-md text-xs bg-primary text-on-primary hover:bg-primary/95 transition-all text-center font-bold shadow-sm";
-          } else {
-            card.className = "bg-surface-container-lowest rounded-xl p-5 border border-outline-variant shadow-sm flex flex-col h-full hover:shadow transition-shadow";
-            btn.className = "w-full py-2.5 rounded-lg font-label-md text-xs border border-outline-variant text-on-surface hover:bg-surface-container-low transition-all text-center";
-          }
+          // Upgrade options are fully visible and clickable
           btn.disabled = false;
-          if (p === 'basic') btn.textContent = 'Перейти на Basic';
-          if (p === 'pro') btn.textContent = 'Улучшить до Pro';
-          if (p === 'max') btn.textContent = 'Улучшить до Max';
         }
       });
     }
