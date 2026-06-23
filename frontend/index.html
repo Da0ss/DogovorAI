@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="ru">
+<html class="dark" lang="ru">
 
 <head>
   <!-- Google tag (gtag.js) -->
@@ -35,7 +35,7 @@
   <style>
     /* Custom Luminous Shadow for Level 1 Surfaces */
     .shadow-luminous {
-      box-shadow: 0px 4px 20px rgba(36, 56, 156, 0.12);
+      box-shadow: 0px 4px 20px rgba(36, 56, 156, 0.08);
     }
 
     /* Custom Scrollbar for Workspace */
@@ -48,7 +48,7 @@
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background-color: #c5c5d4;
+      background-color: rgba(79, 70, 229, 0.3);
       border-radius: 20px;
     }
 
@@ -58,8 +58,8 @@
 
     /* Additional custom elements to style our native parts */
     .usage-bar-card {
-      background: #ffffff;
-      border: 1px solid #c5c5d4;
+      background: var(--bg-card, rgba(255, 255, 255, 0.04));
+      border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
       border-radius: 16px;
       padding: 16px 20px;
       display: flex;
@@ -67,11 +67,11 @@
       gap: 16px;
       width: 100%;
       box-sizing: border-box;
-      box-shadow: 0px 4px 20px rgba(36, 56, 156, 0.05);
+      backdrop-filter: blur(10px);
     }
     .usage-bar-fill {
       height: 100%;
-      background: linear-gradient(135deg, #3f51b5, #24389c);
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
       border-radius: 100px;
       transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -79,7 +79,7 @@
       display: inline-flex;
       align-items: center;
       padding: 8px 14px;
-      background: linear-gradient(135deg, #3f51b5, #24389c);
+      background: var(--accent-indigo-gradient, linear-gradient(135deg, #4f46e5, #7c3aed));
       color: #fff;
       text-decoration: none;
       border-radius: 8px;
@@ -90,7 +90,7 @@
     }
     .usage-upgrade-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(36, 56, 156, 0.3);
+      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
     }
 
     /* Error Toast */
@@ -119,7 +119,7 @@
     .paywall-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(25, 28, 29, 0.6);
+      background: rgba(8, 11, 20, 0.6);
       backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
@@ -127,13 +127,14 @@
       z-index: 1000;
     }
     .paywall-card {
-      background: white;
+      background: var(--bg-secondary, #0d1424);
+      border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
       border-radius: 24px;
       padding: 32px;
       max-width: 480px;
       width: 90%;
       position: relative;
-      box-shadow: 0px 12px 40px rgba(0, 0, 0, 0.15);
+      box-shadow: var(--shadow-lg, 0 20px 60px rgba(0, 0, 0, 0.5));
       text-align: center;
       display: flex;
       flex-direction: column;
@@ -144,7 +145,7 @@
       top: 16px;
       right: 16px;
       font-size: 24px;
-      color: #757684;
+      color: var(--text-secondary, #8892a4);
       background: none;
       border: none;
       cursor: pointer;
@@ -425,7 +426,7 @@
             </div>
           </div>
           <!-- Doc content scrollable -->
-          <div class="p-md md:p-lg overflow-y-auto custom-scrollbar font-body-md text-sm text-on-surface leading-relaxed space-y-md relative bg-white flex-grow" id="originalTextPane" style="font-size: 14px; white-space: pre-wrap; word-break: break-word;">
+          <div class="p-md md:p-lg overflow-y-auto custom-scrollbar font-body-md text-sm text-on-surface leading-relaxed space-y-md relative bg-transparent flex-grow" id="originalTextPane" style="font-size: 14px; white-space: pre-wrap; word-break: break-word;">
             Текст договора...
           </div>
         </div>
