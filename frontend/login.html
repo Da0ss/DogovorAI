@@ -1,48 +1,157 @@
 <!DOCTYPE html>
 <html class="dark" lang="ru">
 <head>
-
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>DogovorAI — Вход</title>
   <meta name="description" content="Войдите в DogovorAI — AI-сервис для анализа договоров">
+  
   <!-- Material Symbols and Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+  
   <!-- Tailwind CSS -->
   <link rel="stylesheet" href="/static/css/tailwind-built.css">
+
   <style>
-    .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      display: inline-block;
-      line-height: 1;
+    /* Premium Styling Overrides & Fallbacks (Ensures dark theme works even if cache conflicts exist) */
+    :root {
+      --bg-primary: #080b14;
+      --bg-secondary: #0d1424;
+      --bg-glass: rgba(13, 20, 36, 0.65);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f0f4ff;
+      --text-secondary: #8892a4;
+      --accent-indigo: #4f46e5;
+      --accent-indigo-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
+      --font-main: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-title: 'Manrope', sans-serif;
     }
-    .glass-effect {
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      overflow-x: hidden;
+      min-height: 100vh;
     }
-    .auth-card-shadow {
-      box-shadow: 0px 4px 20px rgba(63, 81, 181, 0.12);
+
+    .glass-auth-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
-    /* Messages alerts */
+
+    .glass-auth-card:hover {
+      border-color: rgba(79, 70, 229, 0.25);
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.4),
+        0 0 30px rgba(79, 70, 229, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    /* Input Styling */
+    .custom-input {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      border-radius: 12px;
+      padding: 12px 14px 12px 42px;
+      width: 100%;
+      outline: none;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .custom-input:focus {
+      border-color: var(--accent-indigo);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+    }
+
+    /* Google Button */
+    .google-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .google-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .google-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Primary Action Buttons */
+    .btn-gradient {
+      background: var(--accent-indigo-gradient);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-weight: 600;
+      width: 100%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-gradient:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-gradient:active {
+      transform: translateY(0);
+    }
+
+    /* Messages Alert */
     .message:not(:empty) {
-      padding: 12px 14px;
-      margin-bottom: 16px;
-      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border-radius: 12px;
       font-size: 14px;
       text-align: left;
+      font-weight: 500;
     }
+
     .message.success {
-      background-color: rgba(0, 191, 165, 0.12);
+      background-color: rgba(0, 191, 165, 0.1);
       color: #00bfa5;
-      border: 1px solid rgba(0, 191, 165, 0.25);
+      border: 1px solid rgba(0, 191, 165, 0.2);
     }
+
     .message.error {
-      background-color: rgba(239, 68, 68, 0.1);
+      background-color: rgba(239, 68, 68, 0.08);
       color: #fca5a5;
-      border: 1px solid rgba(239, 68, 68, 0.25);
+      border: 1px solid rgba(239, 68, 68, 0.18);
     }
-    /* Spinner override for integration */
+
+    /* Loading Spinner */
     .spinner {
       width: 18px;
       height: 18px;
@@ -52,151 +161,152 @@
       animation: spin-anim 0.8s linear infinite;
       display: none;
     }
+
     @keyframes spin-anim {
       to { transform: rotate(360deg); }
     }
+
     button.loading .spinner {
       display: inline-block;
     }
+
+    /* Background Orbs */
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(130px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.14;
+    }
+
+    .orb-purple {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #7c3aed, transparent);
+      top: -150px;
+      left: -150px;
+    }
+
+    .orb-indigo {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, #4f46e5, transparent);
+      bottom: -200px;
+      right: -200px;
+    }
   </style>
 </head>
-<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col justify-between">
 
+  <!-- Glowing Decorative Orbs -->
+  <div class="bg-orb orb-purple"></div>
+  <div class="bg-orb orb-indigo"></div>
 
+  <!-- Header Branding -->
+  <header class="w-full z-10 py-6 px-gutter max-w-container-max mx-auto flex justify-between items-center">
+    <a href="/app" class="flex items-center gap-2 text-decoration-none group">
+      <span class="material-symbols-outlined text-[28px] text-primary transition-transform group-hover:scale-105" style="font-variation-settings: 'FILL' 1;">balance</span>
+      <span class="font-title text-title-md font-bold text-on-surface">Dogovor <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">AI</span></span>
+    </a>
+    <div>
+      <a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors text-decoration-none" href="mailto:support@dogovorai.xyz">Поддержка</a>
+    </div>
+  </header>
 
-  <!-- Main Content: Login Canvas -->
-  <main class="flex-grow flex items-center justify-center px-gutter py-xl relative overflow-hidden gap-xl">
-    <!-- Decorative Ambient Background Element -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10"></div>
-    
-    <!-- Auth Card -->
-    <div class="w-full max-w-[440px] bg-surface-container-lowest rounded-lg auth-card-shadow p-lg border border-outline-variant/30 z-10">
+  <!-- Centered Login Card Container -->
+  <main class="flex-grow flex items-center justify-center px-4 py-8 z-10">
+    <div class="w-full max-w-[420px] glass-auth-card p-8 flex flex-col gap-6">
+      
       <!-- Card Header -->
-      <div class="text-center mb-lg">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary-container/10 mb-md">
-          <span class="material-symbols-outlined text-primary text-[32px]" style="font-variation-settings: 'FILL' 1;">security</span>
+      <div class="text-center flex flex-col items-center gap-2">
+        <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-1">
+          <span class="material-symbols-outlined text-primary text-[28px]" style="font-variation-settings: 'FILL' 1;">security</span>
         </div>
-        <h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">С возвращением</h1>
-        <p class="font-body-md text-body-md text-on-surface-variant">Войдите в свой аккаунт для анализа договоров</p>
+        <h1 class="font-title text-2xl font-bold text-on-surface tracking-tight">С возвращением</h1>
+        <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed px-4">Войдите в свой личный кабинет для безопасного анализа договоров</p>
       </div>
 
       <!-- Global Message Container -->
       <div class="message" id="message" aria-live="polite"></div>
 
       <!-- Google Sign-In Button -->
-      <button class="w-full flex items-center justify-center gap-3 bg-surface-container-low border border-outline-variant py-3 rounded-lg hover:bg-surface-container-high transition-all active:scale-[0.98] transform mb-4" id="googleLoginBtn" type="button">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="flex-shrink-0">
+      <button class="google-btn" id="googleLoginBtn" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="flex-shrink-0">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
         </svg>
-        <span class="font-label-md text-label-md text-on-surface font-semibold button-text">Войти через Google</span>
+        <span class="text-sm font-semibold button-text">Войти через Google</span>
       </button>
 
       <!-- Divider -->
-      <div class="relative py-sm divider">
+      <div class="relative py-2 flex items-center justify-center">
         <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-outline-variant"></div>
+          <div class="w-full border-t border-white/5"></div>
         </div>
-        <div class="relative flex justify-center text-xs uppercase">
-          <span class="bg-surface-container-lowest px-2 text-on-surface-variant font-label-md">или по email</span>
-        </div>
+        <span class="relative bg-[#0b101d] px-3 text-xs uppercase tracking-wider text-on-surface-variant font-semibold">или по email</span>
       </div>
 
       <!-- STEP 1: Email Form -->
-      <form class="space-y-md" id="loginStep1Form" autocomplete="on" enctype="multipart/form-data">
-        <!-- Email Field -->
-        <div class="space-y-xs">
-          <label class="font-label-md text-label-md text-on-surface-variant px-xs" for="email">Электронная почта</label>
-          <div class="relative group">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">mail</span>
-            </div>
-            <input class="block w-full pl-10 pr-4 py-3 bg-transparent border border-outline rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-md text-body-md placeholder:text-outline-variant" id="email" name="email" placeholder="name@company.com" required="" type="email" autocomplete="email"/>
+      <form class="flex flex-col gap-4" id="loginStep1Form" autocomplete="on">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-label-md text-xs text-on-surface-variant px-1" for="email">Электронная почта</label>
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3.5 text-outline-variant text-[20px]">mail</span>
+            <input class="custom-input text-sm" id="email" name="email" placeholder="name@company.com" required="" type="email" autocomplete="email"/>
           </div>
         </div>
         
-        <!-- Submit Button -->
-        <button class="w-full bg-primary text-white font-title-md text-title-md py-3 rounded-lg hover:bg-primary transition-all shadow-sm active:scale-[0.98] transform flex justify-center items-center gap-2" id="getOtpButton" type="submit">
+        <button class="btn-gradient" id="getOtpButton" type="submit">
           <span class="button-text">Получить код</span>
           <span class="spinner" id="otpSpinner" aria-hidden="true"></span>
-          <span class="material-symbols-outlined text-[20px]">send</span>
+          <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
         </button>
       </form>
 
       <!-- STEP 2: Verify Code Form (Initially Hidden) -->
-      <form class="space-y-md hidden" id="loginStep2Form" autocomplete="off" enctype="multipart/form-data">
-        <div class="flex justify-between items-center px-xs">
-          <p class="font-body-sm text-body-sm text-on-surface-variant">Код отправлен на <span id="displayEmail" class="font-semibold text-primary"></span></p>
-          <button type="button" id="changeEmailBtn" class="font-label-md text-label-md text-primary hover:underline transition-all border-none bg-transparent p-0 cursor-pointer">Изменить</button>
+      <form class="flex flex-col gap-4 hidden" id="loginStep2Form" autocomplete="off">
+        <div class="flex justify-between items-center px-1">
+          <p class="text-xs text-on-surface-variant">Код отправлен на <span id="displayEmail" class="font-semibold text-primary"></span></p>
+          <button type="button" id="changeEmailBtn" class="text-xs text-primary hover:underline font-semibold bg-transparent border-none p-0 cursor-pointer">Изменить</button>
         </div>
         
-        <!-- Verification Code Field -->
-        <div class="space-y-xs">
-          <label class="font-label-md text-label-md text-on-surface-variant px-xs" for="otpCode">Код подтверждения</label>
-          <div class="relative group">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors">dialpad</span>
-            </div>
-            <input class="block w-full pl-10 pr-4 py-3 bg-transparent border border-outline rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-body-md text-body-md placeholder:text-outline-variant text-center tracking-widest font-bold" id="otpCode" name="code" placeholder="123456" required="" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code"/>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-label-md text-xs text-on-surface-variant px-1" for="otpCode">Код подтверждения</label>
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3.5 text-outline-variant text-[20px]">dialpad</span>
+            <input class="custom-input text-sm text-center tracking-widest font-bold font-title" id="otpCode" name="code" placeholder="123456" required="" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code"/>
           </div>
         </div>
         
-        <!-- Verify Button -->
-        <button class="w-full bg-primary text-white font-title-md text-title-md py-3 rounded-lg hover:bg-primary transition-all shadow-sm active:scale-[0.98] transform flex justify-center items-center gap-2" id="verifyOtpButton" type="submit">
+        <button class="btn-gradient" id="verifyOtpButton" type="submit">
           <span class="button-text">Войти</span>
           <span class="spinner" id="verifySpinner" aria-hidden="true"></span>
-          <span class="material-symbols-outlined text-[20px]">login</span>
+          <span class="material-symbols-outlined text-[18px]">login</span>
         </button>
       </form>
 
       <!-- Sign Up Link -->
-      <div class="mt-lg text-center">
-        <p class="font-body-sm text-body-sm text-on-surface-variant">
+      <div class="text-center mt-2 border-t border-white/5 pt-4">
+        <p class="text-sm text-on-surface-variant">
           Нет аккаунта? 
-          <a class="text-primary font-bold hover:underline transition-all" href="/app/register">Зарегистрироваться</a>
+          <a class="text-primary font-bold hover:underline transition-colors" href="/app/register">Зарегистрироваться</a>
         </p>
       </div>
-    </div>
 
-    <!-- Descriptive Graphic Area (Asymmetric Layout Enhancement) -->
-    <div class="hidden xl:flex flex-col justify-center max-w-sm z-10">
-      <div class="mb-md">
-        <div class="flex gap-2 mb-sm">
-          <span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-[10px] uppercase tracking-wider">AI Анализ</span>
-          <span class="px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant font-label-md text-[10px] uppercase tracking-wider">Безопасно</span>
-        </div>
-        <h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Точность в каждом пункте договора.</h2>
-        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-          Войдите в свой аккаунт, чтобы продолжить анализ юридических рисков с помощью передового искусственного интеллекта.
-        </p>
-      </div>
-      <!-- Glassmorphism Card Snippet -->
-      <div class="p-md bg-surface-container/60 glass-effect border border-outline-variant rounded-xl shadow-lg">
-        <div class="flex items-center gap-sm mb-xs">
-          <div class="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-            <span class="material-symbols-outlined text-white text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-          </div>
-          <span class="font-title-md text-body-md font-bold text-on-surface">Анализ рисков завершен</span>
-        </div>
-        <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
-          <div class="h-full bg-secondary w-full"></div>
-        </div>
-        <p class="mt-sm font-body-sm text-body-sm text-on-surface-variant italic">"Найдено 3 критических риска в разделе ответственности сторон"</p>
-      </div>
     </div>
   </main>
 
-  <!-- Footer: Spans 100% width with inner centered container -->
-  <footer class="w-full bg-surface border-t border-outline-variant/30 py-lg mt-auto">
-    <div class="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row justify-between items-center">
-      <div class="mb-md md:mb-0">
-        <span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
-        <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">© 2026 Dogovor AI. Точность в каждом пункте.</p>
+  <!-- Footer -->
+  <footer class="w-full py-6 mt-auto border-t border-white/5 bg-[#0b101c]/50 backdrop-blur-md">
+    <div class="max-w-container-max mx-auto px-gutter flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+      <div>
+        <p class="text-xs text-on-surface-variant">© 2026 Dogovor AI. Точность в каждом пункте.</p>
       </div>
-      <div class="flex gap-md">
-        <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/app/privacy">Политика конфиденциальности</a>
+      <div class="flex gap-4">
+        <a class="text-xs text-on-surface-variant hover:text-primary transition-colors text-decoration-none" href="/app/privacy">Политика конфиденциальности</a>
       </div>
     </div>
   </footer>
@@ -206,16 +316,5 @@
   <script src="/static/js/global_actions.js"></script>
   <script src="/static/js/login.js"></script>
   <script src="/static/js/privacy.js"></script>
-  <script>
-    // Micro-interactions for inputs
-    document.querySelectorAll('input').forEach(input => {
-      input.addEventListener('focus', () => {
-        input.closest('.relative').classList.add('scale-[1.01]', 'duration-200');
-      });
-      input.addEventListener('blur', () => {
-        input.closest('.relative').classList.remove('scale-[1.01]');
-      });
-    });
-  </script>
 </body>
 </html>

@@ -365,15 +365,19 @@ from config.settings import settings
 
 
 @router.get("/google", response_model=GoogleAuthURL)
-def google_auth_initiate(consent: bool = False):
+def google_auth_initiate(request: Request, consent: bool = False):
     """
     Initiate Google OAuth flow.
     Returns a URL to redirect the user to Google's consent screen.
-    The optional consent param is passed from the registration page;
-    login page does not send it (user already accepted terms).
+    The redirect URI is constructed dynamically from the request headers to support multi-domain deploys.
     """
     try:
-        redirect_to = settings.google_redirect_uri
+        # Determine the redirect URI dynamically from the request headers
+        scheme = request.headers.get("x-forwarded-proto") or request.url.scheme
+        host = request.headers.get("x-forwarded-host") or request.headers.get("host") or request.url.netloc
+        redirect_to = f"{scheme}://{host}/app/auth/callback"
+        
+        logger.info(f"🔑 Initiating Google OAuth with redirect_to={redirect_to}")
         response = google_auth_service.sign_in_with_google(redirect_to)
 
         # Supabase returns an object with url attribute
