@@ -29,9 +29,9 @@ from app.api import paypal
 import os
 from posthog import Posthog
 
-# Инициализация PostHog через переменные окружения Antigravity
+# Инициализация PostHog через переменные окружения Antigravity (с жестким бэкапом ключа)
 posthog = Posthog(
-    os.getenv('POSTHOG_API_KEY'),
+    os.getenv('POSTHOG_API_KEY', 'phc_nLA4rhAW7aolI9iQMFUUrTIpgjKhTrRFG7C22uxwWRwV'),
     host=os.getenv('POSTHOG_HOST', 'https://us.posthog.com')
 )
 
