@@ -164,3 +164,43 @@ class TestAuthentication:
         response = client.get("/api/auth/test-code/test@example.com")
 
         assert response.status_code == 404
+
+    def test_sign_in_with_google_success(self):
+        """
+        Test generating Google OAuth login URL and extracting code verifier
+        """
+        from app.services.auth_service import SupabaseAuthService
+        from unittest.mock import MagicMock, patch
+
+        service = SupabaseAuthService()
+        
+        # Mock the client returned by service.client
+        mock_client_instance = MagicMock()
+        mock_oauth_response = MagicMock()
+        mock_oauth_response.url = "https://accounts.google.com/o/oauth2/v2/auth"
+        mock_client_instance.auth.sign_in_with_oauth.return_value = mock_oauth_response
+        
+        mock_client_instance.auth._storage_key = "sb-test-key"
+        mock_client_instance.auth._storage.get_item.return_value = "xyz_code_verifier"
+        
+        # Patch the get_supabase_client function
+        with patch("app.services.auth_service.get_supabase_client", return_value=mock_client_instance):
+            result = service.sign_in_with_google("http://localhost:8000/callback")
+            
+            assert result["url"] == "https://accounts.google.com/o/oauth2/v2/auth"
+            assert result["code_verifier"] == "xyz_code_verifier"
+            
+            # Verify sign_in_with_oauth was called with correct parameters
+            mock_client_instance.auth.sign_in_with_oauth.assert_called_once_with({
+                "provider": "google",
+                "options": {
+                    "redirect_to": "http://localhost:8000/callback",
+                    "query_params": {
+                        "access_type": "offline",
+                        "prompt": "consent"
+                    }
+                }
+            })
+            # Verify storage was queried with the correct key
+            mock_client_instance.auth._storage.get_item.assert_called_once_with("sb-test-key-code-verifier")
+

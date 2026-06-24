@@ -27,9 +27,21 @@ from app.models.models import AnalysisResult, Document, User, Subscription
 
 logger = logging.getLogger(__name__)
 
-# ── Admin credentials (hardcoded for demo) ──────────────────────
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
+# ── Admin credentials (loaded from env with fallbacks) ──────────
+ADMIN_USERNAME = os.getenv("ADMIN_PORTAL_USER", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PORTAL_PASS", "admin123")
+
+# Log warning if default credentials are used in production
+if ADMIN_USERNAME == "admin" and ADMIN_PASSWORD == "admin123":
+    try:
+        from config.settings import settings
+        if not settings.debug:
+            logger.warning(
+                "🚨 SECURITY WARNING: Admin portal is using default credentials in production! "
+                "Please configure 'ADMIN_PORTAL_USER' and 'ADMIN_PORTAL_PASS' env variables."
+            )
+    except Exception:
+        pass
 
 # ── Session signing (HMAC-based, no extra deps) ────────────────
 _SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", secrets.token_hex(32))

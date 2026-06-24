@@ -120,7 +120,7 @@
     <div class="container">
         <div class="logo">
             <a href="/app" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
-                <span class="logo-icon">⚖️</span>
+                <span class="material-symbols-outlined text-[24px] text-primary" style="font-variation-settings: 'FILL' 1;">balance</span>
                 <span class="logo-text">Dogovor<span class="logo-accent">AI</span></span>
             </a>
         </div>

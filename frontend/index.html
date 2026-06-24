@@ -56,43 +56,6 @@
       scroll-behavior: smooth;
     }
 
-    /* Additional custom elements to style our native parts */
-    .usage-bar-card {
-      background: var(--bg-card, rgba(255, 255, 255, 0.04));
-      border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-      border-radius: 16px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      width: 100%;
-      box-sizing: border-box;
-      backdrop-filter: blur(10px);
-    }
-    .usage-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #4f46e5, #7c3aed);
-      border-radius: 100px;
-      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .usage-upgrade-btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 8px 14px;
-      background: var(--accent-indigo-gradient, linear-gradient(135deg, #4f46e5, #7c3aed));
-      color: #fff;
-      text-decoration: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .usage-upgrade-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
-    }
-
     /* Error Toast */
     .error-toast {
       position: fixed;
@@ -389,10 +352,10 @@
         </div>
 
         <!-- Linear Proportional Risk Progress Bar -->
-        <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden flex shadow-inner mt-4" id="riskProgressBar">
-          <div class="h-full bg-error transition-all duration-500" id="progressHigh" style="width: 0%;" title="Критические риски"></div>
-          <div class="h-full bg-tertiary-container bg-[#ffdcc6] transition-all duration-500" id="progressMedium" style="width: 0%;" title="Умеренные риски"></div>
-          <div class="h-full bg-outline-variant bg-[#c5c5d4] transition-all duration-500" id="progressLow" style="width: 0%;" title="Низкие риски"></div>
+        <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden flex shadow-inner mt-4 risk-progress-bar" id="riskProgressBar">
+          <div class="h-full transition-all duration-500 risk-progress-segment seg-high" id="progressHigh" style="width: 0%;" title="Критические риски"></div>
+          <div class="h-full transition-all duration-500 risk-progress-segment seg-medium" id="progressMedium" style="width: 0%;" title="Умеренные риски"></div>
+          <div class="h-full transition-all duration-500 risk-progress-segment seg-low" id="progressLow" style="width: 0%;" title="Низкие риски"></div>
         </div>
       </div>
     </section>

@@ -350,7 +350,8 @@ class SupabaseAuthService:
             Exception: If URL generation fails
         """
         try:
-            response = self.client.auth.sign_in_with_oauth({
+            client = self.client
+            response = client.auth.sign_in_with_oauth({
                 "provider": "google",
                 "options": {
                     "redirect_to": redirect_to,
@@ -364,8 +365,8 @@ class SupabaseAuthService:
             # Extract code verifier from client storage
             code_verifier = None
             try:
-                storage_key = f"{self.client.auth._storage_key}-code-verifier"
-                code_verifier = self.client.auth._storage.get_item(storage_key)
+                storage_key = f"{client.auth._storage_key}-code-verifier"
+                code_verifier = client.auth._storage.get_item(storage_key)
             except Exception as se:
                 logger.warning(f"⚠️ Could not extract code verifier: {se}")
 

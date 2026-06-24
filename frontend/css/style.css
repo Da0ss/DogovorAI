@@ -14,7 +14,7 @@
     --accent-blue: #3b82f6;
     --accent-purple: #8b5cf6;
     --accent-cyan: #06b6d4;
-    --accent-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    --accent-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
 
     --risk-high: #ef4444;
     --risk-high-bg: rgba(239, 68, 68, 0.1);
@@ -41,7 +41,8 @@
     --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
 
     --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    --font: 'Inter', -apple-system, sans-serif;
+    --font: 'Work Sans', -apple-system, sans-serif;
+    --font-title: 'Manrope', sans-serif;
 }
 
 /* ===== RESET & BASE ===== */
@@ -56,6 +57,10 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-title);
 }
 
 /* Centering Material Symbols globally inside flex/grid containers and inline alignments */
