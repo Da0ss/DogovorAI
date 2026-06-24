@@ -73,7 +73,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .container {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
 }
@@ -82,10 +82,10 @@ h1, h2, h3, h4, h5, h6 {
 .header {
     position: fixed;
     top: 12px;
-    left: 20px;
-    right: 20px;
-    margin: 0 auto;
-    max-width: 1100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 1200px;
     z-index: 1000;
     padding: 12px 24px;
     background: rgba(13, 20, 36, 0.75);
@@ -107,8 +107,9 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 768px) {
     .header {
         top: 8px;
-        left: 12px;
-        right: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 24px);
         padding: 10px 16px;
         border-radius: 24px;
     }
@@ -1133,4 +1134,46 @@ h1, h2, h3, h4, h5, h6 {
 .user-dropdown-logout:hover {
     background: rgba(239, 68, 68, 0.1);
     color: #fca5a5;
+}
+
+/* ===== LANDING PAGE LAYOUT IMPROVEMENTS ===== */
+.landing-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+.hero-section {
+    margin-top: 60px !important; /* Отступ сверху от фиксированной шапки */
+    margin-bottom: 24px !important;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 800px;
+}
+
+.smart-input-section {
+    margin-top: 48px !important;
+    margin-bottom: 64px !important;
+    width: 100%;
+    max-width: 896px; /* 4xl */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Дополнительный воздух внутри карточки */
+.smart-input-tabs {
+    margin-bottom: 28px !important;
+}
+
+.drop-zone {
+    padding: 64px 32px !important; /* Увеличили внутренние отступы зоны загрузки */
 }
