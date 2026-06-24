@@ -22,12 +22,12 @@
     --accent-mint-gradient: linear-gradient(135deg, #00bfa5, #06b6d4);
 
     /* Surface levels (Material Design elevation) */
-    --surface-0: #f8fafc;
-    --surface-1: #ffffff;
-    --surface-2: #f1f5f9;
-    --surface-3: rgba(0, 0, 0, 0.04);
-    --on-surface: #0f172a;
-    --on-surface-secondary: #475569;
+    --surface-0: #080b14;
+    --surface-1: #0d1424;
+    --surface-2: #111827;
+    --surface-3: rgba(255, 255, 255, 0.06);
+    --on-surface: #f0f4ff;
+    --on-surface-secondary: #8892a4;
 }
 
 
