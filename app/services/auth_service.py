@@ -42,10 +42,8 @@ class SupabaseAuthService:
 
     @property
     def client(self) -> Client:
-        """Get Supabase client with lazy initialization."""
-        if self._client is None:
-            self._client = get_supabase_client()
-        return self._client
+        """Get a fresh Supabase client instance."""
+        return get_supabase_client()
 
     def register_user(self, email: str, password: str) -> Dict[str, Any]:
         """

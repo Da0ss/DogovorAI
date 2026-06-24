@@ -146,7 +146,7 @@ def register_user(
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ) -> UserResponse:
-    """Register a new user via Supabase Auth."""
+    """Register a new user via Supabase Auth or log in if already registered."""
     if not user_data.consent:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -155,6 +155,30 @@ def register_user(
 
     # Server-side reCAPTCHA validation
     verify_recaptcha(user_data.recaptcha_token)
+
+    # Check if user already exists
+    existing_user = crud.get_user_by_email(db, user_data.email)
+    if existing_user:
+        logger.info(f"🔄 User {user_data.email} already exists. Attempting auto-login...")
+        try:
+            # Try logging in with the provided password
+            response = supabase_auth_service.login_user(user_data.email, user_data.password)
+            profile, session_data = _normalize_auth_response(response)
+            user = _user_response_from_profile(db, profile, provider="supabase")
+            
+            return UserResponse(
+                id=user.id,
+                email=user.email,
+                is_verified=user.is_verified,
+                created_at=user.created_at,
+                session=session_data
+            )
+        except Exception as login_err:
+            logger.warning(f"⚠️ Auto-login failed for existing user {user_data.email}: {str(login_err)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Пользователь с таким email уже зарегистрирован. Введен неверный пароль."
+            )
 
     try:
         response = supabase_auth_service.register_user(user_data.email, user_data.password)

@@ -154,6 +154,27 @@ async function handleRegister(event) {
       return;
     }
 
+    if (data.session) {
+      if (data.session.access_token) {
+        localStorage.setItem('access_token', data.session.access_token);
+        localStorage.setItem('refresh_token', data.session.refresh_token);
+      }
+      localStorage.setItem('user', JSON.stringify({ id: data.id, email: data.email }));
+
+      // GA4: идентификация пользователя и трекинг входа
+      const userId = data.id;
+      if (userId && typeof identifyUser === 'function') identifyUser(userId);
+      if (typeof trackEvent === 'function') {
+        trackEvent('login', { method: 'email', user_id: userId || 'unknown' });
+      }
+
+      setMessage('Вход выполнен успешно! Перенаправление...', 'success');
+      setTimeout(() => {
+        window.location.href = '/app';
+      }, 1000);
+      return;
+    }
+
     registeredEmail = email;
     setMessage('Код отправлен. Введите его для подтверждения.', 'success');
     registerForm.classList.add('hidden');
@@ -295,3 +316,8 @@ if (googleRegisterBtn) {
 document.addEventListener('DOMContentLoaded', () => {
   initGlobalConsentToggle('termsConsent', ['registerButton', 'googleRegisterBtn']);
 });
+
+// Если уже авторизован — редирект на целевую страницу
+if (localStorage.getItem('access_token')) {
+  window.location.replace('/app');
+}

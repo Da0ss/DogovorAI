@@ -31,7 +31,7 @@ class SupabaseClient:
     @classmethod
     def get_client(cls) -> Client:
         """
-        Get or create Supabase client instance (singleton pattern).
+        Get a fresh Supabase client instance.
         
         Returns:
             Client: Initialized Supabase client
@@ -39,14 +39,12 @@ class SupabaseClient:
         Raises:
             ValueError: If Supabase credentials are not configured
         """
-        if cls._instance is None:
-            cls._instance = cls._init_client(use_service_key=False)
-        return cls._instance
+        return cls._init_client(use_service_key=False)
 
     @classmethod
     def get_admin_client(cls) -> Client:
         """
-        Get or create Supabase admin client instance using service role key (singleton pattern).
+        Get a fresh Supabase admin client instance using service role key.
         
         Returns:
             Client: Initialized Supabase admin client
@@ -54,9 +52,7 @@ class SupabaseClient:
         Raises:
             ValueError: If Supabase credentials are not configured
         """
-        if cls._admin_instance is None:
-            cls._admin_instance = cls._init_client(use_service_key=True)
-        return cls._admin_instance
+        return cls._init_client(use_service_key=True)
 
     @staticmethod
     def _init_client(use_service_key: bool = False) -> Client:

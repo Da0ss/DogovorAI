@@ -25,6 +25,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     is_verified: bool
     created_at: Optional[datetime] = None
+    session: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)
 
