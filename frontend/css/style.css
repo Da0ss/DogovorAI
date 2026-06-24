@@ -5,11 +5,11 @@
 
 /* ===== CSS VARIABLES ===== */
 :root {
-    --bg-primary: #080b14;
-    --bg-secondary: #0d1424;
-    --bg-card: rgba(255, 255, 255, 0.04);
-    --bg-card-hover: rgba(255, 255, 255, 0.07);
-    --bg-glass: rgba(13, 20, 36, 0.8);
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f1f5f9;
+    --bg-glass: rgba(255, 255, 255, 0.85);
 
     --accent-blue: #3b82f6;
     --accent-purple: #8b5cf6;
@@ -17,28 +17,28 @@
     --accent-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
 
     --risk-high: #ef4444;
-    --risk-high-bg: rgba(239, 68, 68, 0.1);
-    --risk-medium: #f59e0b;
-    --risk-medium-bg: rgba(245, 158, 11, 0.1);
+    --risk-high-bg: rgba(239, 68, 68, 0.08);
+    --risk-medium: #d97706;
+    --risk-medium-bg: rgba(217, 119, 6, 0.08);
     --risk-low: #10b981;
-    --risk-low-bg: rgba(16, 185, 129, 0.1);
+    --risk-low-bg: rgba(16, 185, 129, 0.08);
 
-    --text-primary: #f0f4ff;
-    --text-secondary: #8892a4;
-    --text-muted: #4a5568;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
 
-    --border: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(59, 130, 246, 0.4);
+    --border: #e2e8f0;
+    --border-hover: #cbd5e1;
 
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 20px;
     --radius-xl: 28px;
 
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    --shadow-glow: 0 0 40px rgba(79, 70, 229, 0.05);
 
     --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     --font: 'Work Sans', -apple-system, sans-serif;
@@ -382,7 +382,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Drop Zone */
 .drop-zone {
-    border: 2px dashed rgba(255, 255, 255, 0.12);
+    border: 2px dashed var(--border);
     border-radius: var(--radius-lg);
     padding: 48px 24px;
     text-align: center;
@@ -1062,10 +1062,10 @@ h1, h2, h3, h4, h5, h6 {
     top: calc(100% + 12px);
     right: 0;
     width: 220px;
-    background: #0d1424;
-    border: 1px solid rgba(255,255,255,0.1);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
     border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
     z-index: 200;
     animation: dropdownIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1081,7 +1081,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .user-dropdown-header {
     padding: 16px 20px;
-    background: rgba(255,255,255,0.03);
+    background: var(--bg-card-hover);
 }
 
 .dropdown-name {
@@ -1101,7 +1101,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .user-dropdown-divider {
     height: 1px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--border);
     margin: 4px 0;
 }
 
@@ -1122,15 +1122,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .user-dropdown-item:hover {
-    background: rgba(255,255,255,0.05);
+    background: var(--bg-card-hover);
     color: var(--text-primary);
 }
 
 .user-dropdown-logout {
-    color: #f87171;
+    color: #ef4444;
 }
 
 .user-dropdown-logout:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
 }

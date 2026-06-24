@@ -4,17 +4,17 @@
    ============================================================ */
 
 :root {
-    --auth-bg: #080b14;
-    --auth-card: rgba(13, 20, 36, 0.9);
-    --auth-border: rgba(255, 255, 255, 0.08);
+    --auth-bg: #f8fafc;
+    --auth-card: #ffffff;
+    --auth-border: #e2e8f0;
     --auth-indigo: #4f46e5;
     --auth-mint: #00bfa5;
-    --auth-text: #f0f4ff;
-    --auth-text-muted: #8892a4;
-    --auth-font: 'Inter', -apple-system, sans-serif;
+    --auth-text: #0f172a;
+    --auth-text-muted: #475569;
+    --auth-font: 'Work Sans', -apple-system, sans-serif;
     --auth-radius: 24px;
-    --auth-input-bg: rgba(255, 255, 255, 0.04);
-    --auth-input-border: rgba(255, 255, 255, 0.1);
+    --auth-input-bg: #f1f5f9;
+    --auth-input-border: #cbd5e1;
     --auth-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
