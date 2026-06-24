@@ -4,7 +4,7 @@ Authentication API endpoints using Supabase Auth.
 
 import logging
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 
 from app.models.database import get_db
@@ -365,7 +365,7 @@ from config.settings import settings
 
 
 @router.get("/google", response_model=GoogleAuthURL)
-def google_auth_initiate(request: Request, consent: bool = False):
+def google_auth_initiate(request: Request, response: Response, consent: bool = False):
     """
     Initiate Google OAuth flow.
     Returns a URL to redirect the user to Google's consent screen.
@@ -378,21 +378,31 @@ def google_auth_initiate(request: Request, consent: bool = False):
         redirect_to = f"{scheme}://{host}/app/auth/callback"
         
         logger.info(f"🔑 Initiating Google OAuth with redirect_to={redirect_to}")
-        response = google_auth_service.sign_in_with_google(redirect_to)
+        oauth_response = google_auth_service.sign_in_with_google(redirect_to)
 
         # Supabase returns an object with url attribute
         oauth_url = None
         code_verifier = None
-        if isinstance(response, dict):
-            oauth_url = response.get('url')
-            code_verifier = response.get('code_verifier')
-        elif hasattr(response, 'url'):
-            oauth_url = response.url
+        if isinstance(oauth_response, dict):
+            oauth_url = oauth_response.get('url')
+            code_verifier = oauth_response.get('code_verifier')
+        elif hasattr(oauth_response, 'url'):
+            oauth_url = oauth_response.url
 
         if not oauth_url:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to generate Google OAuth URL"
+            )
+
+        if code_verifier:
+            response.set_cookie(
+                key="sb-code-verifier",
+                value=code_verifier,
+                httponly=True,
+                secure=not app_settings.debug,
+                samesite="lax",
+                max_age=600  # 10 minutes
             )
 
         return GoogleAuthURL(url=oauth_url, code_verifier=code_verifier)
@@ -408,7 +418,14 @@ def google_auth_initiate(request: Request, consent: bool = False):
 
 
 @router.get("/google/callback", response_model=OAuthCallbackResponse)
-def google_auth_callback(code: str = None, code_verifier: str = None, error: str = None, db: Session = Depends(get_db)):
+def google_auth_callback(
+    request: Request,
+    response: Response,
+    code: str = None, 
+    code_verifier: str = None, 
+    error: str = None, 
+    db: Session = Depends(get_db)
+):
     """
     Handle Google OAuth callback.
     Exchanges the authorization code for a Supabase session.
@@ -425,6 +442,11 @@ def google_auth_callback(code: str = None, code_verifier: str = None, error: str
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No authorization code received"
         )
+
+    # Fallback to cookie if query param is missing
+    if not code_verifier:
+        code_verifier = request.cookies.get("sb-code-verifier")
+        logger.info(f"🔑 Retrieve code_verifier from cookie: {bool(code_verifier)}")
 
     try:
         result = google_auth_service.exchange_code_for_session(code, code_verifier)
@@ -445,6 +467,8 @@ def google_auth_callback(code: str = None, code_verifier: str = None, error: str
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to complete authentication: {str(e)}"
         )
+    finally:
+        response.delete_cookie("sb-code-verifier")
 
 
 @router.post("/logout")

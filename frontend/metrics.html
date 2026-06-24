@@ -9,8 +9,8 @@
   <meta name="description" content="Панель администратора — аналитика и статистика платформы DogovorAI">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/style.css">
-  <link rel="stylesheet" href="/static/css/privacy.css">
+  <link rel="stylesheet" href="/static/css/style.css?v=1.3">
+  <link rel="stylesheet" href="/static/css/privacy.css?v=1.3">
 
   <style>
     /* ─── Layout ─── */
@@ -582,8 +582,8 @@
     </div>
   </main>
 
-  <script src="/static/js/analytics_helper.js"></script>
-  <script src="/static/js/auth-guard.js"></script>
+  <script src="/static/js/analytics_helper.js?v=1.3"></script>
+  <script src="/static/js/auth-guard.js?v=1.3"></script>
   <script>requireAuth();</script>
   <script>
     // ─── Auth — provided by auth-guard.js ───────────────────────
@@ -771,6 +771,6 @@
     function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
   </script>
 
-  <script src="/static/js/privacy.js"></script>
+  <script src="/static/js/privacy.js?v=1.3"></script>
 </body>
 </html>
