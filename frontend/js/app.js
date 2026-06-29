@@ -416,72 +416,67 @@ function displayResults(data) {
  */
 function createRiskCard(risk, index) {
     const card = document.createElement('div');
-    card.className = `bg-surface-container-lowest rounded-[12px] p-4 shadow-sm border border-surface-variant hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col gap-2 relative overflow-hidden group`;
+    card.className = `risk-card risk-${risk.risk_level} cursor-pointer transition-all duration-200 hover:shadow-md`;
     card.style.animationDelay = `${index * 0.07}s`;
 
-    let colorClass = 'bg-outline-variant';
-    let badgeClass = 'bg-surface-container-high text-on-surface';
-    let badgeIcon = 'check_circle';
+    let badgeClass = 'badge-low';
     let levelLabel = 'Низкий риск';
 
     if (risk.risk_level === 'high') {
-        colorClass = 'bg-error';
-        badgeClass = 'bg-error-container text-on-error-container';
-        badgeIcon = 'warning';
+        badgeClass = 'badge-high';
         levelLabel = 'Критический риск';
     } else if (risk.risk_level === 'medium') {
-        colorClass = 'bg-tertiary';
-        badgeClass = 'bg-tertiary-fixed text-on-tertiary-fixed';
-        badgeIcon = 'info';
+        badgeClass = 'badge-medium';
         levelLabel = 'Умеренный риск';
     }
 
     let html = `
-        <div class="absolute top-0 left-0 w-1.5 h-full ${colorClass}"></div>
-        <div class="flex justify-between items-start">
-            <div class="${badgeClass} px-2.5 py-1 rounded-full font-label-md text-xs w-fit flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-sm">${badgeIcon}</span> ${levelLabel}
-            </div>
-            <span class="text-outline text-xs uppercase tracking-wider font-bold">${escapeHtml(risk.category)}</span>
+        <div class="risk-card-header">
+            <span class="risk-level-badge ${badgeClass}">${levelLabel}</span>
+            <span class="risk-category">${escapeHtml(risk.category)}</span>
         </div>
-        <h4 class="font-title-md text-base font-bold text-on-surface mt-1">${escapeHtml(risk.category)}</h4>
-        <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">${escapeHtml(risk.description)}</p>
+        <div class="risk-description">
+            ${escapeHtml(risk.description)}
+        </div>
     `;
 
     if (risk.original_clause) {
         html += `
-            <div class="p-3 bg-surface-container-low rounded-lg border-l-2 border-outline-variant font-body-sm text-xs text-on-surface-variant italic my-1">
+            <div class="risk-original-clause">
                 ${escapeHtml(risk.original_clause)}
             </div>
         `;
     }
 
-    if (risk.recommendation) {
-        html += `
-            <div class="mt-2 bg-secondary-container/20 rounded-lg p-3 border border-secondary-container/30">
-                <div class="flex items-center gap-1 font-label-md text-secondary font-bold text-xs mb-1">
-                    <span class="material-symbols-outlined text-sm">lightbulb</span> Рекомендация AI
+    if (risk.recommendation || risk.law_reference) {
+        html += `<div class="risk-footer">`;
+        
+        if (risk.recommendation) {
+            html += `
+                <div class="risk-recommendation">
+                    ${escapeHtml(risk.recommendation)}
                 </div>
-                <p class="font-body-sm text-xs text-on-secondary-container leading-relaxed">${escapeHtml(risk.recommendation)}</p>
-            </div>
-        `;
-    }
+            `;
+        }
 
-    if (risk.law_reference) {
-        const title = risk.law_description ? `title="${escapeHtml(risk.law_description)}"` : '';
-        html += `
-            <div class="flex items-center gap-1.5 font-label-md text-xs text-primary font-bold cursor-pointer hover:underline mt-2" ${title}>
-                <span class="material-symbols-outlined text-sm">gavel</span> Закон: <span class="underline">${escapeHtml(risk.law_reference)}</span>
-                ${risk.law_description ? `<span class="text-outline font-normal text-[10px]">— подробнее</span>` : ''}
-            </div>
-        `;
+        if (risk.law_reference) {
+            const title = risk.law_description ? `title="${escapeHtml(risk.law_description)}"` : '';
+            html += `
+                <div class="risk-law" ${title}>
+                    Закон: <span class="risk-law-ref">${escapeHtml(risk.law_reference)}</span>
+                    ${risk.law_description ? `<span style="font-size: 10px; opacity: 0.6; margin-left: 4px;">— подробнее</span>` : ''}
+                </div>
+            `;
+        }
+        
+        html += `</div>`;
     }
 
     card.innerHTML = html;
 
     // Click handler for law tooltip detail
     if (risk.law_reference && risk.law_description) {
-        const lawEl = card.querySelector('.underline');
+        const lawEl = card.querySelector('.risk-law-ref');
         if (lawEl) {
             lawEl.parentElement.addEventListener('click', (e) => {
                 e.stopPropagation();

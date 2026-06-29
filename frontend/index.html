@@ -327,7 +327,7 @@
 
 
   <!-- ===== RESULTS VIEW SECTION (Analytical Dashboard style) ===== -->
-  <div id="resultsSection" style="display:none">
+  <div id="resultsSection" style="display:none; scroll-margin-top: 110px;">
     
     <!-- Top Progress Summary Block -->
     <section class="w-full bg-surface pt-md pb-lg border-b border-surface-container-high">
@@ -652,9 +652,12 @@
         if (fallback) fallback.style.display = 'none';
         if (origPane) origPane.textContent = originalText;
         
-        // Move risk cards from fallback into split pane
+        // Move risk cards from fallback into split pane preserving event listeners
         if (risksList && risksListFb && risksListFb.children.length > 0) {
-          risksList.innerHTML = risksListFb.innerHTML;
+          risksList.innerHTML = '';
+          while (risksListFb.firstChild) {
+            risksList.appendChild(risksListFb.firstChild);
+          }
         }
       } else {
         // No original text — fallback single column
