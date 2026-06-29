@@ -3,6 +3,7 @@ Application Settings Configuration
 Loads environment variables and provides typed configuration.
 """
 
+import os
 from typing import Optional
 from pydantic_settings import BaseSettings
 
@@ -26,8 +27,8 @@ class Settings(BaseSettings):
     port: int = 8000
 
     # Supabase
-    supabase_url: str
-    supabase_key: str
+    supabase_url: str = ""  # Добавлено дефолтное значение для Vercel
+    supabase_key: str = ""  # Добавлено дефолтное значение для Vercel
     supabase_service_key: Optional[str] = None
 
     # Google OAuth
@@ -40,12 +41,15 @@ class Settings(BaseSettings):
     
     # Optional: Hugging Face Token
     hf_token: Optional[str] = None
+
+    # Optional: Google Cloud Vision API key for image OCR in serverless environments
+    google_cloud_vision_api_key: Optional[str] = None
     
     # Optional: Kimi Model
     kimi_model: str = "moonshotai/Kimi-K2.5:fireworks-ai"
     
     # Database
-    database_url: str
+    database_url: str = ""  # Добавлено дефолтное значение для Vercel
 
     # Email / SMTP settings
     email_host: Optional[str] = None
@@ -56,12 +60,33 @@ class Settings(BaseSettings):
     email_use_tls: bool = True
     email_use_ssl: bool = False
 
+    # Google reCAPTCHA v2
+    recaptcha_site_key: Optional[str] = None
+    recaptcha_secret_key: Optional[str] = None
+
     # Stripe
     stripe_secret_key: Optional[str] = None
     stripe_webhook_secret: Optional[str] = None
     stripe_price_id_pro: Optional[str] = None
     stripe_price_id_max: Optional[str] = None
-    app_url: str = "http://localhost:8000"
+    app_url: str = os.getenv("APP_URL") or os.getenv("NEXT_PUBLIC_APP_URL") or "https://www.dogovorai.xyz"
+
+    # PayPal
+    paypal_client_id: Optional[str] = None
+    paypal_client_secret: Optional[str] = None
+    paypal_webhook_id: Optional[str] = None
+    paypal_mode: str = "sandbox"
+    paypal_plan_id_pro: Optional[str] = None
+    paypal_plan_id_max: Optional[str] = None
+
+    # Admin access (comma-separated emails)
+    admin_emails: str = ""
+
+    # Analytics / Telemetry
+    posthog_api_key: Optional[str] = "phc_nJvUqL8Gbc2WdsY5rfX5w8xuok5uVgMJc68zKLKN4nmk"
+    posthog_host: str = "https://us.i.posthog.com"
+    ga_measurement_id: Optional[str] = "G-G6SYPHRVJL"
+    gtm_id: Optional[str] = "GTM-KSV7XQ6S"
 
     @property
     def email_configured(self) -> bool:
@@ -82,6 +107,15 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         """Проверка режима production"""
         return not self.debug
+
+    @property
+    def admin_email_set(self) -> set[str]:
+        """Configured admin emails normalized to lowercase."""
+        return {
+            email.strip().lower()
+            for email in self.admin_emails.split(",")
+            if email.strip()
+        }
 
 
 # Создаем глобальный объект настроек

@@ -5,9 +5,14 @@ Supabase Auth service for user registration and verification.
 import logging
 import os
 from typing import Optional, Dict, Any
-from supabase import Client
+try:
+    from supabase import Client
+except ImportError:
+    Client = object  # type: ignore
+
 from config.database import get_supabase_client
 from config.settings import settings
+from app.services.auth_context import is_debug_or_test
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +42,8 @@ class SupabaseAuthService:
 
     @property
     def client(self) -> Client:
-        """Get Supabase client with lazy initialization."""
-        if self._client is None:
-            self._client = get_supabase_client()
-        return self._client
+        """Get a fresh Supabase client instance."""
+        return get_supabase_client()
 
     def register_user(self, email: str, password: str) -> Dict[str, Any]:
         """
@@ -70,7 +73,8 @@ class SupabaseAuthService:
                 logger.info(f"✅ Local verification code sent to {email}: {code}")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to send local email: {str(e)}")
-                print(f"📧 TEST MODE: Verification code for {email}: {code}")
+                if is_debug_or_test():
+                    logger.info(f"📧 TEST MODE: Verification code for {email}: {code}")
 
             # Return mock response
             return {
@@ -230,7 +234,8 @@ class SupabaseAuthService:
                 logger.info(f"✅ Local OTP code sent to {email}: {code}")
             except Exception as e:
                 logger.warning(f"⚠️ Failed to send local email: {str(e)}")
-                print(f"📧 TEST MODE: OTP Code for {email}: {code}")
+                if is_debug_or_test():
+                    logger.info(f"📧 TEST MODE: OTP Code for {email}: {code}")
 
             return {"message": "OTP code sent via local auth"}
         else:
@@ -339,13 +344,14 @@ class SupabaseAuthService:
             redirect_to: URL to redirect after successful auth
 
         Returns:
-            Dict with 'url' key containing the Google OAuth URL
+            Dict with 'url' key containing the Google OAuth URL and optional 'code_verifier'
 
         Raises:
             Exception: If URL generation fails
         """
         try:
-            response = self.client.auth.sign_in_with_oauth({
+            client = self.client
+            response = client.auth.sign_in_with_oauth({
                 "provider": "google",
                 "options": {
                     "redirect_to": redirect_to,
@@ -355,18 +361,38 @@ class SupabaseAuthService:
                     }
                 }
             })
+
+            # Extract code verifier from client storage
+            code_verifier = None
+            try:
+                storage_key = f"{client.auth._storage_key}-code-verifier"
+                code_verifier = client.auth._storage.get_item(storage_key)
+            except Exception as se:
+                logger.warning(f"⚠️ Could not extract code verifier: {se}")
+
             logger.info("✅ Google OAuth URL generated")
-            return response
+
+            url = None
+            if hasattr(response, 'url'):
+                url = response.url
+            elif isinstance(response, dict):
+                url = response.get('url')
+
+            return {
+                "url": url,
+                "code_verifier": code_verifier
+            }
         except Exception as e:
             logger.error(f"❌ Google OAuth URL generation failed: {str(e)}")
             raise
 
-    def exchange_code_for_session(self, code: str) -> Dict[str, Any]:
+    def exchange_code_for_session(self, code: str, code_verifier: Optional[str] = None) -> Dict[str, Any]:
         """
         Exchange authorization code for a Supabase session.
 
         Args:
             code: Authorization code from OAuth callback
+            code_verifier: Optional PKCE code verifier
 
         Returns:
             Dict containing session and user data
@@ -375,9 +401,13 @@ class SupabaseAuthService:
             Exception: If code exchange fails
         """
         try:
-            response = self.client.auth.exchange_code_for_session({
+            params = {
                 "auth_code": code
-            })
+            }
+            if code_verifier:
+                params["code_verifier"] = code_verifier
+
+            response = self.client.auth.exchange_code_for_session(params)
             logger.info("✅ OAuth code exchanged for session")
 
             # Extract user and session data

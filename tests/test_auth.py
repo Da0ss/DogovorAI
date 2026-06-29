@@ -4,6 +4,7 @@ Tests for authentication endpoints using Supabase Auth
 
 import pytest
 import uuid
+from config.settings import settings
 
 
 class TestAuthentication:
@@ -23,9 +24,25 @@ class TestAuthentication:
 
         data = response.json()
         assert data["email"] == user_data["email"]
-        assert data["id"] == "test-user-id"
+        assert data["id"] is not None
+        assert len(data["id"]) > 0
         assert data["is_verified"] is False
         assert "created_at" in data
+
+    def test_register_user_without_consent(self, client):
+        """
+        Test registration fails when consent is explicitly false
+        """
+        user_data = {
+            "email": f"noconsent+{uuid.uuid4().hex[:8]}@example.com",
+            "password": "password123",
+            "consent": False
+        }
+
+        response = client.post("/api/auth/register", json=user_data)
+        assert response.status_code == 400
+        data = response.json()
+        assert "согласиться" in data["detail"]
 
     def test_register_duplicate_email(self, client):
         """
@@ -55,7 +72,6 @@ class TestAuthentication:
         }
         client.post("/api/auth/register", json=user_data)
 
-        # Verify with a test code (mocked)
         verify_data = {
             "email": user_data["email"],
             "code": "123456"
@@ -113,6 +129,11 @@ class TestAuthentication:
         # Register user
         client.post("/api/auth/register", json=user_data)
 
+        client.post("/api/auth/verify", json={
+            "email": user_data["email"],
+            "code": "123456"
+        })
+
         # Login
         response = client.post("/api/auth/login", json=user_data)
         assert response.status_code == 200
@@ -134,3 +155,52 @@ class TestAuthentication:
 
         response = client.post("/api/auth/login", json=login_data)
         assert response.status_code in [400, 401]
+
+    def test_test_code_endpoint_disabled_outside_debug(self, client, monkeypatch):
+        """The local test-code helper must not be exposed in production."""
+        monkeypatch.delenv("PYTEST_RUNNING", raising=False)
+        settings.debug = False
+
+        response = client.get("/api/auth/test-code/test@example.com")
+
+        assert response.status_code == 404
+
+    def test_sign_in_with_google_success(self):
+        """
+        Test generating Google OAuth login URL and extracting code verifier
+        """
+        from app.services.auth_service import SupabaseAuthService
+        from unittest.mock import MagicMock, patch
+
+        service = SupabaseAuthService()
+        
+        # Mock the client returned by service.client
+        mock_client_instance = MagicMock()
+        mock_oauth_response = MagicMock()
+        mock_oauth_response.url = "https://accounts.google.com/o/oauth2/v2/auth"
+        mock_client_instance.auth.sign_in_with_oauth.return_value = mock_oauth_response
+        
+        mock_client_instance.auth._storage_key = "sb-test-key"
+        mock_client_instance.auth._storage.get_item.return_value = "xyz_code_verifier"
+        
+        # Patch the get_supabase_client function
+        with patch("app.services.auth_service.get_supabase_client", return_value=mock_client_instance):
+            result = service.sign_in_with_google("http://localhost:8000/callback")
+            
+            assert result["url"] == "https://accounts.google.com/o/oauth2/v2/auth"
+            assert result["code_verifier"] == "xyz_code_verifier"
+            
+            # Verify sign_in_with_oauth was called with correct parameters
+            mock_client_instance.auth.sign_in_with_oauth.assert_called_once_with({
+                "provider": "google",
+                "options": {
+                    "redirect_to": "http://localhost:8000/callback",
+                    "query_params": {
+                        "access_type": "offline",
+                        "prompt": "consent"
+                    }
+                }
+            })
+            # Verify storage was queried with the correct key
+            mock_client_instance.auth._storage.get_item.assert_called_once_with("sb-test-key-code-verifier")
+

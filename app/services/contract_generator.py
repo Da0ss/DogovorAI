@@ -16,14 +16,30 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from docx import Document
-
 logger = logging.getLogger(__name__)
+
+# Проверяем доступность python-docx при загрузке модуля
+# Если не установлен — DOCX-генерация недоступна, но приложение стартует
+try:
+    from docx import Document as _DocxDocument
+    DOCX_AVAILABLE = True
+except ImportError:
+    _DocxDocument = None  # type: ignore
+    DOCX_AVAILABLE = False
+    logger.warning(
+        "⚠️ python-docx не установлен — генерация DOCX недоступна. "
+        "Добавьте python-docx в зависимости."
+    )
 
 # Directories
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # project root
 TEMPLATES_DIR = BASE_DIR / "app" / "templates_docx"
-GENERATED_DIR = BASE_DIR / "media" / "generated"
+
+# На Vercel файловая система read-only, кроме /tmp
+# Используем /tmp/dogovorai_generated для serverless-совместимости
+import os as _os
+_is_vercel = _os.getenv("VERCEL") == "1" or _os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
+GENERATED_DIR = Path("/tmp/dogovorai_generated") if _is_vercel else BASE_DIR / "media" / "generated"
 
 
 def _ensure_dirs() -> None:
@@ -107,7 +123,13 @@ def generate_docx(template_path: str, context: dict, output_filename: Optional[s
     if not template.exists():
         raise FileNotFoundError(f"Шаблон не найден: {template_path}")
 
-    doc = Document(str(template))
+    if not DOCX_AVAILABLE or _DocxDocument is None:
+        raise RuntimeError(
+            "Генерация DOCX недоступна: python-docx не установлен. "
+            "Обратитесь к администратору."
+        )
+
+    doc = _DocxDocument(str(template))
 
     # Replace in paragraphs (including headers/footers)
     for paragraph in doc.paragraphs:

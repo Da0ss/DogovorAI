@@ -1,20 +1,27 @@
+# ============================================================
+# Production requirements for DogovorAI (optimized for Vercel)
+# ============================================================
+
+# Core Framework
 fastapi==0.104.1
+mangum==0.17.0
+
+# ASGI / Server
 uvicorn[standard]==0.24.0
-pydantic>=2.11.7,<3.0.0
-pydantic[email]>=2.11.7
+ 
+# Pydantic
+pydantic[email]>=2.11.7,<3.0.0
 pydantic-settings==2.1.0
 email-validator>=2.1.0
 python-dotenv==1.0.0
+
+# Supabase
 supabase>=2.28.0
-httpx==0.28.0
-aiohttp==3.9.1
-mangum==0.17.0
+httpx>=0.27.0,<0.28.0
 
-# Database
-sqlalchemy==2.0.23
-alembic==1.12.1
-psycopg2-binary==2.9.9
-
+# Database (psycopg2-binary has native extensions, use pure python fallback)
+psycopg2-binary>=2.9.10,<3.0.0
+sqlalchemy>=2.0.36,<3.0.0
 
 # Authentication
 bcrypt==4.1.2
@@ -22,14 +29,16 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 
 # File Processing
-python-multipart==0.0.6     # Для UploadFile в FastAPI
-PyMuPDF==1.23.8             # Извлечение текста из PDF
-python-docx==1.1.0          # Извлечение текста из DOCX
-Pillow==10.1.0              # Работа с изображениями
-pytesseract==0.3.10         # OCR (требует Tesseract в системе)
-openai>=1.50.0               # Kimi API через OpenAI-совместимый интерфейс
-stripe>=15.0.0              # Stripe Payments SDK
-asyncpg==0.29.0
+python-multipart==0.0.20
+pypdf==3.17.0
+python-docx==1.1.2
+Pillow>=11.0.0,<12.0.0
 
-# Dev & Testing deps → see requirements-dev.txt
-# (not installed in Docker image)
+# NOTE: pymupdf removed — too large for Vercel (300MB+), using pypdf fallback
+# NOTE: asyncpg removed — using psycopg2 sync driver only
+# NOTE: alembic removed — migrations run separately
+
+# AI / Payments
+openai>=1.50.0
+stripe>=15.0.0
+posthog>=3.5.0

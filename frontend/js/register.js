@@ -1,6 +1,7 @@
 /**
  * DogovorAI — Registration Page Logic
  * Handles email/password registration, email verification, and Google OAuth registration.
+ * Enforces mandatory Terms of Service consent for ALL registration methods.
  */
 
 const API_BASE = '/api/auth';
@@ -64,6 +65,38 @@ function parseJsonResponse(response) {
   });
 }
 
+/**
+ * Check if the terms consent checkbox is checked.
+ * If not, show a shake animation and an error message.
+ * Returns true if consent is given, false otherwise.
+ */
+function requireConsent() {
+  const termsConsent = document.querySelector('#termsConsent');
+  if (!termsConsent) return true; // no checkbox = no gate
+
+  if (termsConsent.checked) return true;
+
+  // Show error message
+  setMessage('Пожалуйста, примите Условия использования и Политику конфиденциальности для продолжения.', 'error');
+
+  // Shake animation on the checkbox row
+  const consentRow = termsConsent.closest('.flex.items-start') || termsConsent.parentElement;
+  if (consentRow) {
+    consentRow.classList.add('consent-shake');
+    // Also highlight the checkbox border
+    termsConsent.style.outline = '2px solid #ba1a1a';
+    termsConsent.style.outlineOffset = '1px';
+
+    setTimeout(() => {
+      consentRow.classList.remove('consent-shake');
+      termsConsent.style.outline = '';
+      termsConsent.style.outlineOffset = '';
+    }, 800);
+  }
+
+  return false;
+}
+
 // ============================================================
 // Email/Password Registration
 // ============================================================
@@ -74,6 +107,7 @@ async function handleRegister(event) {
 
   const email = registerForm.email.value.trim();
   const password = registerForm.password.value;
+  const confirmPassword = registerForm.confirmPassword ? registerForm.confirmPassword.value : password;
 
   if (!validateEmail(email)) {
     setMessage('Введите корректный email.', 'error');
@@ -85,6 +119,20 @@ async function handleRegister(event) {
     return;
   }
 
+  if (password !== confirmPassword) {
+    setMessage('Пароли не совпадают.', 'error');
+    return;
+  }
+
+  if (!requireConsent()) return;
+
+  // reCAPTCHA validation
+  const recaptchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+  if (typeof grecaptcha !== 'undefined' && !recaptchaToken) {
+    setMessage('Пожалуйста, пройдите проверку «Я не робот».', 'error');
+    return;
+  }
+
   setLoading(registerButton, registerSpinner, true);
 
   try {
@@ -93,7 +141,7 @@ async function handleRegister(event) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, consent: true, recaptcha_token: recaptchaToken || null })
     });
 
     const data = await parseJsonResponse(response);
@@ -101,6 +149,29 @@ async function handleRegister(event) {
     if (!response.ok) {
       const message = data.detail || 'Не удалось зарегистрировать пользователя.';
       setMessage(message, 'error');
+      // Reset reCAPTCHA so user can retry
+      if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+      return;
+    }
+
+    if (data.session) {
+      if (data.session.access_token) {
+        localStorage.setItem('access_token', data.session.access_token);
+        localStorage.setItem('refresh_token', data.session.refresh_token);
+      }
+      localStorage.setItem('user', JSON.stringify({ id: data.id, email: data.email }));
+
+      // GA4: идентификация пользователя и трекинг входа
+      const userId = data.id;
+      if (userId && typeof identifyUser === 'function') identifyUser(userId);
+      if (typeof trackEvent === 'function') {
+        trackEvent('login', { method: 'email', user_id: userId || 'unknown' });
+      }
+
+      setMessage('Вход выполнен успешно! Перенаправление...', 'success');
+      setTimeout(() => {
+        window.location.href = '/app';
+      }, 1000);
       return;
     }
 
@@ -165,6 +236,11 @@ async function handleVerify(event) {
     setMessage('Аккаунт подтвержден успешно. Перенаправление...', 'success');
     verifyForm.classList.add('hidden');
 
+    // GA4: трекинг регистрации через email
+    if (typeof trackEvent === 'function') {
+      trackEvent('user_registration', { method: 'email' });
+    }
+
     // Redirect to login page after successful verification
     setTimeout(() => {
       window.location.href = '/app/login';
@@ -181,11 +257,21 @@ async function handleVerify(event) {
 // ============================================================
 
 async function handleGoogleRegister() {
+  setMessage('');
+
+  if (!requireConsent()) return;
+
+  // GA4: трекинг начала регистрации через Google
+  if (typeof trackEvent === 'function') {
+    trackEvent('user_registration', { method: 'google' });
+  }
+
   googleRegisterBtn.setAttribute('disabled', 'disabled');
   setMessage('Перенаправление на Google...', 'success');
 
   try {
-    const response = await fetch(GOOGLE_AUTH_URL);
+    // Send consent=true to backend so it's validated server-side too
+    const response = await fetch(`${GOOGLE_AUTH_URL}?consent=true`);
     const data = await parseJsonResponse(response);
 
     if (!response.ok) {
@@ -195,6 +281,9 @@ async function handleGoogleRegister() {
     }
 
     if (data.url) {
+      if (data.code_verifier) {
+        localStorage.setItem('google_code_verifier', data.code_verifier);
+      }
       // Redirect to Google OAuth consent screen
       window.location.href = data.url;
     } else {
@@ -213,6 +302,22 @@ async function handleGoogleRegister() {
 // Event Listeners
 // ============================================================
 
-registerForm.addEventListener('submit', handleRegister);
-verifyForm.addEventListener('submit', handleVerify);
-googleRegisterBtn.addEventListener('click', handleGoogleRegister);
+if (registerForm) {
+  registerForm.addEventListener('submit', (e) => safeSubmit(handleRegister, e));
+}
+if (verifyForm) {
+  verifyForm.addEventListener('submit', (e) => safeSubmit(handleVerify, e));
+}
+if (googleRegisterBtn) {
+  googleRegisterBtn.addEventListener('click', (e) => safeSubmit(handleGoogleRegister, e));
+}
+
+// Initialize global consent toggling
+document.addEventListener('DOMContentLoaded', () => {
+  initGlobalConsentToggle('termsConsent', ['registerButton', 'googleRegisterBtn']);
+});
+
+// Если уже авторизован — редирект на целевую страницу
+if (localStorage.getItem('access_token')) {
+  window.location.replace('/app');
+}

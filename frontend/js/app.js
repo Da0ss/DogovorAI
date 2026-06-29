@@ -42,6 +42,9 @@ const uploadCard = document.getElementById('uploadCard');
 const errorToast = document.getElementById('errorToast');
 const toastMessage = document.getElementById('toastMessage');
 
+// Expose selectedFile state globally so inline scripts can check it
+window._appHasFile = function() { return selectedFile !== null; };
+
 // ============================================================
 // FILE HANDLING
 // ============================================================
@@ -64,8 +67,9 @@ fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
         handleFileSelect(e.target.files[0]);
     }
-    // Сбрасываем value, чтобы повторный выбор того же файла тоже работал
-    fileInput.value = '';
+    // НЕ сбрасываем fileInput.value здесь — это ломало updateAnalyzeBtn(),
+    // который проверял fileInput.files.length === 0.
+    // Сброс происходит только в resetFileSelection().
 });
 
 // Drag & Drop
@@ -135,6 +139,9 @@ function handleFileSelect(file) {
 
     // Активируем кнопку анализа
     analyzeBtn.disabled = false;
+
+    // Синхронизируем состояние для inline updateAnalyzeBtn()
+    if (typeof updateAnalyzeBtn === 'function') updateAnalyzeBtn();
 }
 
 /**
@@ -152,14 +159,55 @@ function resetFileSelection() {
 // ANALYSIS
 // ============================================================
 
-analyzeBtn.addEventListener('click', startAnalysis);
+analyzeBtn.addEventListener('click', (e) => safeSubmit(startAnalysis, e));
 
 /**
  * Запуск анализа: отправка файла на API и обработка ответа.
  */
 async function startAnalysis() {
     if (!isAuthenticated()) { requireAuth(); return; }
-    if (!selectedFile) return;
+
+    const tab = typeof activeTab !== 'undefined' ? activeTab : 'file';
+    let fileToUpload = null;
+
+    if (tab === 'file') {
+        if (!selectedFile) return;
+        fileToUpload = selectedFile;
+    } else if (tab === 'text') {
+        const textVal = (document.getElementById('textInput') || {}).value || '';
+        if (textVal.trim().length < 100) {
+            showError('Введите текст договора (минимум 100 символов).');
+            return;
+        }
+        fileToUpload = new File([textVal], 'text_input.txt', { type: 'text/plain' });
+    } else if (tab === 'url') {
+        const urlVal = (document.getElementById('urlInput') || {}).value || '';
+        if (!urlVal.startsWith('http')) {
+            showError('Введите корректную ссылку.');
+            return;
+        }
+        try {
+            const fetchResp = await fetch(urlVal);
+            if (!fetchResp.ok) throw new Error('Не удалось скачать файл по ссылке.');
+            const blob = await fetchResp.blob();
+            const fileNameFromUrl = urlVal.split('/').pop() || 'document.pdf';
+            fileToUpload = new File([blob], fileNameFromUrl, { type: blob.type });
+        } catch (e) {
+            showError('Не удалось загрузить документ по ссылке. Убедитесь, что ссылка является прямой и сервер разрешает CORS-запросы.');
+            return;
+        }
+    }
+
+    if (!fileToUpload) return;
+
+    // GA4: трекинг начала анализа
+    if (typeof trackEvent === 'function') {
+      trackEvent('feature_usage', { feature_name: 'contract_analysis', input_type: tab });
+    }
+
+    analyzeBtn.disabled = true;
+    analyzeBtn.classList.add('loading');
+    analyzeBtn.setAttribute('data-was-loading', 'true');
 
     // Скрываем форму, показываем прогресс
     uploadCard.style.display = 'none';
@@ -171,8 +219,8 @@ async function startAnalysis() {
 
     try {
         const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('filename', selectedFile.name);
+        formData.append('file', fileToUpload);
+        formData.append('filename', fileToUpload.name);
 
         const headers = (typeof getAuthHeaders === 'function') ? getAuthHeaders() : {};
 
@@ -202,6 +250,11 @@ async function startAnalysis() {
         const data = await response.json();
         displayResults(data);
 
+        // GA4: трекинг успешного анализа
+        if (typeof trackEvent === 'function') {
+          trackEvent('feature_usage', { feature_name: 'contract_analysis_success' });
+        }
+
         // Refresh usage bar after successful analysis
         if (typeof loadUsageInfo === 'function') loadUsageInfo();
 
@@ -209,6 +262,11 @@ async function startAnalysis() {
         console.error('Analysis error:', error);
         progressContainer.style.display = 'none';
         uploadCard.style.display = 'block';
+
+        // GA4: трекинг ошибки анализа
+        if (typeof trackError === 'function') {
+          trackError('analysis_failed', error.message, 'index');
+        }
 
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
             showError('Не удалось подключиться к серверу. Убедитесь что сервер запущен.');
@@ -280,18 +338,17 @@ function displayResults(data) {
     const verdictEl = document.getElementById('resultsVerdict');
     const verdictIcon = document.getElementById('verdictIcon');
     const verdictText = document.getElementById('verdictText');
-    verdictEl.className = 'results-verdict';
 
     if (analysis.overall_risk_level === 'high') {
-        verdictEl.classList.add('verdict-high');
+        verdictEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border bg-error-container/30 border-error text-error';
         verdictIcon.textContent = '🔴';
         verdictText.textContent = 'Высокий риск';
     } else if (analysis.overall_risk_level === 'medium') {
-        verdictEl.classList.add('verdict-medium');
+        verdictEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border bg-tertiary-fixed/30 border-tertiary text-amber-600';
         verdictIcon.textContent = '🟡';
         verdictText.textContent = 'Умеренный риск';
     } else {
-        verdictEl.classList.add('verdict-low');
+        verdictEl.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full border bg-secondary-container/20 border-secondary text-secondary';
         verdictIcon.textContent = '🟢';
         verdictText.textContent = 'Низкий риск';
     }
@@ -306,22 +363,22 @@ function displayResults(data) {
     document.getElementById('mediumCount').textContent = mediumRisks.length;
     document.getElementById('lowCount').textContent = lowRisks.length;
 
-    // Список рисков
-    const risksList = document.getElementById('risksList');
-    risksList.innerHTML = '';
+    // Список рисков (сначала в fallback рендерим, потом переносим в сплит-скрин)
+    const risksListFb = document.getElementById('risksListFallback');
+    risksListFb.innerHTML = '';
 
     if (risks.length === 0) {
-        risksList.innerHTML = `
-            <div class="risk-card risk-low">
-                <p style="color:var(--risk-low);font-size:18px;text-align:center;padding:8px 0">
-                    ✅ Рисков не обнаружено
+        risksListFb.innerHTML = `
+            <div class="bg-surface-container-lowest rounded-[12px] p-6 text-center border border-outline-variant">
+                <p class="text-secondary font-bold text-lg flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">check_circle</span> Рисков не обнаружено
                 </p>
             </div>
         `;
     } else {
         // Сначала критические, потом умеренные, потом низкие
         [...highRisks, ...mediumRisks, ...lowRisks].forEach((risk, i) => {
-            risksList.appendChild(createRiskCard(risk, i + 1));
+            risksListFb.appendChild(createRiskCard(risk, i + 1));
         });
     }
 
@@ -335,6 +392,14 @@ function displayResults(data) {
         recList.innerHTML = recommendations
             .map(rec => `<li>${escapeHtml(rec)}</li>`)
             .join('');
+    }
+
+    // Обновляем прогресс-бар и сплит-скрин
+    if (typeof updateRiskProgressBar === 'function') {
+        updateRiskProgressBar(highRisks.length, mediumRisks.length, lowRisks.length);
+    }
+    if (typeof showSplitScreen === 'function') {
+        showSplitScreen(fileInfo.extracted_text);
     }
 
     // Плавная прокрутка к результатам
@@ -351,51 +416,73 @@ function displayResults(data) {
  */
 function createRiskCard(risk, index) {
     const card = document.createElement('div');
-    card.className = `risk-card risk-${risk.risk_level}`;
+    card.className = `risk-card risk-${risk.risk_level} cursor-pointer transition-all duration-200 hover:shadow-md`;
     card.style.animationDelay = `${index * 0.07}s`;
 
-    const levelLabels = { high: 'Критический', medium: 'Умеренный', low: 'Низкий' };
-    const levelLabel = levelLabels[risk.risk_level] || 'Низкий';
+    let badgeClass = 'badge-low';
+    let levelLabel = 'Низкий риск';
+
+    if (risk.risk_level === 'high') {
+        badgeClass = 'badge-high';
+        levelLabel = 'Критический риск';
+    } else if (risk.risk_level === 'medium') {
+        badgeClass = 'badge-medium';
+        levelLabel = 'Умеренный риск';
+    }
 
     let html = `
         <div class="risk-card-header">
-            <span class="risk-level-badge badge-${risk.risk_level}">${levelLabel}</span>
+            <span class="risk-level-badge ${badgeClass}">${levelLabel}</span>
             <span class="risk-category">${escapeHtml(risk.category)}</span>
         </div>
-        <p class="risk-description">${escapeHtml(risk.description)}</p>
+        <div class="risk-description">
+            ${escapeHtml(risk.description)}
+        </div>
     `;
 
     if (risk.original_clause) {
-        html += `<div class="risk-original-clause">${escapeHtml(risk.original_clause)}</div>`;
-    }
-
-    html += `<div class="risk-footer">`;
-
-    if (risk.recommendation) {
-        html += `<div class="risk-recommendation">${escapeHtml(risk.recommendation)}</div>`;
-    }
-
-    if (risk.law_reference) {
-        const title = risk.law_description
-            ? `title="${escapeHtml(risk.law_description)}"`
-            : '';
         html += `
-            <div class="risk-law" ${title}>
-                ⚖️ <span class="risk-law-ref">${escapeHtml(risk.law_reference)}</span>
-                ${risk.law_description ? `<span style="color:var(--text-muted);margin-left:6px;font-size:12px">— нажмите для деталей</span>` : ''}
+            <div class="risk-original-clause">
+                ${escapeHtml(risk.original_clause)}
             </div>
         `;
     }
 
-    html += `</div>`;
+    if (risk.recommendation || risk.law_reference) {
+        html += `<div class="risk-footer">`;
+        
+        if (risk.recommendation) {
+            html += `
+                <div class="risk-recommendation">
+                    ${escapeHtml(risk.recommendation)}
+                </div>
+            `;
+        }
+
+        if (risk.law_reference) {
+            const title = risk.law_description ? `title="${escapeHtml(risk.law_description)}"` : '';
+            html += `
+                <div class="risk-law" ${title}>
+                    Закон: <span class="risk-law-ref">${escapeHtml(risk.law_reference)}</span>
+                    ${risk.law_description ? `<span style="font-size: 10px; opacity: 0.6; margin-left: 4px;">— подробнее</span>` : ''}
+                </div>
+            `;
+        }
+        
+        html += `</div>`;
+    }
+
     card.innerHTML = html;
 
-    // Тултип для закона
+    // Click handler for law tooltip detail
     if (risk.law_reference && risk.law_description) {
-        const lawEl = card.querySelector('.risk-law');
-        lawEl.addEventListener('click', () => {
-            alert(`${risk.law_reference}\n\n${risk.law_description}`);
-        });
+        const lawEl = card.querySelector('.risk-law-ref');
+        if (lawEl) {
+            lawEl.parentElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                alert(`${risk.law_reference}\n\n${risk.law_description}`);
+            });
+        }
     }
 
     return card;

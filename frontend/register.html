@@ -1,68 +1,471 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html class="dark" lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Vercel Speed Insights -->
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>DogovorAI — Регистрация</title>
-  <link rel="stylesheet" href="/static/css/register.css">
-  <link rel="stylesheet" href="/static/css/privacy.css">
+  <meta name="description" content="Создайте аккаунт DogovorAI — AI-сервис для анализа договоров">
+  <!-- Material Symbols and Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+  <!-- Tailwind CSS -->
+  <link rel="stylesheet" href="/static/css/tailwind-built.css?v=1.3">
+  <!-- Google reCAPTCHA v2 -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+    }
+    .glass-effect {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .auth-card-shadow {
+      box-shadow: 0px 4px 20px rgba(63, 81, 181, 0.12);
+    }
+    /* Messages alerts */
+    .message:not(:empty) {
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: left;
+    }
+    .message.success {
+      background-color: rgba(0, 191, 165, 0.12);
+      color: #00bfa5;
+      border: 1px solid rgba(0, 191, 165, 0.25);
+    }
+    .message.error {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+    /* Spinner override for integration */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin-anim 0.8s linear infinite;
+      display: none;
+    }
+    @keyframes spin-anim {
+      to { transform: rotate(360deg); }
+    }
+    button.loading .spinner {
+      display: inline-block;
+    }
+    /* Legal Modal Styles */
+    #legalModal.active {
+      display: flex;
+    }
+    #legalModal.active #legalModalCard {
+      transform: scale(1);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(67, 85, 185, 0.3);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(67, 85, 185, 0.6);
+    }
+    /* Consent shake animation */
+    @keyframes consent-shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 50%, 90% { transform: translateX(-4px); }
+      30%, 70% { transform: translateX(4px); }
+    }
+    .consent-shake {
+      animation: consent-shake 0.5s ease-in-out;
+    }
+    /* Google button visual states */
+    #googleRegisterBtn {
+      transition: opacity 0.3s ease, filter 0.3s ease;
+    }
+    #googleRegisterBtn.btn-locked {
+      opacity: 0.5;
+      filter: grayscale(0.6);
+      cursor: not-allowed;
+    }
+  </style>
+  
+  <!-- Vercel Web Analytics -->
+  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 </head>
-<body>
-  <main class="page-shell">
-    <section class="card">
-      <div class="brand">
-        <span class="brand-title">DogovorAI</span>
-        <p class="brand-subtitle">Регистрация и подтверждение аккаунта</p>
-        <a class="text-link" href="/app">Вернуться на главную</a>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+
+
+  <!-- Header -->
+  <header class="sticky top-0 w-full z-50 flex justify-between items-center px-gutter py-sm max-w-container-max mx-auto bg-surface/80 backdrop-blur-md">
+    <a href="/app" class="flex items-center gap-2 no-underline group">
+      <span class="material-symbols-outlined text-[28px] text-primary transition-transform group-hover:scale-105" style="font-variation-settings: 'FILL' 1;">balance</span>
+      <span class="font-title-md text-title-md font-bold text-on-surface">Dogovor <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">AI</span></span>
+    </a>
+    <div class="flex items-center gap-sm">
+      <a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors no-underline" href="mailto:support@dogovorai.kz">Помощь</a>
+    </div>
+  </header>
+
+  <!-- Main Content: Register Canvas -->
+  <main class="flex-grow flex items-center justify-center px-gutter py-xl relative overflow-hidden">
+    <div class="relative w-full max-w-[480px]">
+      <!-- Decorative Element: Subtle glow behind the card -->
+      <div class="absolute -top-16 -left-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-16 -right-16 w-64 h-64 bg-secondary/5 rounded-full blur-3xl"></div>
+      
+      <!-- Auth Card -->
+      <div class="relative bg-surface-container-lowest auth-card-shadow rounded-lg p-lg border border-outline-variant/30 z-10">
+        <!-- Card Header -->
+        <div class="mb-lg text-center">
+          <h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Создать аккаунт</h1>
+          <p class="font-body-md text-body-md text-on-surface-variant">Точность в каждом пункте договора начинается здесь.</p>
+        </div>
+
+        <!-- Global Message Container -->
+        <div class="message" id="message" aria-live="polite"></div>
+
+        <!-- Registration Form -->
+        <form class="space-y-md" id="registerForm" autocomplete="on" enctype="multipart/form-data">
+          <!-- Email Field -->
+          <div class="group">
+            <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="email">Электронная почта</label>
+            <div class="relative">
+              <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="email" name="email" placeholder="jane@example.com" required="" type="email" autocomplete="email"/>
+            </div>
+          </div>
+
+          <!-- Password Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+            <div class="group">
+              <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="password">Пароль</label>
+              <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="password" name="password" placeholder="••••••••" required="" type="password" minlength="6" autocomplete="new-password"/>
+            </div>
+            <div class="group">
+              <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="confirmPassword">Повторите пароль</label>
+              <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required="" type="password" minlength="6" autocomplete="new-password"/>
+            </div>
+          </div>
+
+          <!-- reCAPTCHA v2 Widget -->
+          <div class="flex justify-center mt-md">
+            <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="6LeSEBMtAAAAAEnrINLc2r5gMENlDrwFP4x_6b8a"></div>
+          </div>
+
+          <!-- CTA Button -->
+          <button class="w-full bg-primary text-white font-title-md text-title-md py-sm rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md flex justify-center items-center gap-2 btn-locked" id="registerButton" type="submit" disabled>
+            <span class="button-text">Создать аккаунт</span>
+            <span class="spinner" id="registerSpinner" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <!-- Verification Form (Shown after registration) -->
+        <form class="space-y-md hidden" id="verifyForm" autocomplete="off" enctype="multipart/form-data">
+          <p class="font-body-sm text-body-sm text-on-surface-variant text-center">Код подтверждения отправлен на email. Введите 6 цифр.</p>
+
+          <!-- Verification Code Field -->
+          <div class="group">
+            <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="verifyCode">Код подтверждения</label>
+            <div class="relative">
+              <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant text-center tracking-widest font-bold" id="verifyCode" name="code" placeholder="123456" required="" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code"/>
+            </div>
+          </div>
+
+          <!-- Verify Button -->
+          <button class="w-full bg-primary text-white font-title-md text-title-md py-sm rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md flex justify-center items-center gap-2" id="verifyButton" type="submit">
+            <span class="button-text">Подтвердить</span>
+            <span class="spinner" id="verifySpinner" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="relative my-lg divider">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-outline-variant"></div>
+          </div>
+          <div class="relative flex justify-center text-label-md">
+            <span class="bg-surface-container-lowest px-md text-on-surface-variant font-label-md uppercase tracking-wider">Или с помощью</span>
+          </div>
+        </div>
+
+        <!-- Consent Checkbox (shared: applies to BOTH email and Google registration) -->
+        <div class="flex items-start gap-sm pt-xs mb-md" id="consentBlock">
+          <div class="relative flex items-center h-5">
+            <input type="checkbox" id="termsConsent" name="consent" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-background bg-transparent transition-all cursor-pointer">
+          </div>
+          <label for="termsConsent" class="font-body-sm text-body-sm text-on-surface-variant cursor-pointer select-none">
+            Я соглашаюсь с <a href="#" id="openTermsBtn" class="text-primary hover:underline font-semibold">Условиями использования</a> и <a href="#" id="openPrivacyBtn" class="text-primary hover:underline font-semibold">Политикой конфиденциальности</a>.
+          </label>
+        </div>
+
+        <!-- Google Auth -->
+        <button class="w-full flex items-center justify-center gap-sm bg-surface-container-low border border-outline-variant text-on-surface font-body-md py-sm rounded-lg hover:bg-surface-container-high transition-colors btn-locked" id="googleRegisterBtn" type="button" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="flex-shrink-0">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          <span class="button-text">Продолжить с Google</span>
+        </button>
+
+        <!-- Redirect Link -->
+        <div class="mt-lg text-center">
+          <p class="font-body-md text-body-md text-on-surface-variant">
+            Уже есть аккаунт? 
+            <a class="text-primary font-bold hover:underline" href="/app/login">Войти</a>
+          </p>
+        </div>
       </div>
-
-      <div class="message" id="message" aria-live="polite"></div>
-
-      <!-- Google Sign-Up Button -->
-      <button class="button button-google" id="googleRegisterBtn" type="button">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-        <span class="button-text">Зарегистрироваться через Google</span>
-      </button>
-
-      <div class="divider">или</div>
-
-      <form class="form" id="registerForm">
-        <label class="field-label" for="email">Email</label>
-        <input class="field-input" id="email" name="email" type="email" placeholder="ivan@example.com" required>
-
-        <label class="field-label" for="password">Пароль</label>
-        <input class="field-input" id="password" name="password" type="password" placeholder="Минимум 6 символов" minlength="6" required>
-
-        <button class="button button-primary" id="registerButton" type="submit">
-          <span class="button-text">Зарегистрироваться</span>
-          <span class="spinner" id="registerSpinner" aria-hidden="true"></span>
-        </button>
-      </form>
-
-      <p class="form-footer">
-        Уже есть аккаунт? <a class="text-link" href="/app/login">Войти</a>
-      </p>
-
-      <form class="form hidden" id="verifyForm">
-        <p class="hint">Код подтверждения отправлен на email. Введите 6 цифр.</p>
-
-        <label class="field-label" for="verifyCode">Код</label>
-        <input class="field-input" id="verifyCode" name="code" type="text" inputmode="numeric" pattern="\d{6}" placeholder="123456" maxlength="6" required>
-
-        <button class="button button-secondary" id="verifyButton" type="submit">
-          <span class="button-text">Подтвердить</span>
-          <span class="spinner" id="verifySpinner" aria-hidden="true"></span>
-        </button>
-      </form>
-    </section>
+    </div>
   </main>
 
-  <script src="/static/js/register.js"></script>
-  <script src="/static/js/privacy.js"></script>
+  <!-- Footer -->
+  <footer class="w-full py-lg px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto border-t border-outline-variant bg-surface">
+    <div class="mb-sm md:mb-0">
+      <span class="font-body-sm text-body-sm text-on-surface-variant">© 2026 Dogovor AI. Точность в каждом пункте.</span>
+    </div>
+    <div class="flex gap-md">
+      <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#" onclick="document.getElementById('openTermsBtn').click(); return false;">Условия использования</a>
+      <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#" onclick="document.getElementById('openPrivacyBtn').click(); return false;">Конфиденциальность</a>
+    </div>
+  </footer>
+
+  <!-- Modal Window (overlay) for Terms of Service and Privacy Policy -->
+  <div id="legalModal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300" role="dialog" aria-modal="true">
+    <div class="relative bg-surface-container-lowest border border-outline-variant/30 rounded-xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="legalModalCard">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center px-md py-sm border-b border-outline-variant/20 bg-surface-container-low">
+        <div class="flex items-center gap-sm">
+          <span class="material-symbols-outlined text-primary text-2xl" id="legalModalIcon">description</span>
+          <h2 class="font-title-md text-title-md text-on-surface font-bold" id="legalModalTitle">Документ</h2>
+        </div>
+        <button type="button" id="closeModalBtn" class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 p-2 rounded-full transition-colors flex items-center justify-center outline-none">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Scrollable Document Content -->
+      <div class="flex-grow overflow-y-auto px-md py-md text-body-sm text-on-surface-variant leading-relaxed custom-scrollbar pp-content" id="legalModalContent">
+        <!-- Content will be injected here dynamically -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-md py-sm border-t border-outline-variant/20 bg-surface-container-low flex justify-end">
+        <button type="button" id="acceptLegalBtn" class="bg-primary text-white font-title-md text-sm px-lg py-2 rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md">
+          Понятно
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/js/analytics_helper.js?v=1.3"></script>
+  <script src="/static/js/global_actions.js?v=1.3"></script>
+  <script src="/static/js/register.js?v=1.3"></script>
+  <script src="/static/js/privacy.js?v=1.3"></script>
+  <script>
+    // Micro-interactions for inputs
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('focus', () => {
+        const group = input.closest('.group');
+        if (group) group.classList.add('scale-[1.01]', 'duration-200');
+      });
+      input.addEventListener('blur', () => {
+        const group = input.closest('.group');
+        if (group) group.classList.remove('scale-[1.01]');
+      });
+    });
+
+    // Document Texts
+    const termsHTML = `
+      <h2>УСЛОВИЯ ИСПОЛЬЗОВАНИЯ СЕРВИСА «DOGOVOR AI»</h2>
+      <p><strong>ВНИМАНИЕ:</strong> Использование данного веб-сайта и сервиса означает ваше полное и безоговорочное согласие с настоящими Условиями. Если вы не согласны с любым из положений, немедленно прекратите использование сервиса.</p>
+      <hr>
+      <h2>1. Характер Сервиса и Отказ от юридических гарантий</h2>
+      <ul>
+        <li>Сервис «Dogovor AI» является исключительно инструментом автоматизированного анализа текстов, основанным на технологиях искусственного интеллекта.</li>
+        <li>Сервис НЕ ЯВЛЯЕТСЯ юридической фирмой, адвокатским кабинетом или заменой квалифицированной юридической консультации.</li>
+        <li>Вы признаете, что программное обеспечение может допускать ошибки, неточности, галлюцинации (генерация неверной информации) или пропускать критические юридические риски.</li>
+        <li>Администрация не гарантирует полноту, точность или применимость результатов анализа к вашей конкретной ситуации.</li>
+      </ul>
+      <hr>
+      <h2>2. Роль Пользователя и принятие решений</h2>
+      <ul>
+        <li>Вы подтверждаете, что любое решение, принятое на основе отчета «Dogovor AI» (подписание, расторжение или изменение договора), является исключительно вашим самостоятельным решением.</li>
+        <li>Мы настоятельно рекомендуем привлечение профессионального юриста для проверки всех документов перед их подписанием.</li>
+        <li>Владелец сервиса не несет ответственности за любые последствия, возникшие в результате ваших действий или бездействия на основе данных, полученных через «Dogovor AI».</li>
+      </ul>
+      <hr>
+      <h2>3. Ограничение ответственности (Liability Disclaimer)</h2>
+      <ul>
+        <li><strong>Полное освобождение от ответственности:</strong> Насколько это позволяет применимое законодательство, «Dogovor AI» и его владельцы не несут ответственности за любые прямые, косвенные, случайные или штрафные убытки, включая, но не ограничиваясь: потерей прибыли, данных, репутации или иным имущественным ущербом, возникшим из-за использования сервиса.</li>
+        <li>Сервис предоставляется на условиях «как есть» (as is) и «как доступно» (as available), без каких-либо гарантий любого ��ода.</li>
+      </ul>
+      <hr>
+      <h2>4. Конфиденциальность и обработка данных</h2>
+      <ul>
+        <li>Вы соглашаетесь с тем, что загружаемые вами документы передаются на серверы и обрабатываются с использованием сторонних API (например, моделей Google Gemini).</li>
+        <li>Администрация прилагает усилия для защиты данных, однако не гарантирует абсолютную безопасность передачи или хранения информации.</li>
+        <li>Использование сервиса подразумевает ваше согласие на хранение и анонимизированную обработку данных в целях совершенствования алгоритмов работы ИИ.</li>
+      </ul>
+      <hr>
+      <h2>5. Интеллектуальная собственность</h2>
+      <p>Весь интерфейс, дизайн, логотип и алгоритмы обработки являются исключительной собственностью разработчиков. Копирование, декомпиляция или использование исходного кода запрещено.</p>
+      <hr>
+      <h2>6. Изменения и прекращение доступа</h2>
+      <p>Администрация оставляет за собой право в любое время и без предварительного уведомления изменить, приостановить или прекратить предоставление доступа к сервису любому пользователю.</p>
+    `;
+
+    const privacyHTML = `
+      <h2>1. Общие положения</h2>
+      <p>Настоящая Политика конфиденциальности регулирует порядок обработки и защиты персональных данных пользователей сервиса по анализу договоров, выявлению рисков и созданию договоров с учетом предложенных исправлений (далее — «Сервис»).</p>
+      <p>Используя Сервис, пользователь подтверждает согласие с данной Политикой.</p>
+      <hr>
+      <h2>2. Собираемые данные</h2>
+      <h3>2.1. Данные, предоставляемые пользователем</h3>
+      <ul>
+        <li>Загружаемые документы (договоры, соглашения и иные файлы)</li>
+        <li>Текстовые данные, вводимые пользователем</li>
+        <li>Контактные данные (при регистрации): email, имя</li>
+      </ul>
+      <h3>2.2. Автоматически собираемые данные</h3>
+      <ul>
+        <li>IP-адрес</li>
+        <li>Тип устройства и браузера</li>
+        <li>Логи действий в Сервисе</li>
+        <li>Cookies и аналогичные технологии</li>
+      </ul>
+      <hr>
+      <h2>3. Цели обработки данных</h2>
+      <p>Персональные данные используются для:</p>
+      <ul>
+        <li>Анализа документов и выявления юридических рисков</li>
+        <li>Генерации рекомендаций по улучшению договоров</li>
+        <li>Создания новых договоров на основе пользовательских данных</li>
+        <li>Улучшения качества работы Сервиса</li>
+        <li>Обеспечения безопасности и предотвращения злоупотреблений</li>
+      </ul>
+      <hr>
+      <h2>4. Обработка документов</h2>
+      <ul>
+        <li>Загруженные документы обрабатываются автоматически с использованием алгоритмов анализа текста и искусственного интеллекта</li>
+        <li>Сервис не использует документы для иных целей без согласия пользователя</li>
+        <li>Документы могут временно храниться для обеспечения работы функций Сервиса</li>
+      </ul>
+      <hr>
+      <h2>5. Хранение и защита данных</h2>
+      <ul>
+        <li>Данные хранятся в защищенных инфраструктурах</li>
+        <li>Применяются меры защиты: шифрование, контроль доступа, аудит действий</li>
+        <li>Срок хранения данных определяется необходимостью оказания услуг либо требованиями законодательства</li>
+      </ul>
+      <hr>
+      <h2>6. Передача данных третьим лицам</h2>
+      <p>Сервис не передает персональные данные третьим лицам, за исключением случаев:</p>
+      <ul>
+        <li>Требований законодательства</li>
+        <li>Необходимости выполнения функций Сервиса (например, облачные провайдеры)</li>
+        <li>Получения явного согласия пользователя</li>
+      </ul>
+      <hr>
+      <h2>7. Права пользователя</h2>
+      <p>Пользователь имеет право:</p>
+      <ul>
+        <li>Запросить доступ к своим данным</li>
+        <li>Требовать исправления или удаления данных</li>
+        <li>Отозвать согласие на обработку</li>
+        <li>Ограничить обработку данных</li>
+      </ul>
+      <hr>
+      <h2>8. Использование cookies</h2>
+      <p>Сервис может использовать cookies для:</p>
+      <ul>
+        <li>Аутентификации пользователей</li>
+        <li>Сохранения пользовательских настроек</li>
+        <li>Аналитики и улучшения работы</li>
+      </ul>
+      <p>Пользователь может отключить cookies в настройках браузера.</p>
+      <hr>
+      <h2>9. Ограничение ответственности</h2>
+      <p>Сервис предоставляет результаты анализа в информационных целях и не является заменой юридической консультации. Пользователь самостоятельно принимает решения на основе предоставленных рекомендаций.</p>
+      <hr>
+      <h2>10. Изменения политики</h2>
+      <p>Сервис оставляет за собой право изменять настоящую Политику. Обновленная версия вступает в силу с момента публикации.</p>
+      <hr>
+      <h2>11. Контактная информация</h2>
+      <p>По вопросам обработки данных пользователь может обратиться:</p>
+      <p>Email: <a href="mailto:damikserik@gmail.com">damikserik@gmail.com</a></p>
+    `;
+
+    // Modal logic
+    const legalModal = document.getElementById('legalModal');
+    const legalModalCard = document.getElementById('legalModalCard');
+    const legalModalTitle = document.getElementById('legalModalTitle');
+    const legalModalIcon = document.getElementById('legalModalIcon');
+    const legalModalContent = document.getElementById('legalModalContent');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const acceptLegalBtn = document.getElementById('acceptLegalBtn');
+    const openTermsBtn = document.getElementById('openTermsBtn');
+    const openPrivacyBtn = document.getElementById('openPrivacyBtn');
+
+    function openModal(title, iconName, htmlContent) {
+      legalModalTitle.textContent = title;
+      legalModalIcon.textContent = iconName;
+      legalModalContent.innerHTML = htmlContent;
+      legalModal.classList.remove('hidden');
+      legalModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      // Reset scroll position of content
+      legalModalContent.scrollTop = 0;
+    }
+
+    function closeModal() {
+      legalModal.classList.add('hidden');
+      legalModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    openTermsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal('Условия использования', 'description', termsHTML);
+    });
+
+    openPrivacyBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal('Политика конфиденциальности', 'shield', privacyHTML);
+    });
+
+    closeModalBtn.addEventListener('click', closeModal);
+    acceptLegalBtn.addEventListener('click', closeModal);
+
+    legalModal.addEventListener('click', (e) => {
+      if (e.target === legalModal) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !legalModal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+  </script>
 </body>
 </html>

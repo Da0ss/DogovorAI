@@ -13,6 +13,7 @@ import secrets
 
 from app.models.models import User, VerificationCode
 from app.models.schemas import UserCreate, VerificationRequest
+from app.services.auth_context import is_debug_or_test
 
 logger = logging.getLogger(__name__)
 
@@ -91,8 +92,8 @@ def create_verification_code(db: Session, user_id: str,
     db.commit()
     db.refresh(verification_code)
 
-    logger.info(f"📧 Код верификации для user_id={user_id}: {code}")
-    print(f"📧 ===> КОД ДЛЯ ВХОДА: {code} <===")
+    if is_debug_or_test():
+        logger.info(f"📧 Код верификации для user_id={user_id}: {code}")
     return verification_code
 
 
