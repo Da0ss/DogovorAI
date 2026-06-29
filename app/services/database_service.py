@@ -7,7 +7,12 @@ import logging
 import json
 from typing import Dict, Any, Optional
 from datetime import datetime
-from supabase import Client
+
+try:
+    from supabase import Client
+except ImportError:
+    Client = object  # type: ignore
+
 from config.database import get_supabase_client
 
 logger = logging.getLogger(__name__)
@@ -25,9 +30,16 @@ class DatabaseService:
         Initialize DatabaseService.
         
         Args:
-            client: Optional Supabase client. If None, gets the default client.
+            client: Optional Supabase client. If None, gets the default client lazily.
         """
-        self.client = client or get_supabase_client()
+        self._client = client
+
+    @property
+    def client(self) -> Client:
+        """Get Supabase client with lazy initialization."""
+        if self._client is None:
+            self._client = get_supabase_client()
+        return self._client
 
     async def check_connection(self) -> Dict[str, Any]:
         """

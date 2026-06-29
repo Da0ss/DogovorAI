@@ -49,6 +49,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     analyses_limit      integer         DEFAULT 3,           -- NULL = безлимит (план Max)
     analyses_reset_at   timestamptz,                         -- Дата следующего сброса счётчика
 
+    -- Consent tracking
+    consent_accepted    boolean         NOT NULL DEFAULT false,
+    consent_accepted_at timestamptz,
+
     -- Timestamps
     created_at          timestamptz     NOT NULL DEFAULT now(),
     updated_at          timestamptz     NOT NULL DEFAULT now()

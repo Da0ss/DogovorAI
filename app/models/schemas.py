@@ -13,6 +13,8 @@ class UserCreate(BaseModel):
     """
     email: EmailStr
     password: str
+    consent: bool = Field(True, description="Consent to Terms of Service and Privacy Policy")
+    recaptcha_token: Optional[str] = Field(None, description="Google reCAPTCHA v2 response token")
 
 
 class UserResponse(BaseModel):
@@ -23,6 +25,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     is_verified: bool
     created_at: Optional[datetime] = None
+    session: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -82,6 +85,7 @@ class GoogleAuthURL(BaseModel):
     Schema for Google OAuth redirect URL response
     """
     url: str
+    code_verifier: Optional[str] = None
     message: str = "Redirect to Google for authentication"
 
 

@@ -1,8 +1,11 @@
 import logging
-from fastapi import APIRouter, Request, HTTPException, status
+from fastapi import APIRouter, Request, HTTPException, status, Depends
 from pydantic import BaseModel
 from typing import Optional
+from sqlalchemy.orm import Session
 
+from app.models.database import get_db
+from app.services import paypal_service
 from app.services.subscription_service import billing_manager
 
 logger = logging.getLogger(__name__)
@@ -13,6 +16,8 @@ router = APIRouter(prefix="/subscriptions", tags=["Subscriptions"])
 class CheckoutRequest(BaseModel):
     user_id: str
     plan: str
+    provider: Optional[str] = "stripe"
+    origin: Optional[str] = None
 
 
 class CheckoutResponse(BaseModel):
@@ -28,12 +33,51 @@ class UsageResponse(BaseModel):
 
 
 @router.post("/checkout", response_model=CheckoutResponse)
-def create_checkout(req: CheckoutRequest) -> CheckoutResponse:
+async def create_checkout(req: CheckoutRequest, db: Session = Depends(get_db)) -> CheckoutResponse:
+    plan_ranks = {"basic": 0, "pro": 1, "max": 2}
+    new_rank = plan_ranks.get(req.plan.lower(), 0)
+    
+    profile = billing_manager.get_profile(req.user_id)
+    if profile:
+        current_plan = profile.get("plan_type", "basic").lower()
+        current_rank = plan_ranks.get(current_plan, 0)
+        
+        if new_rank < current_rank:
+             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Downgrading to a lower plan is not permitted.")
+        elif new_rank == current_rank:
+             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You are already on this plan.")
+
     try:
-        url = billing_manager.create_checkout(req.user_id, req.plan)
-        if url is None:
-            return CheckoutResponse(checkout_url=None, message="Switched to Basic")
-        return CheckoutResponse(checkout_url=url, message="Redirect to Stripe")
+        provider = (req.provider or "stripe").lower()
+        if provider == "stripe":
+            url = billing_manager.create_checkout(req.user_id, req.plan, origin=req.origin)
+            if url is None:
+                return CheckoutResponse(checkout_url=None, message="Switched to Basic")
+            return CheckoutResponse(checkout_url=url, message="Redirect to Stripe")
+        elif provider == "paypal":
+            if req.plan.lower() == "basic":
+                from app.models.models import User
+                db.query(User).filter(User.id == req.user_id).update({
+                    "plan_type": "basic",
+                    "subscription_status": "active"
+                })
+                db.commit()
+                return CheckoutResponse(checkout_url=None, message="Switched to Basic")
+                
+            profile_data = billing_manager.get_profile(req.user_id)
+            if not profile_data:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+                
+            url = await paypal_service.create_paypal_subscription(
+                db=db,
+                user_id=req.user_id,
+                plan_name=req.plan.lower(),
+                email=profile_data.get("email", ""),
+                origin=req.origin
+            )
+            return CheckoutResponse(checkout_url=url, message="Redirect to PayPal")
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid provider. Must be stripe or paypal.")
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
@@ -44,11 +88,11 @@ def create_checkout(req: CheckoutRequest) -> CheckoutResponse:
 
 
 @router.post("/webhook")
-async def stripe_webhook(request: Request):
+async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
     try:
-        result = billing_manager.handle_webhook(payload, sig)
+        result = billing_manager.handle_webhook(payload, sig, db=db)
         return result
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid payload")
@@ -79,3 +123,25 @@ def get_subscription_profile(user_id: str) -> dict:
         "analyses_limit": billing_manager.get_plan_limit(profile.get("plan_type", "basic")),
         "stripe_customer_id": profile.get("stripe_customer_id"),
     }
+
+
+class VerifySessionRequest(BaseModel):
+    session_id: str
+    user_id: str
+
+
+@router.post("/verify-session")
+async def verify_session(req: VerifySessionRequest, request: Request, db: Session = Depends(get_db)):
+    from app.services.auth_context import resolve_authenticated_user
+    current_user = resolve_authenticated_user(request, db)
+    if current_user["id"] != req.user_id:
+         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied: user ID mismatch")
+         
+    try:
+        res = billing_manager.verify_checkout_session(req.session_id, req.user_id, db=db)
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Session verification failed: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

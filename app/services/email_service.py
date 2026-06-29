@@ -6,6 +6,7 @@ import logging
 import smtplib
 from email.message import EmailMessage
 from config.settings import settings
+from app.services.auth_context import is_debug_or_test
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +42,8 @@ def send_verification_code_email(email: str, code: str) -> None:
         # Use simple SMTP for local testing
         with smtplib.SMTP(settings.email_host, settings.email_port, timeout=30) as smtp:
             smtp.send_message(message)
-            logger.info(f"✅ Email sent to {email} with code {code}")
+            logger.info(f"✅ Email sent to {email}")
     except Exception as e:
         logger.error(f"❌ Failed to send email: {str(e)}")
-        # For testing, also print the code to console
-        print(f"📧 TEST MODE: Verification code for {email}: {code}")
+        if is_debug_or_test():
+            logger.info(f"📧 TEST MODE: Verification code for {email}: {code}")

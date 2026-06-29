@@ -11,8 +11,13 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Integer, Float
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.orm import declarative_base, relationship
+
+# SQLite compatibility with JSONB for development/testing
+@compiles(JSONB, "sqlite")
+def compile_jsonb_sqlite(type_, compiler, **kw):
+    return "JSON"
 
 Base = declarative_base()
 
@@ -44,11 +49,16 @@ class User(Base):
     plan_type           = Column(String, default="basic", nullable=False)
     subscription_status = Column(String, default="inactive", nullable=False)
     stripe_customer_id  = Column(String, unique=True, nullable=True)
+    subscription_expiry_date = Column(DateTime, nullable=True)
 
     # Usage tracking
     analyses_used       = Column(Integer, default=0, nullable=False)
     analyses_limit      = Column(Integer, default=3, nullable=True)  # NULL = безлимит (Max)
     analyses_reset_at   = Column(DateTime, nullable=True)
+
+    # Consent tracking
+    consent_accepted    = Column(Boolean, default=False, nullable=False)
+    consent_accepted_at = Column(DateTime, nullable=True)
 
     created_at          = Column(DateTime, default=datetime.utcnow)
     updated_at          = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -122,3 +132,30 @@ class AnalysisResult(Base):
     # Relationships
     user = relationship("User")
     document = relationship("Document", back_populates="analysis_results")
+
+
+class Subscription(Base):
+    """
+    Таблица subscriptions для Stripe и PayPal подписок.
+    """
+    __tablename__ = "subscriptions"
+
+    id                       = Column(String, primary_key=True, default=_new_uuid, index=True)
+    user_id                  = Column(String, ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False)
+    provider                 = Column(String, default="stripe", nullable=False)
+    provider_subscription_id = Column(String, nullable=True)
+    provider_customer_id     = Column(String, nullable=True)
+    stripe_subscription_id   = Column(String, nullable=True)
+    stripe_customer_id       = Column(String, nullable=True)
+    stripe_price_id          = Column(String, nullable=True)
+    plan_type                = Column(String, default="basic", nullable=False)
+    status                   = Column(String, default="inactive", nullable=False)
+    current_period_start     = Column(DateTime(timezone=True), nullable=True)
+    current_period_end       = Column(DateTime(timezone=True), nullable=True)
+    canceled_at              = Column(DateTime(timezone=True), nullable=True)
+    trial_end                = Column(DateTime(timezone=True), nullable=True)
+    provider_event_data      = Column(JSONB, nullable=True)
+    created_at               = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at               = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    user = relationship("User")
