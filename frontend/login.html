@@ -162,9 +162,9 @@
 <span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
 </div>
 <nav class="hidden md:flex gap-md">
-<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Dashboard</a>
-<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">History</a>
-<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="#">Pricing</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="/app">Dashboard</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="/app/history">History</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="/app/pricing">Pricing</a>
 </nav>
 <div class="flex items-center gap-sm">
 <button class="p-2 rounded-full hover:bg-surface-container-low transition-all">
@@ -205,7 +205,7 @@
 <div class="space-y-xs">
 <div class="flex justify-between items-center px-xs">
 <label class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" for="password">Password</label>
-<a class="font-label-caps text-label-caps text-primary hover:underline transition-all uppercase tracking-wider" href="#">Forgot Password?</a>
+<a class="font-label-caps text-label-caps text-primary hover:underline transition-all uppercase tracking-wider" href="/app/forgot-password">Forgot Password?</a>
 </div>
 <div class="relative group">
 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -232,7 +232,7 @@
 </div>
 </div>
 <!-- Social Auth -->
-<button class="w-full flex items-center justify-center gap-3 bg-surface-container-highest border border-outline-variant py-3 rounded-lg hover:bg-surface-bright transition-all active:scale-[0.98] transform" type="button">
+<button class="w-full flex items-center justify-center gap-3 bg-surface-container-highest border border-outline-variant py-3 rounded-lg hover:bg-surface-bright transition-all active:scale-[0.98] transform" type="button" data-provider="google" id="google-login-btn">
 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -246,7 +246,7 @@
 <div class="mt-lg text-center">
 <p class="font-body-sm text-body-sm text-on-surface-variant">
                     Don't have an account? 
-                    <a class="text-primary font-bold hover:underline transition-all" href="#">Sign up</a>
+                    <a class="text-primary font-bold hover:underline transition-all" href="/app/register">Sign up</a>
 </p>
 </div>
 </div>
@@ -284,9 +284,9 @@
 <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">© 2024 Dogovor AI. Precision in every clause.</p>
 </div>
 <div class="flex gap-md">
-<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
-<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
-<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Contact Support</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/terms">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/privacy">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="mailto:support@dogovorai.com">Contact Support</a>
 </div>
 </footer>
 <script>

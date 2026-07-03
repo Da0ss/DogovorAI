@@ -178,7 +178,7 @@
 <span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
 </div>
 <div class="flex items-center gap-sm">
-<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Help</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/app/help">Help</a>
 </div>
 </header>
 <main class="flex-grow flex items-center justify-center px-gutter py-xl">
@@ -227,7 +227,7 @@
 <input class="w-5 h-5 rounded border-outline-variant bg-surface-container-lowest text-primary focus:ring-primary transition-all cursor-pointer" id="terms" type="checkbox"/>
 </div>
 <label class="font-body-sm text-body-sm text-on-surface-variant" for="terms">
-  I agree to the <a class="text-primary hover:underline" href="#">Terms of Service</a> and <a class="text-primary hover:underline" href="#">Privacy Policy</a>.
+  I agree to the <a class="text-primary hover:underline" href="/terms">Terms of Service</a> and <a class="text-primary hover:underline" href="/privacy">Privacy Policy</a>.
 </label>
 </div>
 <p class="hidden font-body-sm text-body-sm text-error" id="error-terms">You must accept the Terms of Service and Privacy Policy.</p>
@@ -248,7 +248,7 @@
 </div>
 </div>
 <!-- Google Auth -->
-<button class="w-full flex items-center justify-center gap-sm bg-surface-container-low border border-outline-variant text-on-surface font-body-lg py-sm rounded-lg hover:bg-surface-container-high transition-colors active:scale-[0.98] transform">
+<button class="w-full flex items-center justify-center gap-sm bg-surface-container-low border border-outline-variant text-on-surface font-body-lg py-sm rounded-lg hover:bg-surface-container-high transition-colors active:scale-[0.98] transform" data-provider="google" id="google-register-btn">
 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -260,7 +260,7 @@
 <div class="mt-lg text-center">
 <p class="font-body-sm text-body-sm text-on-surface-variant">
                         Already have an account? 
-                        <a class="text-primary font-bold hover:underline" href="#">Sign in</a>
+                        <a class="text-primary font-bold hover:underline" href="/app/login">Sign in</a>
 </p>
 </div>
 </div>
@@ -272,9 +272,9 @@
 <span class="font-body-sm text-body-sm text-on-surface-variant">© 2024 Dogovor AI. Precision in every clause.</span>
 </div>
 <div class="flex gap-md">
-<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
-<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
-<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Contact Support</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/terms">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/privacy">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="mailto:support@dogovorai.com">Contact Support</a>
 </div>
 </footer>
 <script>

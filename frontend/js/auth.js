@@ -24,13 +24,19 @@ function getNextUrl() {
 
 // Display error or status message
 function showAuthMessage(text, isError = true) {
-  const msgEl = document.querySelector('#message');
+  let msgEl = document.querySelector('#message');
+  if (!msgEl) {
+    // Create message element if missing
+    msgEl = document.createElement('div');
+    msgEl.id = 'message';
+    const form = document.querySelector('form');
+    if (form) form.appendChild(msgEl);
+  }
   if (msgEl) {
     msgEl.textContent = text;
     msgEl.className = `text-sm font-medium ${isError ? 'text-error' : 'text-secondary'} mt-4 block text-center`;
   } else {
-    // Fallback if message element not found, search for common placeholders or log
-    console.error(text);
+    console.error('[Auth]', text);
   }
 }
 
@@ -74,10 +80,10 @@ async function registerWithPassword(email, password, consent = true, recaptchaTo
   }
 }
 
-// Expose on window so inline scripts can call it
+// Expose on window so inline scripts (register.html) can call it
 window.registerWithPassword = registerWithPassword;
 
-// Initiate Google Login
+// Initiate Google OAuth Login
 async function initGoogleLogin() {
   try {
     const res = await fetch(`${API_AUTH}/google`);
@@ -91,11 +97,11 @@ async function initGoogleLogin() {
       throw new Error('OAuth URL not returned from server');
     }
   } catch (err) {
-    showAuthMessage('Google Login failed to initialize: ' + err.message);
+    showAuthMessage('Google Login failed: ' + err.message);
   }
 }
 
-// Handle OAuth Callback
+// Handle OAuth Callback (used in auth_callback.html)
 async function handleOAuthCallback() {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get('code');
@@ -129,90 +135,53 @@ async function handleOAuthCallback() {
 
 // Hook up event listeners on page load
 document.addEventListener('DOMContentLoaded', () => {
-  // Inject message container dynamically if missing
-  const form = document.querySelector('form');
-  if (form && !document.querySelector('#message')) {
-    const msgDiv = document.createElement('div');
-    msgDiv.id = 'message';
-    form.appendChild(msgDiv);
-  }
+  const path = window.location.pathname;
 
-  // Bind Google OAuth Buttons
-  const googleBtns = document.querySelectorAll('button img[alt="Google Logo"], button img[alt="Google"]');
-  googleBtns.forEach(btn => {
-    const parentBtn = btn.closest('button');
-    if (parentBtn) {
-      parentBtn.addEventListener('click', (e) => {
+  // ----- Google OAuth Buttons -----
+  // Matches buttons containing "Continue with Google" text (works with both img and SVG icons)
+  document.querySelectorAll('button').forEach(btn => {
+    if (btn.textContent.trim().includes('Google') && !btn.dataset.googleBound) {
+      btn.dataset.googleBound = '1';
+      btn.addEventListener('click', (e) => {
         e.preventDefault();
         initGoogleLogin();
       });
     }
   });
 
-  // Handle Sign In (Login Page)
-  const emailInput = document.querySelector('#email');
-  const passwordInput = document.querySelector('#password');
-  const loginSubmitBtn = document.querySelector('form button[type="submit"]');
+  // ----- Login Page -----
+  if (path.includes('/login')) {
+    const emailInput = document.querySelector('#email');
+    const passwordInput = document.querySelector('#password');
+    const loginSubmitBtn = document.querySelector('form button[type="submit"]');
 
-  if (loginSubmitBtn && emailInput && passwordInput && window.location.pathname.includes('/login')) {
-    loginSubmitBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
+    if (loginSubmitBtn && emailInput && passwordInput) {
+      loginSubmitBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
 
-      if (!email || !password) {
-        showAuthMessage('Пожалуйста, заполните все поля.');
-        return;
-      }
+        if (!email || !password) {
+          showAuthMessage('Пожалуйста, заполните все поля.');
+          return;
+        }
 
-      loginSubmitBtn.disabled = true;
-      const originalText = loginSubmitBtn.innerHTML;
-      loginSubmitBtn.innerHTML = 'Вход...';
+        loginSubmitBtn.disabled = true;
+        const originalText = loginSubmitBtn.innerHTML;
+        loginSubmitBtn.innerHTML = 'Вход...';
 
-      try {
-        await loginWithPassword(email, password);
-        window.location.href = getNextUrl();
-      } catch (err) {
-        loginSubmitBtn.disabled = false;
-        loginSubmitBtn.innerHTML = originalText;
-      }
-    });
+        try {
+          await loginWithPassword(email, password);
+          window.location.href = getNextUrl();
+        } catch (err) {
+          loginSubmitBtn.disabled = false;
+          loginSubmitBtn.innerHTML = originalText;
+        }
+      });
+    }
   }
 
-  // Handle Sign Up (Register Page)
-  const regEmailInput = document.querySelector('#email');
-  const regPasswordInput = document.querySelector('#password');
-  const consentCheckbox = document.querySelector('input[type="checkbox"]');
-  const registerSubmitBtn = document.querySelector('form button[type="submit"]');
-
-  if (registerSubmitBtn && regEmailInput && regPasswordInput && window.location.pathname.includes('/register')) {
-    registerSubmitBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const email = regEmailInput.value.trim();
-      const password = regPasswordInput.value;
-      const consent = consentCheckbox ? consentCheckbox.checked : true;
-
-      if (!email || !password) {
-        showAuthMessage('Пожалуйста, заполните все поля.');
-        return;
-      }
-
-      if (!consent) {
-        showAuthMessage('Вы должны согласиться с условиями использования.');
-        return;
-      }
-
-      registerSubmitBtn.disabled = true;
-      const originalText = registerSubmitBtn.innerHTML;
-      registerSubmitBtn.innerHTML = 'Регистрация...';
-
-      try {
-        await registerWithPassword(email, password, consent);
-        window.location.href = '/app';
-      } catch (err) {
-        registerSubmitBtn.disabled = false;
-        registerSubmitBtn.innerHTML = originalText;
-      }
-    });
-  }
+  // ----- Register Page -----
+  // Submit is handled by inline script in register.html which calls window.registerWithPassword()
+  // No duplicate handler needed here.
 });
