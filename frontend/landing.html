@@ -223,14 +223,16 @@
 <div class="p-xl min-h-[400px] flex flex-col items-center justify-center bg-surface-container-lowest relative">
 <!-- Drag & Drop View (Active) -->
 <div class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-outline-variant rounded-lg p-lg hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group" id="view-drag">
+<input type="file" id="landing-file-input" class="hidden" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg"/>
 <div class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-primary mb-md group-hover:scale-110 transition-transform border border-outline-variant">
 <span class="material-symbols-outlined text-[40px]">document_scanner</span>
 </div>
 <h3 class="font-title-md text-title-md text-on-surface mb-2">Drag your contract here</h3>
 <p class="font-body-sm text-body-sm text-on-surface-variant mb-lg text-center max-w-sm">Supports PDF, DOCX, TXT up to 50MB. AI will automatically structure and analyze the content.</p>
-<button class="bg-primary text-on-primary font-label-caps text-label-caps px-8 py-3 rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all shadow-md active:scale-95">
+<button id="browse-btn" class="bg-primary text-on-primary font-label-caps text-label-caps px-8 py-3 rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all shadow-md active:scale-95">
                     BROWSE FILES
                 </button>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-md text-center" id="file-hint"></p>
 </div>
 </div>
 </section>
@@ -253,15 +255,71 @@
         
         tabs.forEach(tabId => {
             document.getElementById(tabId)?.addEventListener('click', (e) => {
-                // Reset all tabs
                 tabs.forEach(t => {
                     const el = document.getElementById(t);
                     el.className = "flex-1 py-4 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2";
                 });
-                
-                // Set active tab
                 e.currentTarget.className = "flex-1 py-4 font-label-caps text-label-caps text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2";
             });
+        });
+
+        // ——— File Upload on Landing Page ———
+        const dropzone = document.getElementById('view-drag');
+        const fileInput = document.getElementById('landing-file-input');
+        const browseBtn = document.getElementById('browse-btn');
+        const fileHint = document.getElementById('file-hint');
+
+        function handleFile(file) {
+            if (!file) return;
+            fileHint.textContent = `Файл выбран: ${file.name}`;
+
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                // Сохраняем файл во временное хранилище и редиректим на дашборд
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    sessionStorage.setItem('pending_file_name', file.name);
+                    sessionStorage.setItem('pending_file_type', file.type);
+                    sessionStorage.setItem('pending_file_data', e.target.result);
+                    window.location.href = '/app';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Не авторизован — редиректим на регистрацию
+                sessionStorage.setItem('pending_file_name', file.name);
+                setTimeout(() => { window.location.href = '/app/register'; }, 800);
+                fileHint.textContent = `${file.name} — войдите, чтобы начать анализ`;
+            }
+        }
+
+        // Click on BROWSE button
+        browseBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        fileInput?.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        // Click anywhere on dropzone
+        dropzone?.addEventListener('click', (e) => {
+            if (e.target !== browseBtn) fileInput.click();
+        });
+
+        // Drag & Drop
+        dropzone?.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-primary', 'bg-primary/5');
+        });
+
+        dropzone?.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-primary', 'bg-primary/5');
+        });
+
+        dropzone?.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-primary', 'bg-primary/5');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
         });
     });
 </script>
