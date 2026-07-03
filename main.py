@@ -204,11 +204,32 @@ async def security_headers_middleware(request: Request, call_next):
     # 7. Content-Security-Policy (CSP): Restrict script, stylesheet, and API request sources
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://*.posthog.com https://cdn.vercel-insights.com; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://fonts.cdnfonts.com; "
-        "font-src 'self' data: https://fonts.gstatic.com https://fonts.cdnfonts.com; "
-        "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.google-analytics.com https://*.googletagmanager.com; "
-        "connect-src 'self' https://*.supabase.co https://www.google.com https://*.supabase.net https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://*.posthog.com https://*.i.posthog.com https://vitals.vercel-insights.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+        "https://cdn.tailwindcss.com "
+        "https://cdn.jsdelivr.net "
+        "https://www.google.com https://www.gstatic.com "
+        "https://www.googletagmanager.com "
+        "https://*.posthog.com https://cdn.vercel-insights.com "
+        "https://js.sentry-cdn.com https://browser.sentry-cdn.com; "
+        "style-src 'self' 'unsafe-inline' "
+        "https://fonts.googleapis.com "
+        "https://cdn.jsdelivr.net "
+        "https://fonts.cdnfonts.com; "
+        "font-src 'self' data: "
+        "https://fonts.gstatic.com "
+        "https://fonts.cdnfonts.com; "
+        "img-src 'self' data: blob: "
+        "https://*.supabase.co "
+        "https://lh3.googleusercontent.com "
+        "https://*.google-analytics.com "
+        "https://*.googletagmanager.com; "
+        "connect-src 'self' "
+        "https://*.supabase.co https://www.google.com https://*.supabase.net "
+        "https://*.google-analytics.com https://*.analytics.google.com "
+        "https://*.g.doubleclick.net "
+        "https://*.posthog.com https://*.i.posthog.com "
+        "https://vitals.vercel-insights.com "
+        "https://*.ingest.sentry.io https://*.sentry.io; "
         "frame-src 'self' https://www.google.com https://www.googletagmanager.com;"
     )
     response.headers["Content-Security-Policy"] = csp_policy
@@ -323,8 +344,7 @@ async def maintenance_middleware(request: Request, call_next):
 
 @app.get("/", include_in_schema=False)
 async def root():
-    """Redirect root path to /app for frontend serving."""
-    return RedirectResponse(url="/app")
+    return _frontend_response("landing.html", "Landing page")
 
 
 # Health check endpoint
@@ -446,6 +466,11 @@ async def serve_metrics():
 @app.get("/app/history", include_in_schema=False)
 async def serve_history():
     return _frontend_response("history.html", "History page")
+
+
+@app.get("/app/pricing", include_in_schema=False)
+async def serve_pricing():
+    return _frontend_response("pricing.html", "Pricing page")
 
 # ============================================================
 # Vercel / AWS Lambda handler (через Mangum)
