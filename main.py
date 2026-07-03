@@ -361,6 +361,15 @@ async def trigger_error():
     division_by_zero = 1 / 0
 
 
+@app.get("/sentry-metrics")
+async def trigger_metrics():
+    from sentry_sdk import metrics
+    metrics.count("checkout.failed", 1)
+    metrics.gauge("queue.depth", 42)
+    metrics.distribution("cart.amount_usd", 187.5)
+    return {"status": "metrics_emitted"}
+
+
 # Include routers from API modules
 app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
