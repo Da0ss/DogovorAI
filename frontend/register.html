@@ -6,8 +6,6 @@
 <title>Register | Dogovor AI</title>
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Google reCAPTCHA v2 -->
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <!-- Google Fonts: Manrope -->
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
 <!-- Material Symbols -->
@@ -231,8 +229,8 @@
 </label>
 </div>
 <p class="hidden font-body-sm text-body-sm text-error" id="error-terms">You must accept the Terms of Service and Privacy Policy.</p>
-<!-- Google reCAPTCHA v2 Widget -->
-<div class="g-recaptcha pt-xs" data-sitekey="6LeSEBMtAAAAAEnrINLc2r5gMENlDrwFP4x_6b8a" data-theme="dark" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired" id="recaptcha-widget"></div>
+<!-- Google reCAPTCHA v2 Widget (site key loaded dynamically) -->
+<div class="g-recaptcha pt-xs flex justify-center" id="recaptcha-widget"></div>
 <p class="hidden font-body-sm text-body-sm text-error text-center" id="error-captcha">Please complete the reCAPTCHA check.</p>
 <!-- CTA Button (disabled until terms + captcha) -->
 <button class="w-full bg-primary text-on-primary font-title-md text-title-md py-sm rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md" disabled id="registerBtn" type="submit">
@@ -297,6 +295,44 @@
     const btn = document.getElementById('registerBtn');
     btn.disabled = !(termsChecked && recaptchaToken);
   }
+
+  // ——— Динамическая загрузка site key из бэкенда ———
+  async function initRecaptcha() {
+    try {
+      const res = await fetch('/api/config/analytics');
+      const config = await res.json();
+      const siteKey = config.recaptcha_site_key;
+
+      if (!siteKey) {
+        // Если ключ не задан — скрываем капчу и разрешаем регистрацию без неё
+        document.getElementById('recaptcha-widget').style.display = 'none';
+        recaptchaToken = 'no-captcha';
+        return;
+      }
+
+      // Загружаем скрипт reCAPTCHA с нужным ключом
+      window.onRecaptchaLoaded = function() {
+        grecaptcha.render('recaptcha-widget', {
+          sitekey: siteKey,
+          theme: 'dark',
+          callback: onRecaptchaSuccess,
+          'expired-callback': onRecaptchaExpired
+        });
+      };
+
+      const script = document.createElement('script');
+      script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    } catch (err) {
+      console.warn('reCAPTCHA init failed, skipping:', err);
+      document.getElementById('recaptcha-widget').style.display = 'none';
+      recaptchaToken = 'no-captcha';
+    }
+  }
+
+  initRecaptcha();
 
   document.addEventListener('DOMContentLoaded', function () {
     const termsCheckbox = document.getElementById('terms');

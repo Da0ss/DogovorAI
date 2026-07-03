@@ -372,7 +372,8 @@ async def get_analytics_config() -> dict:
         "posthog_api_key": settings.posthog_api_key,
         "posthog_host": settings.posthog_host,
         "ga_measurement_id": settings.ga_measurement_id,
-        "gtm_id": settings.gtm_id
+        "gtm_id": settings.gtm_id,
+        "recaptcha_site_key": settings.recaptcha_site_key or ""
     }
 
 
