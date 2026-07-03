@@ -241,13 +241,13 @@ class FileService:
         except ImportError:
             logger.error("❌ python-docx не установлен. Выполните: pip install python-docx")
             raise ValueError("Не удалось обработать DOCX")
-        except ValueError as e:
-            raise e
         except Exception as e:
             error_msg = str(e)
             logger.error(f"❌ Ошибка при обработке DOCX: {error_msg}")
             if "is not a Word file" in error_msg or "themeManager" in error_msg:
                 raise ValueError("Файл не является корректным документом Word (.docx) или поврежден.")
+            if isinstance(e, ValueError):
+                raise e
             raise ValueError(f"Не удалось обработать DOCX: {error_msg}")
 
     @staticmethod
