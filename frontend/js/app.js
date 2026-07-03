@@ -38,6 +38,7 @@ const analyzeBtn = document.getElementById('analyzeBtn');
 const progressContainer = document.getElementById('progressContainer');
 const progressStep = document.getElementById('progressStep');
 const resultsSection = document.getElementById('resultsSection');
+const landingView = document.getElementById('landingView');
 const uploadCard = document.getElementById('uploadCard');
 const errorToast = document.getElementById('errorToast');
 const toastMessage = document.getElementById('toastMessage');
@@ -320,6 +321,7 @@ function animateProgress() {
 function displayResults(data) {
     progressContainer.style.display = 'none';
     resultsSection.style.display = 'block';
+    if (landingView) landingView.style.display = 'none';
 
     const fileInfo = data.file_info;
     const analysis = data.analysis;
@@ -506,6 +508,9 @@ document.getElementById('newAnalysisBtn').addEventListener('click', () => {
     const stepsEl = document.getElementById('progressSteps');
     if (stepsEl) stepsEl.style.display = 'flex';
     document.getElementById('progressTitle').textContent = 'Анализируем договор...';
+    
+    // Show landing view again
+    if (landingView) landingView.style.display = 'block';
     
     document.getElementById('upload').scrollIntoView({ behavior: 'smooth' });
 });
