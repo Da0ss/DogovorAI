@@ -166,85 +166,86 @@ function renderTable() {
 
     displayData.forEach(item => {
         const tr = document.createElement('div');
-        tr.className = "grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-5 border-b border-surface-variant items-center hover:bg-surface-container-low transition-colors group";
+        tr.className = "grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-5 border-b border-outline-variant items-center hover:bg-surface-container-high/50 transition-colors group";
         
         const dateObj = new Date(item.created_at);
-        const dateStr = dateObj.toLocaleDateString('ru-RU') + ' в ' + dateObj.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
+        const dateStr = dateObj.toLocaleDateString('ru-RU');
 
-        const fType = item.file_type || '';
+        const fType = (item.file_type || '').toUpperCase();
+        
         let icon = 'description';
         let iconBg = 'bg-surface-container-high text-primary';
-        if (fType.includes('pdf')) { 
-            icon = 'picture_as_pdf'; 
-            iconBg = 'bg-error-container/20 text-error'; 
-        } else if (fType.includes('docx') || fType.includes('doc')) { 
-            icon = 'article'; 
-            iconBg = 'bg-primary-container/20 text-primary'; 
-        } else if (fType.includes('image') || fType.includes('jpg') || fType.includes('png')) { 
-            icon = 'image'; 
-            iconBg = 'bg-secondary-container/20 text-secondary'; 
-        }
-
-        // Risk badge
-        let riskBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-md text-xs border border-outline-variant/30">
-            <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
-            Низкий риск
-        </span>`;
-        if (item.risk_level === 'high' || item.risk_level === 'критический') {
-            riskBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-md text-xs font-bold">
-                <span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
-                Критический
-            </span>`;
-        } else if (item.risk_level === 'medium' || item.risk_level === 'умеренный') {
-            riskBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-md text-xs font-bold">
-                <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
-                Умеренный
-            </span>`;
-        }
-
-        // Status badge
-        let statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-container/20 text-secondary border border-secondary-container/30 font-label-md text-xs font-bold">Успешно</span>`;
+        let riskBadge = '';
+        
         if (item.analysis_status === 'Ошибка') {
-            statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-error-container/20 text-error border border-error-container/30 font-label-md text-xs font-bold">Ошибка</span>`;
-        } else if (item.analysis_status === 'В очереди') {
-            statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-high text-on-surface font-label-md text-xs font-bold">В очереди</span>`;
+            icon = 'cancel';
+            iconBg = 'bg-error-container/20 text-error flex items-center justify-center shrink-0 border border-error/30';
+            riskBadge = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container/20 text-error font-label-caps border border-error/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                    Ошибка
+                </span>
+            `;
+        } else if (item.risk_level === 'high' || item.risk_level === 'критический') {
+            icon = 'error';
+            iconBg = 'bg-error-container/20 text-error flex items-center justify-center shrink-0 border border-error/30';
+            riskBadge = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container/20 text-error font-label-caps border border-error/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                    High Risk
+                </span>
+            `;
+        } else if (item.risk_level === 'medium' || item.risk_level === 'умеренный') {
+            icon = 'warning';
+            iconBg = 'bg-tertiary-container/20 text-tertiary flex items-center justify-center shrink-0 border border-tertiary/30';
+            riskBadge = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-container/20 text-tertiary font-label-caps border border-tertiary/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                    Medium Risk
+                </span>
+            `;
+        } else {
+            icon = 'check_circle';
+            iconBg = 'bg-secondary-container/20 text-secondary flex items-center justify-center shrink-0 border border-secondary/30';
+            riskBadge = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container/20 text-secondary font-label-caps border border-secondary/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                    Safe
+                </span>
+            `;
         }
 
         tr.innerHTML = `
             <div class="col-span-1 md:col-span-5 flex items-start gap-3 min-w-0">
-                <div class="mt-1 w-9 h-9 rounded ${iconBg} flex items-center justify-center shrink-0">
+                <div class="mt-1 w-8 h-8 rounded ${iconBg}">
                     <span class="material-symbols-outlined text-[20px]">${icon}</span>
                 </div>
                 <div class="min-w-0">
                     <h3 class="font-title-md text-sm font-bold text-on-surface mb-1 truncate" title="${escHtml(item.filename)}">${escHtml(item.filename)}</h3>
                     <div class="flex items-center gap-2 font-body-sm text-xs text-on-surface-variant">
-                        <span class="text-outline uppercase tracking-wider font-bold text-[10px]">${fType.toUpperCase()}</span>
-                        <span>•</span>
-                        <span>${item.risks_count} рисков</span>
+                        <span class="material-symbols-outlined text-[16px]">description</span>
+                        <span>${fType} • ${item.risks_count} рисков</span>
                     </div>
                 </div>
             </div>
             <div class="col-span-1 md:col-span-2 font-body-sm text-xs text-on-surface-variant flex items-center gap-2">
-                <span class="md:hidden font-label-md text-xs text-outline font-bold">Дата:</span>
+                <span class="md:hidden font-label-caps text-xs text-outline">Дата:</span>
                 ${dateStr}
             </div>
             <div class="col-span-1 md:col-span-2 flex items-center gap-2">
-                <span class="md:hidden font-label-md text-xs text-outline font-bold">Статус:</span>
-                ${statusBadge}
+                <span class="md:hidden font-label-caps text-xs text-outline">Статус:</span>
+                ${riskBadge}
             </div>
-            <div class="col-span-1 md:col-span-3 flex items-center justify-between md:justify-end gap-3 mt-2 md:mt-0">
-                <div class="flex items-center gap-2">
-                    <span class="md:hidden font-label-md text-xs text-outline font-bold">Риск:</span>
-                    ${riskBadge}
-                </div>
-                <div class="flex items-center gap-1">
-                    <button class="view-btn px-3 py-1.5 text-primary hover:bg-primary/5 font-label-md text-xs font-bold rounded border border-primary/20 hover:border-primary/50 transition-colors">
-                        Отчёт
-                    </button>
-                    <button class="download-btn p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container-high rounded transition-colors" title="Скачать">
-                        <span class="material-symbols-outlined text-[20px]">download</span>
-                    </button>
-                </div>
+            <div class="col-span-1 md:col-span-3 flex items-center justify-start md:justify-end gap-2 mt-2 md:mt-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                <button class="view-btn px-3 py-1.5 text-primary font-label-caps rounded border border-primary hover:bg-primary-container hover:text-on-primary-container transition-colors text-xs">
+                    View Report
+                </button>
+                <button class="download-btn p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest rounded transition-colors" title="Download">
+                    <span class="material-symbols-outlined text-[20px]">download</span>
+                </button>
+                <button class="delete-btn p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors" title="Delete">
+                    <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
             </div>
         `;
 
@@ -260,6 +261,30 @@ function renderTable() {
         if (downloadBtn) {
             downloadBtn.addEventListener('click', () => {
                 alert(`Скачивание отчета: ${item.filename}`);
+            });
+        }
+
+        const deleteBtn = tr.querySelector('.delete-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (confirm(`Вы уверены, что хотите удалить документ "${item.filename}"?`)) {
+                    try {
+                        const res = await fetch(`/api/history/${item.document_id}`, {
+                            method: 'DELETE',
+                            headers: authHeaders()
+                        });
+                        if (res.ok) {
+                            fetchHistory();
+                        } else {
+                            const errData = await res.json();
+                            alert(errData.detail || 'Не удалось удалить документ.');
+                        }
+                    } catch (err) {
+                        console.error('Delete error:', err);
+                        alert('Произошла ошибка при удалении документа.');
+                    }
+                }
             });
         }
 

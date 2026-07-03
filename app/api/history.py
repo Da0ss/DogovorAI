@@ -128,3 +128,22 @@ async def get_document_analysis_details(
             "error_message": analysis.error_message if analysis else None
         }
     }
+
+
+@router.delete("/history/{document_id}", summary="Удалить документ из истории")
+async def delete_document_analysis(
+    document_id: str,
+    db: Session = Depends(get_db),
+    user_data: dict = Depends(get_current_user)
+):
+    """
+    Удаляет документ и все связанные с ним результаты анализа из базы данных.
+    """
+    user_id = user_data["id"]
+    doc = db.query(Document).filter(Document.id == document_id, Document.user_id == user_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Документ не найден")
+        
+    db.delete(doc)
+    db.commit()
+    return {"success": True, "message": "Документ успешно удален"}
