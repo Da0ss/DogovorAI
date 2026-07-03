@@ -29,16 +29,6 @@ from app.api import paypal
 import os
 from posthog import Posthog
 
-import sentry_sdk
-from sentry_sdk import metrics
-
-sentry_sdk.init(
-  dsn="https://64c33bc2f4f0702af076945c83a8df19@o4511670616129536.ingest.us.sentry.io/4511670620913664",
-)
-
-metrics.count("checkout.failed", 1)
-metrics.gauge("queue.depth", 42)
-metrics.distribution("cart.amount_usd", 187.5)
 
 # Инициализация PostHog через переменные окружения Antigravity (с жестким бэкапом ключа)
 posthog = Posthog(
