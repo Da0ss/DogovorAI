@@ -1,245 +1,231 @@
-# DogovorAI ⚖️🤖
+# DogovorAI ⚖️
 
-**DogovorAI** — это интеллектуальный ассистент для анализа и автоматизации заполнения юридических документов. Система выявляет скрытые риски, проверяет положения на соответствие актуальному законодательству и помогает пользователям избегать юридических ловушек.
+**DogovorAI** — это современный интеллектуальный ассистент на базе искусственного интеллекта, предназначенный для экспресс-анализа юридических договоров и автоматической генерации документов. 
+
+Сервис ориентирован на законодательство **Республики Казахстан (РК)**: он автоматически находит скрытые риски в текстах договоров, указывает на невыгодные условия, дает практические рекомендации по их исправлению и подкрепляет выводы ссылками на статьи Гражданского (ГК РК) и Трудового (ТК РК) кодексов РК.
+
+---
+
+## 🌟 Основные возможности
+
+### 1. Интеллектуальный AI-анализ документов
+* **Поддержка форматов:** Загрузка договоров в форматах `PDF`, `DOCX`, `TXT`, а также изображений и сканов (`JPG`, `PNG`).
+* **Распознавание текста (OCR):** Автоматическое извлечение текста с картинок и сканов с помощью интеграции с **Google Cloud Vision API** (в продакшене) и резервного локального **Tesseract OCR** (в девелопменте).
+* **Категоризация рисков:** Определение уровня опасности найденных условий (Критический 🔴, Умеренный 🟡, Низкий 🟢).
+* **Связь с законами РК:** Автоматическое сопоставление выявленных нарушений с актуальными статьями кодексов РК.
+
+### 2. Генератор документов (DOCX-конструктор)
+* **Шаблоны из коробки:** Быстрое создание типовых договоров:
+  * Договор купли-продажи (ДКП).
+  * Трудовой договор.
+* **Автоматическое заполнение:** Пользователь заполняет интерактивную форму на сайте, и система генерирует готовый к печати `.docx` файл с правильным форматированием, заменяя плейсхолдеры.
+
+### 3. Управление лимитами и подписки (Paywall)
+* **Тарифные планы:** 
+  * `Basic` (3 бесплатных анализа в месяц).
+  * `Pro` (30 анализов в месяц).
+  * `Max` (безлимитный доступ).
+* **Интеграция с платежной системой:** Полная интеграция со **Stripe** для оформления и оплаты подписок.
+* **Автоматический трекинг:** Лимиты проверяются на уровне API при каждом запросе на анализ.
+
+### 4. Авторизация пользователей
+* **Google Sign-In (OAuth 2.0):** Удобный вход в один клик с автоматическим подтягиванием имени и аватара.
+* **Пароли не нужны (OTP via Email):** Безопасный беспарольный вход по одноразовому 6-значному коду, отправляемому на электронную почту.
+
+### 5. Панель мониторинга (Admin Dashboard)
+* Страница администратора (`/app/metrics`), на которой отображается список зарегистрированных пользователей, статистика их тарифов, количество использованных лимитов и даты регистрации.
+
+---
 
 ## 🛠 Технологический стек
-- **Backend:** Python (FastAPI)
-- **Frontend:** TypeScript, HTML/CSS
-- **AI Core:** Kimi API (LLM для анализа текста) + OCR (для обработки изображений)
-- **Database & Auth:** Supabase
-- **Version Control:** GitHub
 
-## 🚀 Основной функционал (MVP)
-1. **Мультиформатный анализ:** Загрузка PDF, DOCX и изображений (фото договоров).
-2. **Risk Detection:** Автоматический поиск потенциально опасных пунктов.
-3. **Legal Grounding:** Ссылки на официальные статьи законов для подтверждения правомерности или нарушений.
-4. **Smart Filling:** Подсказки по правильному заполнению полей.
+* **Backend:** Python 3.11+, FastAPI (асинхронный веб-фреймворк), SQLAlchemy (ORM), Pydantic v2 (валидация данных), Mangum (адаптер под Serverless/Vercel).
+* **Frontend:** Чистый HTML5, CSS3 (адаптивный премиальный интерфейс, CSS-градиенты, интерактивные состояния кнопок, модальные окна), ES6 Javascript.
+* **База данных и сервер авторизации:** Supabase (PostgreSQL база данных + Supabase Auth).
+* **ИИ-ядро:** Модель Kimi AI (`moonshotai/Kimi-K2.5`) через API-роутер Hugging Face.
 
-## 📦 Установка и запуск
+---
 
-### Требования
-- Python 3.11+
-- pip или uv package manager
-- Supabase проект (создать на https://supabase.com)
+## 📦 Установка и локальный запуск
 
-### Шаг 1: Клонирование репозитория
+### Требования к системе
+* Установленный Python 3.11 или более новый.
+* База данных PostgreSQL (или готовый проект на [Supabase](https://supabase.com)).
+
+### Инструкция по установке
+
+1. **Клонируйте репозиторий:**
+   ```bash
+   git clone https://github.com/Da0ss/DogovorAI.git
+   cd DogovorAI
+   ```
+
+2. **Создайте и активируйте виртуальное окружение:**
+   - **macOS / Linux:**
+     ```bash
+     python3 -m venv .venv
+     source .venv/bin/activate
+     ```
+   - **Windows:**
+     ```bash
+     python -m venv .venv
+     .venv\Scripts\activate
+     ```
+
+3. **Установите зависимости:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Настройте переменные окружения:**
+   Создайте файл `.env` в корневой директории на основе шаблона:
+   ```bash
+   cp .env.example .env
+   ```
+   Откройте `.env` и укажите ваши ключи доступа (см. раздел [Конфигурация .env](#-конфигурация-env)).
+
+5. **Инициализируйте базу данных:**
+   Создайте необходимые таблицы в PostgreSQL / Supabase, запустив скрипт:
+   ```bash
+   python scripts/init_db.py
+   ```
+
+6. **Сгенерируйте DOCX-шаблоны договоров:**
+   Создайте исходные шаблоны документов, на основе которых будут собираться новые договоры:
+   ```bash
+   python scripts/create_templates.py
+   ```
+
+7. **Запустите сервер разработки:**
+   Используйте готовый скрипт:
+   ```bash
+   ./scripts/run_dev.sh
+   ```
+   Или запустите uvicorn вручную:
+   ```bash
+   python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+8. **Проверьте работу:**
+   Откройте в браузере адрес [http://localhost:8000/app](http://localhost:8000/app) для перехода к веб-интерфейсу. Документация API (Swagger UI) доступна по адресу [http://localhost:8000/docs](http://localhost:8000/docs).
+
+---
+
+## ⚙️ Конфигурация `.env`
+
+| Переменная | Описание | Обязательно |
+| --- | --- | --- |
+| `SUPABASE_URL` | URL-адрес вашего проекта в Supabase (из настроек API) | Да |
+| `SUPABASE_KEY` | Публичный анон-ключ Supabase (anon public key) | Да |
+| `DATABASE_URL` | Подключение к базе данных PostgreSQL (для Vercel рекомендуется Connection Pooler URL в режиме Transaction) | Да |
+| `HF_TOKEN` | API Токен от Hugging Face для доступа к Kimi AI | Да |
+| `GOOGLE_CLOUD_VISION_API_KEY` | API Ключ Google Cloud (для распознавания текста на картинках в Vercel) | Нет (локально используется Tesseract) |
+| `GOOGLE_CLIENT_ID` | OAuth Client ID от Google Cloud Console (для Google авторизации) | Нет |
+| `GOOGLE_CLIENT_SECRET` | OAuth Client Secret от Google Cloud Console | Нет |
+| `GOOGLE_REDIRECT_URI` | Ссылка-коллбек для Google авторизации (локально: `http://localhost:8000/app/auth/callback`) | Нет |
+| `ADMIN_EMAILS` | Email-адреса администраторов через запятую (для доступа к панели метрик) | Нет |
+| `STRIPE_SECRET_KEY` | Секретный ключ Stripe | Нет (нужен для подписок) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Webhook Signing Secret | Нет (нужен для авто-обновления планов) |
+
+---
+
+## 🗂 Инструкция по настройке интеграций
+
+### 1. Настройка базы данных и триггеров в Supabase
+Для корректной работы профилей пользователей необходимо выполнить миграции в Supabase:
+1. Зайдите в **Supabase Dashboard** -> ваш проект -> **SQL Editor**.
+2. Создайте новый запрос (**New Query**).
+3. Скопируйте и запустите содержимое файла [setup_google_auth.sql](file:///Users/damikosya/Documents/New%20project/fix_project/DogovorAI/scripts/setup_google_auth.sql). Этот SQL-скрипт создаст таблицу `profiles`, настроит внешние ключи и триггер, который автоматически синхронизирует новых пользователей Supabase Auth с базой данных.
+4. Откройте файл [setup_subscriptions.sql](file:///Users/damikosya/Documents/New%20project/fix_project/DogovorAI/scripts/setup_subscriptions.sql) и запустите его в SQL Editor для добавления столбцов подписок и лимитов.
+
+### 2. Настройка Google OAuth
+1. Перейдите в [Google Cloud Console](https://console.cloud.google.com).
+2. Настройте экран согласия **OAuth consent screen** (тип: External).
+3. В разделе **Credentials** создайте **OAuth 2.0 Client IDs** (Web Application).
+4. Добавьте в поле **Authorized redirect URIs** адрес коллбека от вашего Supabase:
+   `https://<project-id>.supabase.co/auth/v1/callback`
+5. Вставьте полученные Client ID и Secret в настройки **Supabase -> Authentication -> Providers -> Google**, а также укажите их в переменных окружения проекта.
+6. В разделе **Supabase -> Authentication -> URL Configuration** добавьте адрес перенаправления на фронтенд:
+   `https://dogovorai.vercel.app/app/auth/callback` (для продакшена) или `http://localhost:8000/app/auth/callback` (локально).
+
+---
+
+## ☁️ Развертывание на Vercel
+
+Проект полностью оптимизирован для быстрого деплоя на **Vercel** в один клик.
+
+### Файл `vercel.json`
+В проекте настроен конфигурационный файл [vercel.json](file:///Users/damikosya/Documents/New%20project/fix_project/DogovorAI/vercel.json):
+* Он автоматически перенаправляет все веб-запросы на `main.py`, который запускает FastAPI через AWS Lambda-адаптер `Mangum`.
+* Он настраивает лимиты выполнения (таймаут 60 секунд для длительного AI-анализа и 1024 МБ выделенной памяти).
+* `pyproject.toml` добавлен в `.vercelignore`, благодаря чему Vercel Git-интеграция гарантированно устанавливает зависимости по чистому списку из `requirements.txt`.
+
+### Порядок деплоя:
+1. Импортируйте ваш форкнутый репозиторий в панель **Vercel**.
+2. В настройках проекта добавьте все переменные окружения из вашего локального файла `.env` (обратите внимание, что `GOOGLE_REDIRECT_URI` и CORS-настройки должны ссылаться на домен, выданный Vercel).
+3. Нажмите **Deploy**.
+
+---
+
+## 🧪 Тестирование
+
+Проект поставляется с полным набором интеграционных и юнит-тестов (покрытие >85%).
+
+Для запуска тестов выполните команду:
 ```bash
-git clone https://github.com/yourusername/DogovorAI.git
-cd DogovorAI
-```
-
-### Шаг 2: Создание виртуального окружения
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate  # На Windows: .venv\Scripts\activate
-```
-
-### Шаг 3: Установка зависимостей
-```bash
-pip install -r requirements.txt
-```
-
-### Шаг 4: Настройка базы данных
-```bash
-# Инициализация таблиц базы данных
-python scripts/init_db.py
-```
-
-### Шаг 5: Запуск приложения
-```bash
+# Активируйте виртуальное окружение
 source .venv/bin/activate
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
-# Если хотите запускать напрямую из проекта
-./scripts/run_dev.sh
-```
-
-Приложение будет доступно на `http://localhost:8000`
-
-### API Endpoints для аутентификации
-
-#### Регистрация пользователя
-```bash
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "securepassword123"
-}
-```
-
-#### Подтверждение email
-```bash
-POST /api/auth/verify
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "code": "123456"
-}
-```
-
-> **Внимание:** Теперь используется Supabase Auth для отправки кодов подтверждения. Настройте email/SMS шаблоны в панели управления Supabase.
-
-#### Повторная отправка кода
-```bash
-POST /api/auth/resend-code?email=user@example.com
-```
-
-#### Вход в систему
-```bash
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "securepassword123"
-}
-```
-
-### Настройка Supabase Auth
-
-1. **Перейдите в панель управления Supabase:**
-   - Откройте ваш проект в [Supabase Dashboard](https://supabase.com/dashboard)
-   - Перейдите в раздел **Authentication** → **Settings**
-
-2. **Настройте Email Templates:**
-   - В разделе **Email Templates** настройте шаблоны для:
-     - **Confirm signup** — подтверждение регистрации
-     - **Invite user** — приглашение пользователя
-     - **Reset password** — сброс пароля
-
-3. **Настройте SMS (опционально):**
-   - В разделе **SMS** настройте провайдера для отправки SMS кодов
-
-4. **Настройте Auth Settings:**
-   - **Site URL:** `http://localhost:8000` (для разработки)
-   - **Redirect URLs:** добавьте `http://localhost:8000/*`
-   - **JWT Expiry:** настройте время жизни токенов
-
-### Пример использования
-
-1. **Регистрация:**
-```bash
-curl -X POST "http://localhost:8000/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "password123"}'
-```
-
-2. **Проверьте email** — код подтверждения будет отправлен на указанный email через Supabase.
-
-3. **Подтверждение:**
-```bash
-curl -X POST "http://localhost:8000/api/auth/verify" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "code": "123456"}'
-```
-
-4. **Вход в систему:**
-```bash
-curl -X POST "http://localhost:8000/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "password123"}'
-```
-
-### API Documentation
-- **Swagger UI:** http://localhost:8000/docs
-- **ReDoc:** http://localhost:8000/redoc
-- **OpenAPI Schema:** http://localhost:8000/openapi.json
-
-### Health Check Endpoints
-```bash
-# Основная проверка здоровья
-curl http://localhost:8000/health
-
-# Проверка подключения к БД
-curl http://localhost:8000/api/health/database
-
-# Kubernetes readiness probe
-curl http://localhost:8000/api/health/ready
-
-# Kubernetes liveness probe
-curl http://localhost:8000/api/health/live
-```
-
-### Тестирование
-```bash
-# Запуск всех тестов
+# Запустите pytest
 pytest
-
-# С покрытием
-pytest --cov=app tests/
-
-# Конкретный тест
-pytest tests/test_health.py -v
 ```
 
-### Структура проекта
+Для проверки покрытия кода тестами:
+```bash
+pytest --cov=app tests/
+```
+
+---
+
+## 📂 Структура проекта
+
 ```
 .
 ├── app/
-│   ├── api/              # API endpoints
-│   │   ├── auth.py       # Authentication endpoints
-│   │   └── health.py     # Health check endpoints
-│   ├── services/         # Business logic
-│   │   ├── auth_service.py    # Supabase Auth service
-│   │   ├── database_service.py
-│   │   └── email_service.py   # SMTP email service (опционально)
-│   ├── models/           # Pydantic schemas
-│   │   ├── crud.py       # Database operations (deprecated)
-│   │   ├── models.py     # SQLAlchemy models (deprecated)
-│   │   └── schemas.py    # Pydantic schemas
-│   └── __init__.py
-├── config/
-│   ├── settings.py       # Configuration from env
-│   ├── database.py       # Supabase client
-│   └── __init__.py
-├── frontend/             # Static frontend files
-│   ├── index.html        # Main page
-│   ├── register.html     # Registration page
-│   ├── login.html        # Login page
-│   ├── js/
-│   │   ├── register.js   # Registration logic
-│   │   └── login.js      # Login logic
-│   └── css/
-│       └── styles.css    # Styles
-├── tests/                # Unit tests
-│   ├── test_auth.py      # Auth tests
-│   ├── test_health.py    # Health tests
-│   ├── conftest.py
-│   └── __init__.py
-├── scripts/              # Utility scripts
-│   └── run_dev.sh        # Development runner
-├── main.py               # FastAPI application entry point
-├── requirements.txt      # Python dependencies
-├── .env.example         # Environment variables template
-├── pyproject.toml       # Project configuration
-└── README.md            # This file
+│   ├── api/                  # Эндпоинты FastAPI
+│   │   ├── analysis.py       # API анализа документов на риски
+│   │   ├── auth.py           # API авторизации (Email OTP, Google OAuth)
+│   │   ├── contracts.py      # API генерации договоров
+│   │   ├── health.py         # Системные эндпоинты (health check)
+│   │   ├── metrics.py        # API статистики (для админов)
+│   │   └── subscriptions.py  # API подписок и интеграция со Stripe
+│   ├── models/               # Описание структур данных
+│   │   ├── database.py       # Подключение к DB и инициализация ORM
+│   │   ├── models.py         # SQLAlchemy-модели БД
+│   │   └── schemas.py        # Схемы валидации Pydantic
+│   └── services/             # Бизнес-логика приложения
+│       ├── ai_service.py     # Интеграция с ИИ (Kimi AI / Moonshot)
+│       ├── auth_service.py   # Логика авторизации через Supabase
+│       ├── contract_generator.py # Сборка DOCX из шаблонов
+│       ├── file_service.py   # Извлечение текста (PDF, DOCX, Google Vision OCR)
+│       └── usage_limiter.py  # Проверка лимитов пользователей
+├── config/                   # Конфигурация приложения
+│   ├── settings.py           # Валидация переменных окружения
+│   └── database.py           # Инициализация клиента Supabase
+├── frontend/                 # Статические файлы фронтенда
+│   ├── index.html            # Главная страница (лендинг и загрузчик)
+│   ├── login.html            # Вход (Email OTP / Google)
+│   ├── register.html         # Регистрация
+│   ├── profile.html          # Профиль пользователя и биллинг
+│   ├── contracts.html        # Интерфейс генератора договоров
+│   ├── history.html          # История проверенных документов
+│   ├── metrics.html          # Панель метрик админа
+│   ├── js/                   # Скрипты фронтенда
+│   └── css/                  # Таблицы стилей
+├── scripts/                  # Вспомогательные скрипты автоматизации
+├── tests/                    # Набор юнит и интеграционных тестов
+├── main.py                   # Точка входа в FastAPI приложение
+├── vercel.json               # Настройки деплоя на Vercel
+├── requirements.txt          # Список зависимостей Python
+└── README.md                 # Этот файл
 ```
-
-### Разработка
-```bash
-# Форматирование кода
-black .
-
-# Проверка типов
-mypy app/
-
-# Linting
-flake8 app/
-```
-
-### Переменные окружения
-Полный список переменных см. в `.env.example`:
-- `SUPABASE_URL` — URL вашего Supabase проекта
-- `SUPABASE_KEY` — Публичный ключ для клиента
-- `SUPABASE_SERVICE_KEY` — Служебный ключ (для админ операций)
-- `DEBUG` — Включить debug режим (True/False)
-- `HOST` — Адрес хоста (по умолчанию 0.0.0.0)
-- `PORT` — Порт приложения (по умолчанию 8000)
-
-> **Аутентификация:** Используется Supabase Auth для регистрации и верификации пользователей. Настройте email/SMS шаблоны в панели управления Supabase (см. раздел "Настройка Supabase Auth").
-
-source .venv/bin/activate
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000

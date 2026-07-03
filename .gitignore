@@ -1,5 +1,65 @@
-# Only ignore Python virtual environments (due to size >270MB and platform-specific binaries)
+# Python virtual environments (270MB+, platform-specific)
 .venv/
 venv/
 env/
 ENV/
+
+# !! СЕКРЕТЫ — никогда не коммитить !!
+.env
+.env.local
+.env.production
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+server.log
+log_history.txt
+
+# Generated files (временные, не нужны в git)
+media/generated/
+processed_documents/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+
+# Backups
+*.bak
+backups/
+
+# Scratch
+scratch/
+
+# SQL files (migrations stored separately)
+fix_column_types.sql
+
+# Admin maintenance mode flag
+.maintenance_mode
+.vercel
+.env*
+
+# Node modules
+node_modules/
+

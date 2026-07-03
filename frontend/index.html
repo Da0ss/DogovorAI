@@ -1,489 +1,318 @@
 <!DOCTYPE html>
-<html lang="ru">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DogovorAI — Умный анализ договоров</title>
-    <meta name="description"
-        content="AI-сервис для анализа юридических рисков в договорах. Загрузите PDF, DOCX или фото договора — получите список рисков с ссылками на законодательство РК.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/paywall.css">
-    <link rel="stylesheet" href="/static/css/privacy.css">
-</head>
-
-<body>
-
-    <!-- ===== HEADER ===== -->
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <span class="logo-icon">⚖️</span>
-                <span class="logo-text">Dogovor<span class="logo-accent">AI</span></span>
-            </div>
-            <nav class="nav">
-                <a href="#features" class="nav-link">Возможности</a>
-                <a href="#upload" class="nav-link">Анализ</a>
-                <a href="/app/contracts" class="nav-link">Генерация</a>
-                <a href="/app/history" class="nav-link">История</a>
-                <!-- Logged-OUT navigation -->
-                <div class="nav-auth nav-auth-logged-out">
-                    <a href="/app/login" class="nav-button nav-button-secondary">Войти</a>
-                    <a href="/app/register" class="nav-button">Регистрация</a>
-                </div>
-                <!-- Logged-IN navigation: avatar + dropdown -->
-                <div class="nav-auth nav-auth-logged-in" style="display: none; position: relative;">
-                    <button class="user-avatar-btn" id="userAvatarBtn" aria-label="Профиль пользователя">
-                        <img class="user-avatar-img" id="userAvatarImg" src="" alt="" style="display:none;">
-                        <div class="user-avatar-placeholder" id="userAvatarPlaceholder">
-                            <span id="userInitial">?</span>
-                        </div>
-                    </button>
-                    <!-- Dropdown menu -->
-                    <div class="user-dropdown" id="userDropdown">
-                        <div class="user-dropdown-header">
-                            <div class="dropdown-name" id="dropdownName">Пользователь</div>
-                            <div class="dropdown-plan" id="dropdownPlan">Basic</div>
-                        </div>
-                        <div class="user-dropdown-divider"></div>
-                        <a href="/app/profile" class="user-dropdown-item">
-                            <span></span> Мой профиль
-                        </a>
-                        <a href="/app/profile#subscription" class="user-dropdown-item">
-                            <span></span> Подписка
-                        </a>
-                        <div class="user-dropdown-divider"></div>
-                        <button class="user-dropdown-item user-dropdown-logout" id="logoutBtn">
-                            <span></span> Выйти
-                        </button>
-                    </div>
-                </div>
-            </nav>
-        </div>
-    </header>
-
-    <!-- ===== HERO ===== -->
-    <section class="hero">
-        <div class="hero-bg">
-            <div class="hero-orb hero-orb-1"></div>
-            <div class="hero-orb hero-orb-2"></div>
-        </div>
-        <div class="container">
-            <div class="hero-badge">
-                <span class="badge-dot"></span>
-                Работает на Kimi AI
-            </div>
-            <h1 class="hero-title">
-                Анализируйте договоры<br>
-                <span class="gradient-text">с юридической точностью</span>
-            </h1>
-            <p class="hero-subtitle">
-                Загрузите PDF, DOCX или фотографию договора — DogovorAI выявит риски,
-                нарушения и опасные пункты со ссылками на законодательство РК за секунды.
-            </p>
-            <div class="hero-stats">
-                <div class="stat">
-                    <span class="stat-value">PDF</span>
-                    <span class="stat-label">документы</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat">
-                    <span class="stat-value">DOCX</span>
-                    <span class="stat-label">Word файлы</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat">
-                    <span class="stat-value">OCR</span>
-                    <span class="stat-label">фотографии</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat">
-                    <span class="stat-value">ГК РК</span>
-                    <span class="stat-label">база знаний</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== FEATURES ===== -->
-    <section class="features" id="features">
-        <div class="container">
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📄</div>
-                    <h3>Все форматы</h3>
-                    <p>PDF, Word, JPG, PNG — анализируем любой формат документа</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
-                    <h3>Кими AI</h3>
-                    <p>Мощная языковая модель специально настроена для юридического анализа</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚖️</div>
-                    <h3>Ссылки на законы</h3>
-                    <p>Каждый риск со ссылкой на ГК РК, ТК РК и другие законы</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🛡️</div>
-                    <h3>3 уровня риска</h3>
-                    <p>Критический, умеренный и низкий — видите что важно в первую очередь</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== UPLOAD SECTION ===== -->
-    <section class="upload-section" id="upload">
-        <div class="container">
-            <div class="section-header">
-                <h2>Проверить договор</h2>
-                <p>Загрузите документ и получите детальный юридический анализ</p>
-            </div>
-
-            <!-- Usage Bar -->
-            <div class="usage-bar-container" id="usageBarContainer" style="display:none;">
-                <div class="usage-bar-card">
-                    <span class="usage-bar-icon">📊</span>
-                    <div class="usage-bar-info">
-                        <div class="usage-bar-header">
-                            <span class="usage-bar-label">Использовано анализов <span class="usage-bar-plan" id="usagePlanBadge">Basic</span></span>
-                            <span class="usage-bar-count"><span class="count-used" id="usageUsed">0</span> / <span class="count-limit" id="usageLimit">3</span></span>
-                        </div>
-                        <div class="usage-bar-track">
-                            <div class="usage-bar-fill" id="usageFill" style="width: 0%;"></div>
-                        </div>
-                        <span id="usageResetDate" style="display:none;font-size:0.72rem;color:rgba(160,175,210,0.55);margin-top:4px;"></span>
-                    </div>
-                    <div class="usage-bar-upgrade" id="usageUpgradeWrap" style="display:none;">
-                        <a href="/app/profile" class="usage-upgrade-btn">⚡ Upgrade</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="upload-card" id="uploadCard">
-                <!-- Drop Zone -->
-                <div class="drop-zone" id="dropZone">
-                    <div class="drop-zone-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="1.5">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                            <polyline points="17 8 12 3 7 8" />
-                            <line x1="12" y1="3" x2="12" y2="15" />
-                        </svg>
-                    </div>
-                    <p class="drop-zone-title">Перетащите файл сюда</p>
-                    <p class="drop-zone-subtitle">или нажмите для выбора</p>
-                    <div class="drop-zone-formats">
-                        <span class="format-badge">PDF</span>
-                        <span class="format-badge">DOCX</span>
-                        <span class="format-badge">JPG</span>
-                        <span class="format-badge">PNG</span>
-                    </div>
-                    <p class="drop-zone-limit">Максимальный размер: 20 МБ</p>
-                </div>
-                <!-- fileInput вынесен ЗА dropZone чтобы избежать двойного диалога -->
-                <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" style="display:none">
-
-                <!-- File Preview (hidden by default) -->
-                <div class="file-preview" id="filePreview" style="display:none">
-                    <div class="file-preview-icon" id="filePreviewIcon">📄</div>
-                    <div class="file-preview-info">
-                        <span class="file-preview-name" id="fileName">document.pdf</span>
-                        <span class="file-preview-size" id="fileSize">2.3 MB</span>
-                    </div>
-                    <button class="file-remove-btn" id="removeFile" title="Удалить файл">×</button>
-                </div>
-
-                <!-- Analyze Button -->
-                <button class="analyze-btn" id="analyzeBtn" disabled>
-                    <span class="btn-icon">⚡</span>
-                    <span class="btn-text">Анализировать договор</span>
-                </button>
-            </div>
-
-            <!-- Progress -->
-            <div class="progress-container" id="progressContainer" style="display:none">
-                <div class="progress-card">
-                    <div class="progress-spinner"></div>
-                    <div class="progress-info">
-                        <p class="progress-title">Анализирую договор...</p>
-                        <p class="progress-subtitle" id="progressStep">Извлечение текста из документа</p>
-                    </div>
-                </div>
-                <div class="progress-steps" id="progressSteps">
-                    <div class="progress-step active" id="step1">
-                        <div class="step-dot"></div>
-                        <span>Чтение файла</span>
-                    </div>
-                    <div class="progress-step" id="step2">
-                        <div class="step-dot"></div>
-                        <span>AI-анализ рисков</span>
-                    </div>
-                    <div class="progress-step" id="step3">
-                        <div class="step-dot"></div>
-                        <span>Сопоставление с законами</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== RESULTS SECTION ===== -->
-    <section class="results-section" id="resultsSection" style="display:none">
-        <div class="container">
-
-            <!-- Results Header -->
-            <div class="results-header">
-                <div class="results-title-block">
-                    <h2 id="resultsTitle">Анализ завершён</h2>
-                    <p class="results-filename" id="resultsFilename"></p>
-                </div>
-                <div class="results-verdict" id="resultsVerdict">
-                    <span class="verdict-icon" id="verdictIcon">🔴</span>
-                    <span class="verdict-text" id="verdictText">Высокий риск</span>
-                </div>
-            </div>
-
-            <!-- Summary Card -->
-            <div class="summary-card" id="summaryCard">
-                <div class="summary-header">
-                    <span class="summary-label">Тип договора</span>
-                    <span class="doc-type-badge" id="docTypeBadge"></span>
-                </div>
-                <p class="summary-text" id="summaryText"></p>
-            </div>
-
-            <!-- Stats Row -->
-            <div class="results-stats" id="resultsStats">
-                <div class="result-stat result-stat-high">
-                    <span class="result-stat-value" id="highCount">0</span>
-                    <span class="result-stat-label">Критических</span>
-                </div>
-                <div class="result-stat result-stat-medium">
-                    <span class="result-stat-value" id="mediumCount">0</span>
-                    <span class="result-stat-label">Умеренных</span>
-                </div>
-                <div class="result-stat result-stat-low">
-                    <span class="result-stat-value" id="lowCount">0</span>
-                    <span class="result-stat-label">Низких</span>
-                </div>
-            </div>
-
-            <!-- Risks List -->
-            <div class="risks-list" id="risksList"></div>
-
-            <!-- Recommendations -->
-            <div class="recommendations-card" id="recommendationsCard" style="display:none">
-                <h3 class="rec-title">💡 Общие рекомендации</h3>
-                <ul class="rec-list" id="recList"></ul>
-            </div>
-
-            <!-- New Analysis Button -->
-            <div class="new-analysis-block">
-                <button class="new-analysis-btn" id="newAnalysisBtn">
-                    ↩ Проверить другой договор
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== PAYWALL MODAL ===== -->
-    <div class="paywall-overlay" id="paywallModal" style="display:none;">
-        <div class="paywall-card">
-            <button class="paywall-close" id="paywallClose">×</button>
-            <span class="paywall-icon">🔒</span>
-            <h2 class="paywall-title">Лимит исчерпан</h2>
-            <p class="paywall-message" id="paywallMessage">
-                Вы использовали все бесплатные анализы.
-                Приобретите подписку для продолжения работы.
-            </p>
-            <span id="paywallReset" style="display:none;font-size:0.82rem;color:rgba(160,175,210,0.65);text-align:center;margin-bottom:8px;"></span>
-            <div class="paywall-usage-info">
-                <div class="paywall-stat">
-                    <span class="paywall-stat-value stat-used" id="paywallUsed">3</span>
-                    <span class="paywall-stat-label">использовано</span>
-                </div>
-                <div class="paywall-divider"></div>
-                <div class="paywall-stat">
-                    <span class="paywall-stat-value" id="paywallLimit">3</span>
-                    <span class="paywall-stat-label">лимит</span>
-                </div>
-            </div>
-            <div class="paywall-plans">
-                <button class="paywall-plan-card" onclick="window.location.href='/app/profile'">
-                    <span class="plan-card-icon">⚡</span>
-                    <div class="plan-card-info">
-                        <div class="plan-card-name">Pro</div>
-                        <div class="plan-card-desc">30 анализов в месяц</div>
-                    </div>
-                    <span class="plan-card-price">$9/мес</span>
-                </button>
-                <button class="paywall-plan-card plan-recommended" onclick="window.location.href='/app/profile'">
-                    <span class="plan-card-icon">🚀</span>
-                    <div class="plan-card-info">
-                        <div class="plan-card-name">Max</div>
-                        <div class="plan-card-desc">Безлимитные анализы</div>
-                    </div>
-                    <span class="plan-card-price">$19/мес</span>
-                </button>
-            </div>
-            <button class="paywall-cta-btn" onclick="window.location.href='/app/profile'">Купить подписку</button>
-            <button class="paywall-skip-btn" id="paywallSkip">Позже</button>
-        </div>
-    </div>
-
-    <!-- ===== ERROR TOAST ===== -->
-    <div class="error-toast" id="errorToast" style="display:none">
-        <span class="toast-icon">⚠️</span>
-        <span class="toast-message" id="toastMessage">Произошла ошибка</span>
-        <button class="toast-close" onclick="closeToast()">×</button>
-    </div>
-
-    <!-- ===== FOOTER ===== -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-inner">
-                <span class="footer-logo">⚖️ DogovorAI</span>
-                <p class="footer-text">Не является юридической консультацией. Для важных решений обратитесь к юристу.
-                </p>
-                <span class="footer-version">v0.1.0 MVP</span>
-            </div>
-        </div>
-    </footer>
-
-    <script src="/static/js/auth-guard.js?v=1.1"></script>
-    <script src="/static/js/app.js?v=1.1"></script>
-    <script src="/static/js/paywall.js?v=1.1"></script>
-    <script>
-        // ============================================================
-        // Load user info from server
-        // ============================================================
-        async function loadUserInfo() {
-            if (!isAuthenticated()) return;
-            try {
-                const resp = await fetch(`/api/auth/me/profile?t=${Date.now()}`, { headers: getAuthHeaders() });
-                if (resp.ok) {
-                    const data = await resp.json();
-                    localStorage.setItem('user', JSON.stringify(data));
-                    updateAuthUI();
-                    return;
-                }
-                const resp2 = await fetch('/api/auth/me', { headers: getAuthHeaders() });
-                if (resp2.ok) {
-                    const data2 = await resp2.json();
-                    localStorage.setItem('user', JSON.stringify(data2));
-                    updateAuthUI();
-                }
-            } catch (e) { console.warn('Failed to load user info:', e); }
-        }
-
-        // ============================================================
-        // Update nav UI
-        // ============================================================
-        function updateAuthUI() {
-            const isAuth = isAuthenticated();
-            const user = getUser();
-
-            const loggedOutNav = document.querySelector('.nav-auth-logged-out');
-            const loggedInNav = document.querySelector('.nav-auth-logged-in');
-
-            if (isAuth && user) {
-                loggedOutNav.style.display = 'none';
-                loggedInNav.style.display = 'flex';
-
-                // Determine display name
-                const displayName = user.full_name || user.email || 'Пользователь';
-                const plan = (user.plan || 'basic').charAt(0).toUpperCase() + (user.plan || 'basic').slice(1);
-
-                // Dropdown header
-                const dropdownName = document.getElementById('dropdownName');
-                const dropdownPlan = document.getElementById('dropdownPlan');
-                if (dropdownName) dropdownName.textContent = displayName;
-                if (dropdownPlan) dropdownPlan.textContent = `Тариф: ${plan}`;
-
-                // Avatar
-                const avatarImg = document.getElementById('userAvatarImg');
-                const avatarPlaceholder = document.getElementById('userAvatarPlaceholder');
-                const initialEl = document.getElementById('userInitial');
-
-                if (user.avatar_url && avatarImg) {
-                    avatarImg.src = user.avatar_url;
-                    avatarImg.style.display = 'block';
-                    if (avatarPlaceholder) avatarPlaceholder.style.display = 'none';
-                } else {
-                    if (avatarImg) avatarImg.style.display = 'none';
-                    if (avatarPlaceholder) avatarPlaceholder.style.display = 'flex';
-                    if (initialEl) initialEl.textContent = displayName[0].toUpperCase();
-                }
-            } else {
-                loggedOutNav.style.display = 'flex';
-                loggedInNav.style.display = 'none';
-            }
-        }
-
-        // ============================================================
-        // Dropdown toggle
-        // ============================================================
-        document.addEventListener('DOMContentLoaded', function () {
-            updateAuthUI();
-            loadUserInfo();
-
-            const avatarBtn = document.getElementById('userAvatarBtn');
-            const dropdown = document.getElementById('userDropdown');
-            const logoutBtn = document.getElementById('logoutBtn');
-
-            // Toggle dropdown on avatar click
-            if (avatarBtn && dropdown) {
-                avatarBtn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    dropdown.classList.toggle('open');
-                });
-                // Close on outside click
-                document.addEventListener('click', function () {
-                    dropdown.classList.remove('open');
-                });
-                dropdown.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                });
-            }
-
-            // Logout
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async function () {
-                    try { await fetch('/api/auth/logout', { method: 'POST', headers: getAuthHeaders() }); } catch (_) { }
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
-                    localStorage.removeItem('user');
-                    updateAuthUI();
-                    showToast('Вы успешно вышли из системы', 'success');
-                    if (dropdown) dropdown.classList.remove('open');
-                });
-            }
-        });
-
-        // ============================================================
-        // Toast
-        // ============================================================
-        function showToast(message, type = 'error') {
-            const toast = document.getElementById('errorToast');
-            const msg = document.getElementById('toastMessage');
-            if (!toast || !msg) return;
-            msg.textContent = message;
-            toast.className = `error-toast ${type}`;
-            toast.style.display = 'flex';
-            setTimeout(closeToast, 5000);
-        }
-
-        function closeToast() {
-            const toast = document.getElementById('errorToast');
-            if (toast) toast.style.display = 'none';
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dogovor AI - Analytical Dashboard</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary-container": "#808dd2",
+                        "on-surface-variant": "#c6c5d2",
+                        "outline-variant": "#454650",
+                        "on-background": "#e5e2e1",
+                        "secondary": "#5adace",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#b9c3ff",
+                        "surface-container-low": "#1c1b1b",
+                        "primary-fixed-dim": "#b9c3ff",
+                        "on-primary-container": "#152363",
+                        "primary-fixed": "#dee1ff",
+                        "inverse-on-surface": "#313030",
+                        "on-surface": "#e5e2e1",
+                        "surface": "#131313",
+                        "tertiary-fixed-dim": "#e5c35e",
+                        "on-error": "#690005",
+                        "surface-variant": "#353534",
+                        "tertiary": "#e5c35e",
+                        "tertiary-container": "#c8a846",
+                        "surface-container": "#201f1f",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-fixed": "#ffe089",
+                        "secondary-fixed": "#79f7ea",
+                        "on-secondary": "#003733",
+                        "on-secondary-fixed-variant": "#00504a",
+                        "error-container": "#93000a",
+                        "on-secondary-container": "#003531",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#4e3d00",
+                        "background": "#131313",
+                        "secondary-fixed-dim": "#5adace",
+                        "surface-dim": "#131313",
+                        "surface-bright": "#393939",
+                        "secondary-container": "#01a89d",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-secondary-fixed": "#00201d",
+                        "outline": "#90909b",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "primary": "#b9c3ff",
+                        "on-primary-fixed": "#021355",
+                        "on-tertiary": "#3d2f00",
+                        "on-primary-fixed-variant": "#354282",
+                        "on-primary": "#1d2b6a",
+                        "inverse-primary": "#4d5a9c",
+                        "surface-container-highest": "#353534"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "base": "8px",
+                        "xl": "40px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Manrope"],
+                        "label-caps": ["Manrope"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "display-lg": ["Manrope"],
+                        "title-md": ["Manrope"],
+                        "headline-lg": ["Manrope"],
+                        "body-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                },
+            },
         }
     </script>
-    <script src="/static/js/privacy.js"></script>
-</body>
+<style>
+        /* Custom Luminous Shadow for Level 1 Surfaces in Dark Mode */
+        .shadow-luminous {
+            box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        /* Custom Scrollbar for Workspace */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #454650;
+            border-radius: 20px;
+        }
+        
+        /* Smooth scrolling for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+  <!-- Sentry SDK & Session Replay -->
+  <script src="https://js.sentry-cdn.com/64c33bc2f4f0702af076945c83a8df19.min.js" crossorigin="anonymous"></script>
+  <script>
+    Sentry.onLoad(function() {
+      Sentry.init({
+        integrations: [
+          Sentry.replayIntegration(),
+        ],
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
+    });
+  </script>
+  <!-- PostHog Analytics -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="xi Si init Ni Bi pr qi Ui $i capture calculateEventProperties Zi register register_once register_for_session unregister unregister_for_session Yi getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Ki identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Qi Wi createPersonProfile setInternalOrTestUser Ji Fi tn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing zi debug mr it getPageViewId captureTraceFeedback captureTraceMetric Ri".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_mLA4rhAW7aoH9iQMFUUrTHpigJKhTrRFG7C22uxwWRwV', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2026-05-30',
+        person_profiles: 'identified_only',
+    })
+  </script>
+  <!-- Google Tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K95D2D9DTK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-K95D2D9DTK');
+  </script>
+  <!-- Vercel Speed Insights -->
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+  <!-- Vercel Web Analytics -->
+  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px] pb-[100px] transition-colors duration-300">
+<!-- TopNavBar Component -->
+<header class="bg-surface/80 backdrop-blur-md border-b border-outline-variant sticky top-0 w-full z-50 flex justify-between items-center px-gutter py-sm max-w-container-max mx-auto absolute">
+<div class="flex items-center gap-gutter">
+<div class="font-title-md text-title-md font-bold text-primary">Dogovor AI</div>
+<nav class="hidden md:flex items-center gap-md ml-lg">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-md text-body-md transition-transform duration-150 scale-95" href="/app">Dashboard</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="/app/history">History</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="/app/pricing">Pricing</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-sm hover:bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</div>
+</div>
+</header>
+<!-- Risk Progress Bar Top Section -->
+<section class="w-full bg-surface-container-low pt-md pb-lg border-b border-surface-container-high">
+<div class="max-w-container-max mx-auto px-gutter">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-sm gap-md">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Service Agreement Analysis</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Last updated today at 10:42 AM</p>
+</div>
+<div class="flex gap-md font-label-caps text-label-caps uppercase">
+<div class="flex items-center gap-xs text-error"><span class="w-2 h-2 rounded-full bg-error"></span> 2 Critical</div>
+<div class="flex items-center gap-xs text-tertiary"><span class="w-2 h-2 rounded-full bg-tertiary"></span> 3 Amber</div>
+<div class="flex items-center gap-xs text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-outline"></span> 12 Neutral</div>
+</div>
+</div>
+<!-- Linear Progress Bar -->
+<div class="w-full h-3 bg-surface-container-highest rounded-full overflow-hidden flex shadow-inner">
+<div class="h-full bg-error" style="width: 15%;" title="Critical Risks"></div>
+<div class="h-full bg-tertiary" style="width: 25%;" title="Non-critical Risks"></div>
+<div class="h-full bg-outline" style="width: 60%;" title="Standard Clauses"></div>
+</div>
+</div>
+</section>
+<!-- Main Workspace: Split Screen -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-gutter py-lg flex flex-col lg:flex-row gap-gutter relative">
+<!-- Left Side: Document Viewer -->
+<section class="w-full lg:w-7/12 flex flex-col bg-surface-container-lowest rounded-xl shadow-luminous border border-outline-variant overflow-hidden relative" style="height: calc(100vh - 280px); min-height: 500px;">
+<!-- Document Header -->
+<div class="bg-surface-container py-sm px-lg border-b border-outline-variant flex justify-between items-center z-10 sticky top-0">
+<div class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">description</span> 
+                    MASTER_SERVICE_AGREEMENT_V2.DOCX
+                </div>
+<div class="flex gap-sm">
+<button class="p-xs hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined text-[20px]">zoom_out</span></button>
+<button class="p-xs hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined text-[20px]">zoom_in</span></button>
+</div>
+</div>
+<!-- Document Content (Scrollable) -->
+<div class="p-lg md:p-xl overflow-y-auto custom-scrollbar font-body-lg text-body-lg text-on-surface/90 leading-relaxed space-y-md relative bg-surface-container-lowest">
+<h2 class="font-title-md text-title-md font-bold mb-md text-center text-on-surface">MASTER SERVICE AGREEMENT</h2>
+<p>This Master Service Agreement ("Agreement") is entered into as of the Effective Date by and between the Provider and the Client.</p>
+<h3 class="font-bold mt-lg mb-sm text-primary">1. Services Provided</h3>
+<p>Provider agrees to perform the services described in applicable Statements of Work. Provider shall use commercially reasonable efforts to deliver the Services in a timely manner.</p>
+<h3 class="font-bold mt-lg mb-sm text-primary">2. Term and Termination</h3>
+<p>This Agreement shall commence on the Effective Date and continue until terminated. <span class="bg-error-container text-on-error-container px-1 rounded-sm border-b border-error cursor-pointer hover:bg-error-container/80 transition-colors" id="clause-termination">Either party may terminate this Agreement immediately upon written notice, without cause or penalty.</span></p>
+<h3 class="font-bold mt-lg mb-sm text-primary">3. Limitation of Liability</h3>
+<p>In no event shall either party be liable for any indirect, incidental, special, or consequential damages. <span class="bg-tertiary-container/30 text-on-tertiary-container px-1 rounded-sm border-b border-tertiary cursor-pointer hover:bg-tertiary-container/50 transition-colors" id="clause-liability">Provider's total aggregate liability arising out of or relating to this Agreement shall not exceed the total amount paid by Client to Provider during the twelve (12) months preceding the claim.</span></p>
+<h3 class="font-bold mt-lg mb-sm text-primary">4. Intellectual Property</h3>
+<p>All intellectual property rights developed during the course of the Services shall remain the exclusive property of the Provider, unless explicitly transferred in a Statement of Work.</p>
+<h3 class="font-bold mt-lg mb-sm text-primary">5. Confidentiality</h3>
+<p>Both parties agree to hold all Confidential Information in strict confidence and not to disclose it to any third party without prior written consent.</p>
+<div class="h-32"></div> <!-- Spacer for scrolling -->
+</div>
+</section>
+<!-- Right Side: Risk Cards -->
+<section class="w-full lg:w-5/12 flex flex-col gap-md overflow-y-auto custom-scrollbar pr-sm" style="height: calc(100vh - 280px); min-height: 500px;">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-xs px-xs uppercase tracking-wider">AI Risk Analysis (5 Findings)</div>
+<!-- Risk Card 1 (Critical) -->
+<div class="bg-surface-container rounded-xl p-md shadow-sm border border-outline-variant hover:border-error transition-all duration-200 cursor-pointer flex flex-col gap-sm relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start">
+<div class="bg-error-container text-on-error-container px-2 py-1 rounded-full font-label-caps text-label-caps uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span> Critical Risk
+                    </div>
+<span class="text-on-surface-variant text-xs font-bold">CLAUSE 2</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface">Unilateral Termination</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The contract allows the other party to cancel the agreement immediately without giving you any time to prepare or fix issues (no cure period).</p>
+<div class="mt-sm bg-secondary-container/10 rounded-lg p-sm border border-secondary-container/20">
+<div class="flex items-center gap-xs font-label-caps text-secondary mb-xs uppercase">
+<span class="material-symbols-outlined text-[16px]">lightbulb</span> Recommendation
+                    </div>
+<p class="font-body-sm text-body-sm text-on-secondary-container">Suggest requesting a 30-day notice period for termination without cause, and a 15-day cure period for breach of contract.</p>
+</div>
+</div>
+<!-- Risk Card 2 (Amber) -->
+<div class="bg-surface-container rounded-xl p-md shadow-sm border border-outline-variant hover:border-tertiary transition-all duration-200 cursor-pointer flex flex-col gap-sm relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-tertiary"></div>
+<div class="flex justify-between items-start">
+<div class="bg-tertiary-container/30 text-on-tertiary-container px-2 py-1 rounded-full font-label-caps text-label-caps uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">info</span> Unfavorable Terms
+                    </div>
+<span class="text-on-surface-variant text-xs font-bold">CLAUSE 3</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface">Low Liability Cap</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The provider's maximum responsibility if things go wrong is limited to what you paid them in the last year.</p>
+<div class="mt-sm bg-secondary-container/10 rounded-lg p-sm border border-secondary-container/20">
+<div class="flex items-center gap-xs font-label-caps text-secondary mb-xs uppercase">
+<span class="material-symbols-outlined text-[16px]">lightbulb</span> Recommendation
+                    </div>
+<p class="font-body-sm text-body-sm text-on-secondary-container">Negotiate an exception to the liability cap for gross negligence, willful misconduct, and breaches of confidentiality.</p>
+</div>
+</div>
+<!-- Risk Card 3 (Neutral/Insight) -->
+<div class="bg-surface-container rounded-xl p-md shadow-sm border border-outline-variant hover:border-outline transition-all duration-200 cursor-pointer flex flex-col gap-sm relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-outline"></div>
+<div class="flex justify-between items-start">
+<div class="bg-surface-container-highest text-on-surface px-2 py-1 rounded-full font-label-caps text-label-caps uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Standard Practice
+                    </div>
+<span class="text-on-surface-variant text-xs font-bold">CLAUSE 5</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface">Standard Confidentiality</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The confidentiality terms are mutual and align with standard industry practices. No immediate action required.</p>
+</div>
+</section>
+</main>
+<!-- Fixed Bottom Action Bar -->
+<footer class="fixed bottom-0 w-full bg-surface-container/95 backdrop-blur-md border-t border-outline-variant shadow-lg z-50">
+<div class="w-full py-md px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto gap-md">
+<div class="flex gap-md font-body-sm text-body-sm text-on-surface-variant">
+<span class="hidden md:inline">© 2024 Dogovor AI</span>
+<a class="hover:text-primary transition-colors" href="/terms">Terms of Use</a>
+<a class="hover:text-primary transition-colors" href="/privacy">Privacy Policy</a>
+</div>
+<!-- Primary Actions -->
+<div class="flex items-center gap-md w-full md:w-auto justify-end">
+<button class="text-primary font-label-caps text-label-caps uppercase hover:bg-primary/10 px-4 py-2 rounded-lg transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">share</span> Share
+                </button>
+<button class="bg-primary text-on-primary font-label-caps text-label-caps uppercase px-lg py-3 rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-sm flex items-center gap-sm w-full md:w-auto justify-center">
+<span class="material-symbols-outlined text-[20px]">download</span> Download PDF Report
+                </button>
+</div>
+</div>
+</footer>
 
-</html>
+  <script src="/static/js/auth-guard.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+</body></html>

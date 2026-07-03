@@ -14,15 +14,10 @@ class TestHealthEndpoints:
 
     def test_root_endpoint(self):
         """
-        Test root endpoint returns correct application info
+        Test root endpoint serves landing page
         """
-        response = client.get("/")
+        response = client.get("/", follow_redirects=False)
         assert response.status_code == 200
-        data = response.json()
-        assert data["name"] == "DogovorAI"
-        assert data["status"] == "🟢 Running"
-        assert "version" in data
-        assert "description" in data
 
     def test_health_check_endpoint(self):
         """
@@ -62,6 +57,18 @@ class TestHealthEndpoints:
         response = client.get("/api/health/ready")
         # May return 503 if database not configured
         assert response.status_code in [200, 503]
+
+    def test_analytics_config_endpoint(self):
+        """
+        Test public analytics tracking configuration endpoint
+        """
+        response = client.get("/api/config/analytics")
+        assert response.status_code == 200
+        data = response.json()
+        assert "posthog_api_key" in data
+        assert "posthog_host" in data
+        assert "ga_measurement_id" in data
+        assert "gtm_id" in data
 
 
 class TestAPIDocumentation:

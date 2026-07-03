@@ -12,25 +12,19 @@ from sqlalchemy import func
 
 from app.models.database import get_db
 from app.models.models import User
+from app.api.auth import require_admin_user
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/metrics", tags=["Metrics"])
 
 
-def _require_auth(request: Request) -> str:
-    """Verify any Bearer token and return it (local or Google JWT)."""
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    token = auth.split(" ", 1)[1].strip()
-    if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Empty token")
-    return token
-
-
 @router.get("/summary")
-def get_metrics_summary(request: Request, db: Session = Depends(get_db)) -> dict:
+def get_metrics_summary(
+    request: Request,
+    db: Session = Depends(get_db),
+    _admin_user: dict = Depends(require_admin_user),
+) -> dict:
     """
     Returns platform-wide metrics:
     - total users, verified users
@@ -39,8 +33,6 @@ def get_metrics_summary(request: Request, db: Session = Depends(get_db)) -> dict
     - new users last 7 days / last 30 days
     - daily new-users for the last 14 days (sparkline)
     """
-    _require_auth(request)
-
     # --- Core counts ---
     total_users = db.query(func.count(User.id)).scalar() or 0
     verified_users = db.query(func.count(User.id)).filter(User.is_verified == True).scalar() or 0

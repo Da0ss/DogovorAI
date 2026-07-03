@@ -161,5 +161,59 @@ class TestTextExtraction:
 
     def test_extract_docx_raises_on_invalid_bytes(self):
         """Некорректные байты должны вызывать ValueError."""
-        with pytest.raises(ValueError, match="Не удалось обработать DOCX"):
+        with pytest.raises(ValueError, match="Файл не является корректным документом Word"):
             FileService.extract_text_from_docx(b"not_a_valid_docx_content_12345")
+
+    def test_extract_docx_raises_on_legacy_doc(self):
+        """Устаревший формат .doc должен вызывать информативное ValueError."""
+        legacy_doc_header = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"some_bytes"
+        with pytest.raises(ValueError, match="Формат .doc .* не поддерживается"):
+            FileService.extract_text_from_docx(legacy_doc_header)
+
+    def test_google_vision_ocr_success(self):
+        """Google Vision OCR should parse the first text annotation."""
+        mock_response = MagicMock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {
+            "responses": [
+                {"textAnnotations": [{"description": "Распознанный текст договора"}]}
+            ]
+        }
+        mock_client = MagicMock()
+        mock_client.__enter__.return_value.post.return_value = mock_response
+
+        with patch("app.services.file_service.settings") as mock_settings:
+            mock_settings.google_cloud_vision_api_key = "vision-key"
+            with patch("httpx.Client", return_value=mock_client):
+                text, pages = FileService.extract_text_from_image_google_vision(b"image")
+
+        assert text == "Распознанный текст договора"
+        assert pages == 1
+
+    def test_image_ocr_requires_google_key_in_production(self):
+        """Production image OCR should fail clearly without Google Vision key."""
+        with patch("app.services.file_service.settings") as mock_settings:
+            mock_settings.google_cloud_vision_api_key = None
+            mock_settings.is_production = True
+            with pytest.raises(ValueError, match="Распознавание текста с картинок временно недоступно"):
+                FileService.extract_text_from_image_ocr(b"image")
+
+    def test_extract_pdf_scanned_ocr_fallback(self):
+        """If PDF page has no text, it should fallback to page.images OCR."""
+        mock_image = MagicMock()
+        mock_image.data = b"some-fake-image-bytes"
+
+        mock_page = MagicMock()
+        mock_page.extract_text.return_value = ""
+        mock_page.images = [mock_image]
+
+        mock_reader = MagicMock()
+        mock_reader.pages = [mock_page]
+
+        with patch("pypdf.PdfReader", return_value=mock_reader):
+            with patch.object(FileService, "extract_text_from_image_ocr", return_value=("Распознанный текст на картинке", 1)) as mock_ocr:
+                text, pages = FileService.extract_text_from_pdf(b"fake-pdf-content")
+                
+                mock_ocr.assert_called_once_with(b"some-fake-image-bytes")
+                assert "Распознанный текст на картинке" in text
+                assert pages == 1

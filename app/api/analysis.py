@@ -10,15 +10,17 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Request
 from typing import Optional
 
 from app.services.file_service import FileService
-from app.services.ai_service import analyze_contract_text
+from app.services.ai_service import (
+    analyze_contract_text,
+    is_ai_unavailable,
+    public_ai_error_message,
+)
 from app.services.legal_service import LegalService
 from app.services.usage_limiter import usage_limiter, UsageLimitError
 from app.models.document import AnalyzeResponse, AnalysisResult
 from app.models.database import SessionLocal
 from app.models.models import Document, AnalysisResult as DBAnalysisResult
-
-import jwt
-import asyncio
+from app.services.auth_context import get_supabase_profile, is_debug_or_test
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +105,8 @@ async def analyze_document(
     if not analysis_result.analysis_success:
         logger.error(f"❌ Ошибка AI-анализа: {analysis_result.error_message}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка анализа: {analysis_result.error_message}"
+            status_code=503 if is_ai_unavailable(analysis_result) else 500,
+            detail=f"Ошибка анализа: {public_ai_error_message(analysis_result)}"
         )
 
     # ── Шаг 3: Обогащение рисков ссылками на нормы права РК ──
@@ -122,57 +124,52 @@ async def analyze_document(
     # ── Шаг 5: Сохранение результата в БД для зарегистрированных пользователей ──
     user_id = None
     if token:
-        if token.startswith("local-token-"):
+        if token.startswith("local-token-") and is_debug_or_test():
             user_id = token.replace("local-token-", "")
         else:
-            try:
-                payload = jwt.decode(token, options={"verify_signature": False})
-                user_id = payload.get("sub")
-            except Exception:
-                pass
+            profile = get_supabase_profile(token)
+            user_id = profile.get("id") if profile else None
 
     if user_id:
-        db = SessionLocal()
-        try:
-            # 1. Create Document record
-            db_doc = Document(
-                user_id=user_id,
-                filename=file_result.filename,
-                original_name=file_result.filename,
-                file_type=file_result.file_type.value,
-                char_count=file_result.char_count,
-                page_count=file_result.page_count
-            )
-            db.add(db_doc)
-            db.flush() # get id
+        with SessionLocal() as db:
+            try:
+                # 1. Create Document record
+                db_doc = Document(
+                    user_id=user_id,
+                    filename=file_result.filename,
+                    original_name=file_result.filename,
+                    file_type=file_result.file_type.value,
+                    char_count=file_result.char_count,
+                    page_count=file_result.page_count
+                )
+                db.add(db_doc)
+                db.flush() # get id
 
-            # 2. Serialize risks and recommendations
-            risks_json = [r.dict() for r in analysis_result.risks] if analysis_result.risks else []
-            recs_json = analysis_result.recommendations if analysis_result.recommendations else []
+                # 2. Serialize risks and recommendations
+                risks_json = [r.dict() for r in analysis_result.risks] if analysis_result.risks else []
+                recs_json = analysis_result.recommendations if analysis_result.recommendations else []
 
-            # 3. Create AnalysisResult record
-            db_analysis = DBAnalysisResult(
-                user_id=user_id,
-                document_id=db_doc.id,
-                document_type=analysis_result.document_type,
-                summary=analysis_result.summary,
-                overall_risk_level=analysis_result.overall_risk_level.value if hasattr(analysis_result.overall_risk_level, 'value') else "unknown",
-                risks=risks_json,
-                recommendations=recs_json,
-                total_risks=analysis_result.total_risks,
-                high_risk_count=analysis_result.high_risk_count,
-                medium_risk_count=analysis_result.high_risk_count, # wait, this was medium but Pydantic only tracks high
-                success=analysis_result.analysis_success,
-                error_message=analysis_result.error_message
-            )
-            db.add(db_analysis)
-            db.commit()
-            logger.info(f"💾 Результат сохранен в БД для пользователя {user_id}")
-        except Exception as e:
-            db.rollback()
-            logger.error(f"❌ Ошибка сохранения истории в БД: {e}")
-        finally:
-            db.close()
+                # 3. Create AnalysisResult record
+                db_analysis = DBAnalysisResult(
+                    user_id=user_id,
+                    document_id=db_doc.id,
+                    document_type=analysis_result.document_type,
+                    summary=analysis_result.summary,
+                    overall_risk_level=analysis_result.overall_risk_level.value if hasattr(analysis_result.overall_risk_level, 'value') else "unknown",
+                    risks=risks_json,
+                    recommendations=recs_json,
+                    total_risks=analysis_result.total_risks,
+                    high_risk_count=analysis_result.high_risk_count,
+                    medium_risk_count=analysis_result.medium_risk_count,
+                    success=analysis_result.analysis_success,
+                    error_message=analysis_result.error_message
+                )
+                db.add(db_analysis)
+                db.commit()
+                logger.info(f"💾 Результат сохранен в БД для пользователя {user_id}")
+            except Exception as e:
+                db.rollback()
+                logger.error(f"❌ Ошибка сохранения истории в БД: {e}")
 
     return AnalyzeResponse(
         status="success",

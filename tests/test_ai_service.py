@@ -7,7 +7,12 @@ import json
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.services.ai_service import analyze_contract_text, _parse_ai_response, _get_demo_analysis
+from app.services.ai_service import (
+    AI_UNAVAILABLE_PREFIX,
+    analyze_contract_text,
+    _parse_ai_response,
+    _get_demo_analysis,
+)
 from app.models.document import AnalysisResult, RiskLevel
 
 
@@ -47,6 +52,7 @@ class TestParseAIResponse:
         assert result.document_type == "Договор подряда"
         assert result.total_risks == 2
         assert result.high_risk_count == 1
+        assert result.medium_risk_count == 1
         assert result.overall_risk_level == RiskLevel.HIGH
         assert len(result.recommendations) == 2
 
@@ -92,6 +98,7 @@ class TestParseAIResponse:
         result = _parse_ai_response(raw)
         assert result.total_risks == 3
         assert result.high_risk_count == 1
+        assert result.medium_risk_count == 1
         levels = [r.risk_level for r in result.risks]
         assert RiskLevel.HIGH in levels
         assert RiskLevel.MEDIUM in levels
@@ -126,11 +133,25 @@ class TestAnalyzeContractText:
         with patch("app.services.ai_service.settings") as mock_settings:
             mock_settings.hf_token = None
             mock_settings.kimi_model = "test-model"
+            mock_settings.is_production = False
             result = await analyze_contract_text(contract)
 
         assert result.analysis_success is True
         assert "ДЕМО" in result.summary or "Демо" in result.document_type
         assert result.total_risks > 0
+
+    @pytest.mark.asyncio
+    async def test_production_without_token_returns_unavailable(self):
+        """Production must not return demo legal analysis when HF_TOKEN is missing."""
+        contract = "Договор подряда между Заказчиком и Исполнителем. " * 10
+
+        with patch("app.services.ai_service.settings") as mock_settings:
+            mock_settings.hf_token = None
+            mock_settings.is_production = True
+            result = await analyze_contract_text(contract)
+
+        assert result.analysis_success is False
+        assert result.error_message.startswith(AI_UNAVAILABLE_PREFIX)
 
     @pytest.mark.asyncio
     async def test_successful_api_call(self):
@@ -181,12 +202,33 @@ class TestAnalyzeContractText:
         with patch("app.services.ai_service.settings") as mock_settings:
             mock_settings.hf_token = "test-token"
             mock_settings.kimi_model = "test-model"
+            mock_settings.is_production = False
             with patch("openai.AsyncOpenAI", return_value=mock_client):
                 result = await analyze_contract_text(contract)
 
         assert result.analysis_success is True
-        assert "Router" in result.summary or "недоступен" in result.summary
+        assert "не выполнен" in result.summary or "квота" in result.summary
         assert result.total_risks > 0
+
+    @pytest.mark.asyncio
+    async def test_production_api_error_returns_unavailable(self):
+        """Production must surface upstream AI outage instead of demo data."""
+        contract = "Договор подряда между сторонами. Работы выполняются своевременно. " * 10
+
+        mock_client = AsyncMock()
+        mock_client.chat.completions.create = AsyncMock(
+            side_effect=Exception("API connection timeout")
+        )
+
+        with patch("app.services.ai_service.settings") as mock_settings:
+            mock_settings.hf_token = "test-token"
+            mock_settings.kimi_model = "test-model"
+            mock_settings.is_production = True
+            with patch("openai.AsyncOpenAI", return_value=mock_client):
+                result = await analyze_contract_text(contract)
+
+        assert result.analysis_success is False
+        assert result.error_message.startswith(AI_UNAVAILABLE_PREFIX)
 
 
 # ============================================================

@@ -10,7 +10,7 @@ services:
       - .:/app
     environment:
       # Заставляем бэкэнд смотреть на локальный контейнер с Postgres
-      - DATABASE_URL=postgresql+asyncpg://dionysus_user:panopticon_pass@db:5432/startup_db
+      - DATABASE_URL=postgresql://dionysus_user:panopticon_pass@db:5432/startup_db
       - DEBUG=True
     depends_on:
       db:
@@ -38,8 +38,37 @@ services:
     networks:
       - app-network
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: dogovorai_prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+    depends_on:
+      - web
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: dogovorai_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - app-network
+    depends_on:
+      - prometheus
+
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   app-network:

@@ -6,13 +6,19 @@ File Service — Сервис для извлечения текста из до
 import io
 import os
 import logging
+import base64
 from typing import Optional
 
 from fastapi import UploadFile
 
 from app.models.document import FileProcessResult, FileType
+from config.settings import settings
 
 logger = logging.getLogger(__name__)
+
+# Vercel не имеет Tesseract в системе — OCR будет недоступен
+# Проверяем наличие при загрузке и показываем предупреждение
+_TESSERACT_AVAILABLE = False
 
 # Пути к Tesseract OCR на разных системах (в порядке приоритета)
 _TESSERACT_PATHS = [
@@ -30,21 +36,29 @@ def _configure_tesseract() -> str:
     Returns:
         str: Путь к найденному tesseract или 'tesseract' если не найден
     """
+    global _TESSERACT_AVAILABLE
     try:
         import pytesseract
         for path in _TESSERACT_PATHS:
             if path == "tesseract" or os.path.isfile(path):
                 pytesseract.pytesseract.tesseract_cmd = path
+                _TESSERACT_AVAILABLE = True
                 logger.info(f"✅ Tesseract найден: {path}")
                 return path
     except ImportError:
         pass
-    logger.warning("⚠️ pytesseract не установлен")
+    logger.warning("⚠️ pytesseract не установлен или Tesseract не найден — OCR недоступен")
+    _TESSERACT_AVAILABLE = False
     return "tesseract"
 
 
 # Настраиваем Tesseract при загрузке модуля
 _TESSERACT_CMD = _configure_tesseract()
+
+_IS_SERVERLESS = (
+    os.getenv("VERCEL") == "1"
+    or os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
+)
 
 # Максимальный размер файла: 20 МБ
 MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
@@ -69,9 +83,61 @@ class FileService:
     """
 
     @staticmethod
+    def extract_text_from_image_google_vision(file_bytes: bytes) -> tuple[str, int]:
+        """
+        Extract text from an image with Google Cloud Vision REST API.
+
+        Uses an API key instead of the Google SDK to keep Vercel dependencies
+        small and serverless-friendly.
+        """
+        if not settings.google_cloud_vision_api_key:
+            raise ValueError(
+                "OCR изображений недоступен: GOOGLE_CLOUD_VISION_API_KEY не настроен."
+            )
+
+        try:
+            import httpx
+
+            image_content = base64.b64encode(file_bytes).decode("ascii")
+            payload = {
+                "requests": [
+                    {
+                        "image": {"content": image_content},
+                        "features": [{"type": "TEXT_DETECTION"}],
+                        "imageContext": {"languageHints": ["ru", "kk", "en"]},
+                    }
+                ]
+            }
+            url = (
+                "https://vision.googleapis.com/v1/images:annotate"
+                f"?key={settings.google_cloud_vision_api_key}"
+            )
+            with httpx.Client(timeout=30.0) as client:
+                response = client.post(url, json=payload)
+            response.raise_for_status()
+            data = response.json()
+
+            item = (data.get("responses") or [{}])[0]
+            if item.get("error"):
+                message = item["error"].get("message", "Google Vision OCR error")
+                raise ValueError(f"Google Vision OCR error: {message}")
+
+            annotations = item.get("textAnnotations") or []
+            text = annotations[0].get("description", "").strip() if annotations else ""
+            logger.info(f"✅ Google Vision OCR завершён: {len(text)} символов извлечено")
+            return text, 1
+        except ValueError:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Google Vision OCR failed: {e}")
+            raise ValueError(f"Ошибка OCR через Google Vision: {str(e)}")
+
+    @staticmethod
     def extract_text_from_pdf(file_bytes: bytes) -> tuple[str, int]:
         """
-        Извлекает текст из PDF-файла.
+        Извлекает текст из PDF-файла через pypdf.
+        Если извлечённый текст страницы пустой, пробует извлечь встроенные изображения
+        и распознать текст на них через OCR.
 
         Args:
             file_bytes: Байты PDF-файла
@@ -80,29 +146,45 @@ class FileService:
             tuple: (извлечённый текст, количество страниц)
 
         Raises:
-            ValueError: Если файл повреждён или не является PDF
+            ValueError: Если файл повреждён или не может быть обработан
         """
         try:
-            import fitz  # PyMuPDF
+            from pypdf import PdfReader
 
-            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            doc = PdfReader(io.BytesIO(file_bytes))
             text_parts = []
-            page_count = len(doc)
+            page_count = len(doc.pages)
 
             for page_num in range(page_count):
-                page = doc[page_num]
-                page_text = page.get_text("text")
+                page = doc.pages[page_num]
+                page_text = page.extract_text() or ""
+                
                 if page_text.strip():
                     text_parts.append(f"[Страница {page_num + 1}]\n{page_text}")
-
-            doc.close()
+                else:
+                    # Попробуем OCR картинок на этой странице (для отсканированных PDF)
+                    page_images_text = []
+                    for img_idx, img in enumerate(page.images):
+                        try:
+                            img_bytes = img.data
+                            img_text, _ = FileService.extract_text_from_image_ocr(img_bytes)
+                            if img_text.strip():
+                                page_images_text.append(img_text)
+                        except Exception as ocr_err:
+                            logger.warning(
+                                f"⚠️ Ошибка OCR картинки {img_idx} в PDF на стр {page_num + 1}: {ocr_err}"
+                            )
+                    
+                    if page_images_text:
+                        combined_text = "\n".join(page_images_text)
+                        text_parts.append(f"[Страница {page_num + 1} (OCR)]\n{combined_text}")
 
             full_text = "\n\n".join(text_parts)
             logger.info(f"✅ PDF обработан: {page_count} стр., {len(full_text)} символов")
             return full_text, page_count
 
         except ImportError:
-            logger.error("❌ PyMuPDF не установлен. Выполните: pip install PyMuPDF")
+            logger.error("❌ pypdf не установлен. Выполните: pip install pypdf")
             raise ValueError("Не удалось обработать PDF")
         except Exception as e:
             logger.error(f"❌ Ошибка при обработке PDF: {str(e)}")
@@ -123,6 +205,15 @@ class FileService:
             ValueError: Если файл повреждён или не является DOCX
         """
         try:
+            # Проверяем сигнатуру файла (магические байты)
+            if file_bytes.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
+                raise ValueError(
+                    "Формат .doc (Word 97-2003) не поддерживается. "
+                    "Пожалуйста, сохраните файл в формате .docx и попробуйте снова."
+                )
+            if not file_bytes.startswith(b"PK\x03\x04"):
+                raise ValueError("Файл не является корректным документом Word (.docx) или поврежден.")
+
             from docx import Document
 
             doc = Document(io.BytesIO(file_bytes))
@@ -151,8 +242,13 @@ class FileService:
             logger.error("❌ python-docx не установлен. Выполните: pip install python-docx")
             raise ValueError("Не удалось обработать DOCX")
         except Exception as e:
-            logger.error(f"❌ Ошибка при обработке DOCX: {str(e)}")
-            raise ValueError(f"Не удалось обработать DOCX: {str(e)}")
+            error_msg = str(e)
+            logger.error(f"❌ Ошибка при обработке DOCX: {error_msg}")
+            if "is not a Word file" in error_msg or "themeManager" in error_msg:
+                raise ValueError("Файл не является корректным документом Word (.docx) или поврежден.")
+            if isinstance(e, ValueError):
+                raise e
+            raise ValueError(f"Не удалось обработать DOCX: {error_msg}")
 
     @staticmethod
     def extract_text_from_image_ocr(file_bytes: bytes) -> tuple[str, int]:
@@ -168,6 +264,15 @@ class FileService:
         Raises:
             ValueError: Если Tesseract не установлен или произошла ошибка OCR
         """
+        if settings.google_cloud_vision_api_key:
+            return FileService.extract_text_from_image_google_vision(file_bytes)
+
+        if _IS_SERVERLESS or settings.is_production:
+            raise ValueError(
+                "Распознавание текста с картинок временно недоступно. "
+                "Пожалуйста, загрузите документ в формате PDF, DOCX или TXT, либо обратитесь в поддержку."
+            )
+
         try:
             from PIL import Image
             import pytesseract
@@ -204,8 +309,9 @@ class FileService:
         except ImportError as e:
             logger.error(f"❌ Зависимость для OCR не установлена: {str(e)}")
             raise ValueError(
-                "Для OCR нужны: pytesseract, Pillow и Tesseract. "
-                "Установите: brew install tesseract tesseract-lang && pip install pytesseract Pillow"
+                "OCR недоступен в данном окружении (Tesseract не установлен). "
+                "Для локальной работы: brew install tesseract tesseract-lang && pip install pytesseract Pillow. "
+                "На Vercel используйте PDF или DOCX вместо изображений."
             )
         except Exception as e:
             logger.error(f"❌ Ошибка OCR: {str(e)}")

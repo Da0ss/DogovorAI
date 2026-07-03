@@ -12,6 +12,8 @@ from app.models.document import AnalysisResult, RiskItem, RiskLevel
 
 logger = logging.getLogger(__name__)
 
+AI_UNAVAILABLE_PREFIX = "AI_SERVICE_UNAVAILABLE"
+
 # Системный промпт для анализа договоров
 SYSTEM_PROMPT = """Ты — опытный юрист-аналитик AI-сервиса DogovorAI, специализирующийся на праве Республики Казахстан (РК).
 Твоя задача: проанализировать текст договора и выявить юридические риски, основываясь на Гражданском кодексе РК, Трудовом кодексе РК и других нормативных актах Казахстана.
@@ -100,6 +102,7 @@ def _parse_ai_response(raw_response: str) -> AnalysisResult:
             risks=risks,
             total_risks=len(risks),
             high_risk_count=high_count,
+            medium_risk_count=medium_count,
             overall_risk_level=overall_level,
             recommendations=data.get("recommendations", []),
             analysis_success=True
@@ -111,6 +114,29 @@ def _parse_ai_response(raw_response: str) -> AnalysisResult:
             analysis_success=False,
             error_message=f"AI вернул некорректный JSON: {str(e)}"
         )
+
+
+def _ai_unavailable(message: str) -> AnalysisResult:
+    """Build a production-safe AI unavailable result."""
+    return AnalysisResult(
+        analysis_success=False,
+        error_message=f"{AI_UNAVAILABLE_PREFIX}: {message}",
+    )
+
+
+def is_ai_unavailable(result: AnalysisResult) -> bool:
+    """Return True when an AnalysisResult represents upstream AI unavailability."""
+    return bool(
+        result.error_message
+        and result.error_message.startswith(AI_UNAVAILABLE_PREFIX)
+    )
+
+
+def public_ai_error_message(result: AnalysisResult) -> str:
+    """Return an error message safe for API responses."""
+    if not result.error_message:
+        return "AI service unavailable"
+    return result.error_message.replace(f"{AI_UNAVAILABLE_PREFIX}: ", "", 1)
 
 
 async def analyze_contract_text(contract_text: str) -> AnalysisResult:
@@ -132,15 +158,18 @@ async def analyze_contract_text(contract_text: str) -> AnalysisResult:
             error_message="Текст договора слишком короткий для анализа (менее 50 символов)"
         )
 
-    # Ограничиваем текст для API (первые 15000 символов)
-    text_to_analyze = contract_text[:15000]
-    if len(contract_text) > 15000:
-        logger.warning(f"⚠️ Текст договора обрезан с {len(contract_text)} до 15000 символов")
+    # Ограничиваем текст для API (первые 80000 символов)
+    text_to_analyze = contract_text[:80000]
+    if len(contract_text) > 80000:
+        logger.warning(f"⚠️ Текст договора обрезан с {len(contract_text)} до 80000 символов")
         text_to_analyze += "\n\n[... текст договора продолжается ...]"
 
     # Проверяем наличие HF токена
     if not settings.hf_token:
-        logger.warning("⚠️ HF_TOKEN не задан — используем демо-анализ")
+        if settings.is_production:
+            logger.error("HF_TOKEN is not configured in production")
+            return _ai_unavailable("AI анализ временно недоступен: HF_TOKEN не настроен.")
+        logger.warning("⚠️ HF_TOKEN не задан — используем демо-анализ только для разработки")
         return _get_demo_analysis(contract_text)
 
     try:
@@ -179,6 +208,11 @@ def _get_api_error_fallback(contract_text: str, err: Exception) -> AnalysisResul
     Если HF / Router недоступен (квота, токен, сеть) — отдаём демо-результат,
     чтобы UI не ломался и пользователь видел причину.
     """
+    if settings.is_production:
+        err_short = str(err)[:300]
+        logger.error(f"AI API unavailable in production: {err_short}")
+        return _ai_unavailable("AI анализ временно недоступен. Попробуйте позже.")
+
     base = _get_demo_analysis(contract_text)
     err_short = str(err)[:400]
     logger.warning(f"⚠️ AI API недоступен, демо-фолбэк: {err_short}")
@@ -242,6 +276,7 @@ def _get_demo_analysis(contract_text: str) -> AnalysisResult:
         risks=demo_risks,
         total_risks=len(demo_risks),
         high_risk_count=2,
+        medium_risk_count=1,
         overall_risk_level=RiskLevel.HIGH,
         recommendations=[
             "Добавьте HF_TOKEN в файл .env для активации AI-анализа",

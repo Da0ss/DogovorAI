@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Dogovor AI - Pricing</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary-container": "#808dd2",
+                        "on-surface-variant": "#c6c5d2",
+                        "outline-variant": "#454650",
+                        "on-background": "#e5e2e1",
+                        "secondary": "#5adace",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#b9c3ff",
+                        "surface-container-low": "#1c1b1b",
+                        "primary-fixed-dim": "#b9c3ff",
+                        "on-primary-container": "#152363",
+                        "primary-fixed": "#dee1ff",
+                        "inverse-on-surface": "#313030",
+                        "on-surface": "#e5e2e1",
+                        "surface": "#131313",
+                        "tertiary-fixed-dim": "#e5c35e",
+                        "on-error": "#690005",
+                        "surface-variant": "#353534",
+                        "tertiary": "#e5c35e",
+                        "tertiary-container": "#c8a846",
+                        "surface-container": "#201f1f",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-fixed": "#ffe089",
+                        "secondary-fixed": "#79f7ea",
+                        "on-secondary": "#003733",
+                        "on-secondary-fixed-variant": "#00504a",
+                        "error-container": "#93000a",
+                        "on-secondary-container": "#003531",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#4e3d00",
+                        "background": "#131313",
+                        "secondary-fixed-dim": "#5adace",
+                        "surface-dim": "#131313",
+                        "surface-bright": "#393939",
+                        "secondary-container": "#01a89d",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-secondary-fixed": "#00201d",
+                        "outline": "#90909b",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "primary": "#b9c3ff",
+                        "on-primary-fixed": "#021355",
+                        "on-tertiary": "#3d2f00",
+                        "on-primary-fixed-variant": "#354282",
+                        "on-primary": "#1d2b6a",
+                        "inverse-primary": "#4d5a9c",
+                        "surface-container-highest": "#353534"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "base": "8px",
+                        "xl": "40px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Manrope"],
+                        "label-caps": ["Manrope"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "display-lg": ["Manrope"],
+                        "title-md": ["Manrope"],
+                        "headline-lg": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(42, 42, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+    <!-- Sentry SDK & Session Replay -->
+    <script src="https://js.sentry-cdn.com/64c33bc2f4f0702af076945c83a8df19.min.js" crossorigin="anonymous"></script>
+    <script>
+        Sentry.onLoad(function () {
+            Sentry.init({
+                integrations: [
+                    Sentry.replayIntegration(),
+                ],
+                replaysSessionSampleRate: 0.1,
+                replaysOnErrorSampleRate: 1.0,
+            });
+        });
+    </script>
+    <!-- PostHog Analytics -->
+    <script>
+        !function (t, e) { var o, n, p, r; e.__SV || (window.posthog && window.posthog.__loaded) || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.crossOrigin = "anonymous", p.async = !0, p.src = s.api_host.replace(".i.posthog.com", "-assets.i.posthog.com") + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "xi Si init Ni Bi pr qi Ui $i capture calculateEventProperties Zi register register_once register_for_session unregister unregister_for_session Yi getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Ki identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Qi Wi createPersonProfile setInternalOrTestUser Ji Fi tn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing zi debug mr it getPageViewId captureTraceFeedback captureTraceMetric Ri".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
+        posthog.init('phc_mLA4rhAW7aoH9iQMFUUrTHpigJKhTrRFG7C22uxwWRwV', {
+            api_host: 'https://us.i.posthog.com',
+            defaults: '2026-05-30',
+            person_profiles: 'identified_only',
+        })
+    </script>
+    <!-- Google Tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K95D2D9DTK"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-K95D2D9DTK');
+    </script>
+    <!-- Vercel Speed Insights -->
+    <script>
+        window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <!-- Vercel Web Analytics -->
+    <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</head>
+
+<body class="bg-background text-on-surface font-body-sm min-h-screen flex flex-col">
+    <!-- TopNavBar -->
+    <nav
+        class="sticky top-0 w-full z-50 flex justify-between items-center px-gutter py-sm max-w-container-max mx-auto bg-background/80 backdrop-blur-md border-b border-outline-variant/30">
+        <div class="flex items-center gap-md">
+            <a class="font-title-md text-title-md font-bold text-primary" href="/">Dogovor AI</a>
+        </div>
+        <div class="hidden md:flex items-center gap-md">
+            <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all duration-200 px-3 py-2 rounded-md"
+                href="/app">Dashboard</a>
+            <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all duration-200 px-3 py-2 rounded-md"
+                href="/app/history">History</a>
+            <a class="font-body-sm text-body-sm text-primary font-bold border-b-2 border-primary pb-1 px-3 py-2 scale-95 transition-transform duration-150"
+                href="/app/pricing">Pricing</a>
+        </div>
+        <div class="flex items-center gap-sm">
+            <button
+                class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container-low">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <div
+                class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-highest border border-outline-variant">
+                <img alt="User profile avatar" class="w-full h-full object-cover"
+                    src="https://lh3.googleusercontent.com/aida/AP1WRLuoZhUUyf9G5hKeSHUbOz4ytnOdfK81Q74S45cRso0Uo1aL4kcTXJFpQ32xuS-DL53IXmvswrQpCRfDZZznvA12EtipzSRUeQdzAvN-TLlkduuSL4E-HggUYXcskzj0TYg7ksYy9pt09OI1sqfLgT5CwSfrZRIEi1Zlgl01a8peOFgLaal8vERgsUYsdJJeFfIfJSMEqrW5lvq1yjorB9La0HkZeDvfv-ka9LqWFObd5SxZXNb43B09oHEo" />
+            </div>
+        </div>
+    </nav>
+    <!-- Main Content -->
+    <main class="flex-grow w-full max-w-container-max mx-auto px-gutter py-xl">
+        <!-- Header Section -->
+        <div class="text-center mb-xl">
+            <h1 class="font-display-lg text-display-lg text-on-surface mb-sm hidden md:block">Simple, transparent
+                pricing</h1>
+            <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-sm md:hidden">Simple,
+                transparent pricing</h1>
+            <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">Choose the plan that fits
+                your contract analysis needs. No hidden fees, cancel anytime.</p>
+        </div>
+        <!-- Pricing Cards Container -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-md lg:gap-lg items-stretch">
+            <!-- Free Plan -->
+            <div
+                class="bg-surface-container rounded-xl p-lg shadow-xl border border-outline-variant flex flex-col h-full">
+                <div class="mb-md">
+                    <h2 class="font-title-md text-title-md text-on-surface mb-xs">Free</h2>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant mb-md">For occasional personal use.</p>
+                    <div class="flex items-baseline gap-xs">
+                        <span class="font-headline-lg text-headline-lg text-on-surface">$0</span>
+                        <span class="font-body-sm text-body-sm text-on-surface-variant">/mo</span>
+                    </div>
+                </div>
+                <ul class="flex-grow space-y-sm mb-lg">
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface">1 analysis per month</span>
+                    </li>
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface">Basic risk detection</span>
+                    </li>
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface">Standard summary</span>
+                    </li>
+                </ul>
+                <button
+                    class="w-full py-3 px-4 rounded-lg font-label-md text-label-md border border-outline-variant text-on-surface hover:bg-surface-variant transition-colors text-center">
+                    Current Plan
+                </button>
+            </div>
+            <!-- Starter Plan (Highlighted) -->
+            <div
+                class="bg-surface-container-high rounded-xl p-lg shadow-2xl border-2 border-primary flex flex-col h-full relative transform md:-translate-y-4">
+                <div
+                    class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-on-primary font-label-md text-label-md px-4 py-1 rounded-full shadow-lg">
+                    Most Popular
+                </div>
+                <div class="mb-md">
+                    <h2 class="font-title-md text-title-md text-primary mb-xs">Pro</h2>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Perfect for freelancers and small
+                        teams.</p>
+                    <div class="flex items-baseline gap-xs">
+                        <span class="font-headline-lg text-headline-lg text-on-surface">$9</span>
+                        <span class="font-body-sm text-body-sm text-on-surface-variant">/mo</span>
+                    </div>
+                </div>
+                <ul class="flex-grow space-y-sm mb-lg">
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface font-medium">10 analyses per month</span>
+                    </li>
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface font-medium">Advanced risk
+                            detection</span>
+                    </li>
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface">Detailed clause breakdown</span>
+                    </li>
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface">Email support</span>
+                    </li>
+                </ul>
+                <button
+                    class="w-full py-3 px-4 rounded-lg font-label-md text-label-md bg-primary text-on-primary hover:bg-primary/90 transition-colors text-center shadow-md">
+                    Upgrade to Starter
+                </button>
+            </div>
+            <!-- Pro Plan -->
+            <div
+                class="bg-surface-container rounded-xl p-lg shadow-xl border border-outline-variant flex flex-col h-full">
+                <div class="mb-md">
+                    <h2 class="font-title-md text-title-md text-on-surface mb-xs">Max</h2>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant mb-md">For legal teams and heavy users.
+                    </p>
+                    <div class="flex items-baseline gap-xs">
+                        <span class="font-headline-lg text-headline-lg text-on-surface">$19</span>
+                        <span class="font-body-sm text-body-sm text-on-surface-variant">/mo</span>
+                    </div>
+                </div>
+                <ul class="flex-grow space-y-sm mb-lg">
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface font-medium">Unlimited analyses</span>
+                    </li>
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface font-medium">Priority risk
+                            detection</span>
+                    </li>
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface">Team collaboration tools</span>
+                    </li>
+                    <li class="flex items-start gap-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+                        <span class="font-body-sm text-body-sm text-on-surface">Priority support</span>
+                    </li>
+                </ul>
+                <button
+                    class="w-full py-3 px-4 rounded-lg font-label-md text-label-md bg-surface-container-highest text-on-surface hover:bg-surface-variant transition-colors text-center">
+                    Upgrade to Pro
+                </button>
+            </div>
+        </div>
+    </main>
+    <!-- Footer -->
+    <footer
+        class="w-full py-lg px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto border-t border-outline-variant/30 bg-background mt-xl">
+        <div class="mb-md md:mb-0 text-center md:text-left">
+            <span class="font-title-md text-title-md font-bold text-primary block mb-xs">Dogovor AI</span>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">© 2024 Dogovor AI. Precision in every
+                clause.</span>
+        </div>
+        <div class="flex gap-md">
+            <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
+                href="/terms">Terms of Service</a>
+            <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
+                href="/privacy">Privacy Policy</a>
+            <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
+                href="mailto:support@dogovorai.com">Contact Support</a>
+        </div>
+    </footer>
+
+    <script src="/static/js/auth-guard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('a').forEach(function (a) {
+                var t = a.textContent.trim();
+                if (t === 'Dashboard') a.href = '/app';
+                else if (t === 'History') a.href = '/app/history';
+                else if (t === 'Back to Dashboard') a.href = '/app';
+                else if (t === 'Pricing') a.href = '/app/pricing';
+            });
+        });
+    </script>
+</body>
+
+</html>
