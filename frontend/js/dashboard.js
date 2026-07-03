@@ -295,4 +295,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       link.href = '/app/pricing';
     }
   });
+
+  // Handle any pending file/text upload from landing page
+  const pendingName = sessionStorage.getItem('pending_file_name');
+  const pendingType = sessionStorage.getItem('pending_file_type');
+  const pendingData = sessionStorage.getItem('pending_file_data');
+  
+  if (pendingName && pendingData) {
+    sessionStorage.removeItem('pending_file_name');
+    sessionStorage.removeItem('pending_file_type');
+    sessionStorage.removeItem('pending_file_data');
+    
+    try {
+      const res = await fetch(pendingData);
+      const blob = await res.blob();
+      const file = new File([blob], pendingName, { type: pendingType || 'text/plain' });
+      handleFileSelect(file);
+    } catch (e) {
+      console.error('Failed to restore pending file upload:', e);
+    }
+  }
 });
