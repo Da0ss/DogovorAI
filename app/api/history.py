@@ -92,3 +92,39 @@ async def get_document_history(
         limit=limit,
         total_pages=total_pages
     )
+
+
+@router.get("/history/{document_id}", summary="Детали анализа документа")
+async def get_document_analysis_details(
+    document_id: str,
+    db: Session = Depends(get_db),
+    user_data: dict = Depends(get_current_user)
+):
+    """
+    Возвращает полную сохраненную информацию по анализу договора.
+    Используется для загрузки исторических отчетов на главной странице.
+    """
+    user_id = user_data["id"]
+    doc = db.query(Document).filter(Document.id == document_id, Document.user_id == user_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Документ не найден")
+        
+    analysis = db.query(AnalysisResult).filter(AnalysisResult.document_id == document_id, AnalysisResult.user_id == user_id).first()
+    
+    return {
+        "file_info": {
+            "filename": doc.original_name or doc.filename,
+            "char_count": len(doc.extracted_text) if doc.extracted_text else 0,
+            "extracted_text": doc.extracted_text,
+            "file_type": doc.file_type
+        },
+        "analysis": {
+            "document_type": analysis.document_type if analysis else "Неизвестный тип",
+            "summary": analysis.summary if analysis else "Резюме отсутствует.",
+            "overall_risk_level": analysis.overall_risk_level if analysis else "low",
+            "risks": analysis.risks if (analysis and analysis.risks) else [],
+            "recommendations": analysis.recommendations if (analysis and analysis.recommendations) else [],
+            "success": analysis.success if analysis else True,
+            "error_message": analysis.error_message if analysis else None
+        }
+    }

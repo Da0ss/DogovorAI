@@ -122,7 +122,7 @@ async function fetchHistory() {
         }
 
         loadingDiv.style.display = 'none';
-        table.style.display = 'table';
+        table.style.display = 'block';
         
         if (data.total_pages > 1 || currentPage > 1) {
             pagination.style.display = 'flex';
@@ -252,7 +252,7 @@ function renderTable() {
         const viewBtn = tr.querySelector('.view-btn');
         if (viewBtn) {
             viewBtn.addEventListener('click', () => {
-                alert(`Просмотр детального отчета для ${item.filename} (найдено ${item.risks_count} рисков).`);
+                window.location.href = '/app?document_id=' + item.document_id;
             });
         }
 

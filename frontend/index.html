@@ -271,21 +271,21 @@
         <div class="p-xl min-h-[400px] flex flex-col items-center justify-center bg-surface-container-lowest" id="progressContainer" style="display:none">
           <div class="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-lg"></div>
           <h3 class="font-title-md text-title-md text-on-surface mb-xs" id="progressTitle">Анализируем договор...</h3>
-          <p class="font-body-md text-body-md text-on-surface-variant mb-xl text-center max-w-sm" id="progressStep">Извлечени�� текста из документа</p>
+          <p class="font-body-md text-body-md text-on-surface-variant mb-xl text-center max-w-[24rem]" id="progressStep">Извлечение текста из документа</p>
           
           <div class="flex items-center gap-md mt-6" id="progressSteps">
-            <div class="flex items-center gap-2" id="step1">
-              <span class="w-3 h-3 rounded-full bg-outline-variant" id="step1Dot"></span>
+            <div class="flex items-center gap-2 shrink-0" id="step1">
+              <span class="w-3 h-3 rounded-full bg-outline-variant shrink-0" id="step1Dot"></span>
               <span class="font-label-md text-xs text-on-surface-variant">Чтение файла</span>
             </div>
-            <div class="w-12 h-px bg-outline-variant"></div>
-            <div class="flex items-center gap-2" id="step2">
-              <span class="w-3 h-3 rounded-full bg-outline-variant" id="step2Dot"></span>
+            <div class="w-6 md:w-12 h-px bg-outline-variant shrink-0"></div>
+            <div class="flex items-center gap-2 shrink-0" id="step2">
+              <span class="w-3 h-3 rounded-full bg-outline-variant shrink-0" id="step2Dot"></span>
               <span class="font-label-md text-xs text-on-surface-variant">AI-анализ</span>
             </div>
-            <div class="w-12 h-px bg-outline-variant"></div>
-            <div class="flex items-center gap-2" id="step3">
-              <span class="w-3 h-3 rounded-full bg-outline-variant" id="step3Dot"></span>
+            <div class="w-6 md:w-12 h-px bg-outline-variant shrink-0"></div>
+            <div class="flex items-center gap-2 shrink-0" id="step3">
+              <span class="w-3 h-3 rounded-full bg-outline-variant shrink-0" id="step3Dot"></span>
               <span class="font-label-md text-xs text-on-surface-variant">Законодательство РК</span>
             </div>
           </div>
@@ -297,7 +297,7 @@
       <section class="w-full max-w-5xl py-12 mt-12 border-t border-outline-variant/30">
         <div class="text-center mb-12">
           <h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Возможности Dogovor AI</h2>
-          <p class="font-body-md text-body-md text-on-surface-variant max-w-xl mx-auto">Интеллектуальные инструменты для быстрой и безопасной юридической экспертизы.</p>
+          <p class="font-body-md text-body-md text-on-surface-variant max-w-[36rem] mx-auto">Интеллектуальные инструменты для быстрой и безопасной юридической экспертизы.</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <!-- Feature 1 -->
@@ -413,7 +413,7 @@
 
         <!-- Right Side: AI Risk Cards stack -->
         <div class="lg:col-span-5 flex flex-col gap-sm overflow-y-auto custom-scrollbar pr-sm" style="height: calc(100vh - 280px); min-height: 520px;">
-          <div class="font-label-md text-xs text-on-surface-variant mb-xs px-xs uppercase tracking-wider">Выявленные риски AI</div>
+          <div class="font-label-md text-xs text-on-surface-variant pb-2 mb-2 px-xs uppercase tracking-wider border-b border-outline-variant/30 select-none">Выявленные риски AI</div>
           <div class="flex flex-col gap-3" id="risksList"></div>
         </div>
 
@@ -516,9 +516,9 @@
 
   <!-- ===== ERROR TOAST ===== -->
   <div class="error-toast" id="errorToast" style="display:none">
-    <span class="material-symbols-outlined">warning</span>
-    <span id="toastMessage">Произошла ошибка</span>
-    <button class="text-white hover:text-outline-variant font-bold text-lg ml-auto p-1" onclick="closeToast()">×</button>
+    <span class="material-symbols-outlined shrink-0">warning</span>
+    <span id="toastMessage" class="pr-6 text-sm leading-snug">Произошла ошибка</span>
+    <button class="text-white hover:text-outline-variant font-bold text-xl absolute right-3 top-1/2 -translate-y-1/2 p-1" onclick="closeToast()">×</button>
   </div>
 
 

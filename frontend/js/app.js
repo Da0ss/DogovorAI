@@ -496,6 +496,17 @@ document.getElementById('newAnalysisBtn').addEventListener('click', () => {
     resultsSection.style.display = 'none';
     uploadCard.style.display = 'block';
     resetFileSelection();
+    
+    // Clear URL parameters
+    if (window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    // Restore progress steps visibility if they were hidden by historical view loader
+    const stepsEl = document.getElementById('progressSteps');
+    if (stepsEl) stepsEl.style.display = 'flex';
+    document.getElementById('progressTitle').textContent = 'Анализируем договор...';
+    
     document.getElementById('upload').scrollIntoView({ behavior: 'smooth' });
 });
 
@@ -557,3 +568,49 @@ function escapeHtml(text) {
     div.appendChild(document.createTextNode(text));
     return div.innerHTML;
 }
+
+// ============================================================
+// HISTORICAL ANALYSIS LOADING
+// ============================================================
+
+async function loadHistoricalAnalysis(documentId) {
+    if (!documentId) return;
+
+    // Show progress loader
+    uploadCard.style.display = 'none';
+    progressContainer.style.display = 'flex';
+    document.getElementById('progressTitle').textContent = 'Загрузка отчета...';
+    document.getElementById('progressStep').textContent = 'Получение данных из истории...';
+    
+    // Hide progress steps as they are for active analysis
+    const stepsEl = document.getElementById('progressSteps');
+    if (stepsEl) stepsEl.style.display = 'none';
+
+    try {
+        const headers = typeof getAuthHeaders === 'function' ? getAuthHeaders() : {};
+        const resp = await fetch(`/api/history/${documentId}`, { headers });
+        if (!resp.ok) {
+            throw new Error('Не удалось загрузить отчет. Возможно, он был удален.');
+        }
+        
+        const data = await resp.json();
+        
+        // Render results using existing displayResults function
+        displayResults(data);
+        
+    } catch (e) {
+        console.error('Failed to load historical analysis:', e);
+        showError(e.message || 'Ошибка при загрузке исторического отчета.');
+        progressContainer.style.display = 'none';
+        uploadCard.style.display = 'block';
+    }
+}
+
+// Check for historical document load in URL parameters on load
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const documentId = urlParams.get('document_id');
+    if (documentId) {
+        loadHistoricalAnalysis(documentId);
+    }
+});

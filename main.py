@@ -22,6 +22,8 @@ from app.api import auth
 from app.api import subscriptions
 from app.api import contracts
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
 from app.api import metrics
 from app.api import history
 from app.api import admin
@@ -96,6 +98,9 @@ app = FastAPI(
     debug=settings.debug,
     lifespan=lifespan
 )
+
+# Подключение Prometheus метрик
+Instrumentator().instrument(app).expose(app)
 
 def _allowed_cors_origins() -> list[str]:
     """Resolve CORS origins without wildcard credentials in production."""
