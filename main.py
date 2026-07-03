@@ -90,6 +90,17 @@ async def lifespan(app: FastAPI):
     logger.info("🛑 Остановка приложения")
 
 
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://64c33bc2f4f0702af076945c83a8df19@o4511670616129536.ingest.us.sentry.io/4511670620913664",
+    send_default_pii=True,
+    enable_logs=True,
+    traces_sample_rate=1.0,
+    profile_session_sample_rate=1.0,
+    profile_lifecycle="trace",
+)
+
 # Создание FastAPI приложения
 app = FastAPI(
     title=settings.app_name,
@@ -343,6 +354,11 @@ async def get_analytics_config() -> dict:
         "ga_measurement_id": settings.ga_measurement_id,
         "gtm_id": settings.gtm_id
     }
+
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
 
 
 # Include routers from API modules

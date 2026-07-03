@@ -43,3 +43,4 @@ openai>=1.50.0
 stripe>=15.0.0
 posthog>=3.5.0
 prometheus-fastapi-instrumentator==6.1.0
+sentry-sdk[fastapi]>=2.0.0
