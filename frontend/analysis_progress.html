@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dogovor AI | Processing Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-primary": "#4d5a9c",
+                    "surface-container": "#201f1f",
+                    "on-background": "#e5e2e1",
+                    "error": "#ffb4ab",
+                    "primary-fixed-dim": "#b9c3ff",
+                    "on-primary": "#1d2b6a",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "on-primary-container": "#152363",
+                    "primary": "#b9c3ff",
+                    "inverse-surface": "#e5e2e1",
+                    "secondary-container": "#01a89d",
+                    "tertiary-fixed-dim": "#e5c35e",
+                    "surface-variant": "#353534",
+                    "surface": "#131313",
+                    "surface-bright": "#393939",
+                    "outline": "#90909b",
+                    "on-tertiary-fixed": "#241a00",
+                    "tertiary-fixed": "#ffe089",
+                    "on-error": "#690005",
+                    "inverse-on-surface": "#313030",
+                    "surface-container-lowest": "#0e0e0e",
+                    "surface-container-highest": "#353534",
+                    "on-surface-variant": "#c6c5d2",
+                    "on-primary-fixed-variant": "#354282",
+                    "on-tertiary": "#3d2f00",
+                    "on-tertiary-container": "#4e3d00",
+                    "on-secondary-fixed": "#00201d",
+                    "error-container": "#93000a",
+                    "secondary-fixed-dim": "#5adace",
+                    "secondary": "#5adace",
+                    "tertiary-container": "#c8a846",
+                    "tertiary": "#e5c35e",
+                    "surface-dim": "#131313",
+                    "on-surface": "#e5e2e1",
+                    "on-secondary-container": "#003531",
+                    "surface-container-high": "#2a2a2a",
+                    "outline-variant": "#454650",
+                    "on-primary-fixed": "#021355",
+                    "on-error-container": "#ffdad6",
+                    "background": "#131313",
+                    "surface-container-low": "#1c1b1b",
+                    "on-secondary-fixed-variant": "#00504a",
+                    "secondary-fixed": "#79f7ea",
+                    "primary-fixed": "#dee1ff",
+                    "primary-container": "#808dd2",
+                    "surface-tint": "#b9c3ff",
+                    "on-secondary": "#003733"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "container-max": "1440px",
+                    "base": "8px",
+                    "sm": "8px",
+                    "xl": "40px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Manrope"],
+                    "title-md": ["Manrope"],
+                    "display-lg": ["Manrope"],
+                    "body-lg": ["Manrope"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "body-sm": ["Manrope"],
+                    "label-caps": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+            font-family: 'Manrope', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(30, 30, 30, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .shimmer-text {
+            background: linear-gradient(90deg, #b9c3ff, #79f7ea, #b9c3ff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .scanline {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #b9c3ff, transparent);
+            position: absolute;
+            width: 100%;
+            top: 0;
+            z-index: 10;
+            animation: scanning 2.5s ease-in-out infinite;
+        }
+
+        @keyframes scanning {
+            0% { top: 0; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+            100% { transform: scale(0.8); opacity: 0.8; }
+        }
+    </style>
+  <!-- Sentry SDK & Session Replay -->
+  <script src="https://js.sentry-cdn.com/64c33bc2f4f0702af076945c83a8df19.min.js" crossorigin="anonymous"></script>
+  <script>
+    Sentry.onLoad(function() {
+      Sentry.init({
+        integrations: [
+          Sentry.replayIntegration(),
+        ],
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
+    });
+  </script>
+  <!-- PostHog Analytics -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="xi Si init Ni Bi pr qi Ui $i capture calculateEventProperties Zi register register_once register_for_session unregister unregister_for_session Yi getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Ki identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Qi Wi createPersonProfile setInternalOrTestUser Ji Fi tn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing zi debug mr it getPageViewId captureTraceFeedback captureTraceMetric Ri".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_mLA4rhAW7aoH9iQMFUUrTHpigJKhTrRFG7C22uxwWRwV', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2026-05-30',
+        person_profiles: 'identified_only',
+    })
+  </script>
+  <!-- Google Tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K95D2D9DTK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-K95D2D9DTK');
+  </script>
+  <!-- Vercel Speed Insights -->
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+  <!-- Vercel Web Analytics -->
+  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</head>
+<body class="bg-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<header class="sticky top-0 w-full z-50 flex justify-between items-center px-gutter py-sm max-w-container-max mx-auto bg-surface/80 backdrop-blur-md dark:bg-inverse-surface/80 shadow-sm">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">security</span>
+<span class="font-title-md text-title-md font-bold text-primary dark:text-inverse-primary">Dogovor AI</span>
+</div>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors" href="#">Dashboard</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors" href="#">History</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors" href="#">Pricing</a>
+</nav>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-all duration-200 text-on-surface-variant">notifications</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a legal expert in their late 30s with a sharp, modern look. They are set against a blurred, high-end office background with deep navy and slate grey tones. The lighting is sophisticated and directional, matching a high-tech dark mode UI aesthetic with cool color temperatures and sharp focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkpfSp_r9cWkQYke9BZ5-aAAm_oXdr0NGLmSy9qwLoU9PRdUKnRbyXVLymLME3MDznaAVEDGnqwmCDYJ92kGQmRPThh7JPMOLgKyzCeofz8WbZpGOqJ7iTlfLv5HrTpLMCjw7Yo1zhGTShyFc_9-reDoibIrpeVSrEeqiVLlUuaPqjMcSg86nUcG20U3FpA6veEYROoi2LiQ1QIM5DjT6jeMKVyiohQTrMFTJXA94H2WUYP04Ir3WJQQ"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="min-h-[calc(100vh-140px)] flex items-center justify-center px-gutter py-xl relative overflow-hidden">
+<!-- Background Atmospheric Element -->
+<div class="absolute inset-0 pointer-events-none opacity-20">
+
+</div>
+<div class="w-full max-w-2xl z-10">
+<!-- Center Container -->
+<div class="glass-panel rounded-xl p-xl flex flex-col items-center text-center">
+<!-- File Context -->
+<div class="mb-lg flex items-center gap-sm bg-surface-container-high px-4 py-2 rounded-full border border-outline-variant">
+<span class="material-symbols-outlined text-secondary text-lg">description</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Master_Service_Agreement_v2.docx</span>
+</div>
+<!-- Visualization Area -->
+<div class="relative w-64 h-64 mb-lg flex items-center justify-center">
+<!-- Circular Outer Ring -->
+<div class="absolute inset-0 border-4 border-outline-variant rounded-full opacity-20"></div>
+<div class="absolute inset-0 border-t-4 border-primary rounded-full pulse-ring"></div>
+<!-- Progress SVG (Circular) -->
+<svg class="w-full h-full -rotate-90 transform" viewbox="0 0 100 100">
+<circle class="text-surface-container-highest" cx="50" cy="50" fill="transparent" r="46" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-primary transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="46" stroke="currentColor" stroke-dasharray="289" stroke-dashoffset="101" stroke-width="4"></circle>
+</svg>
+<!-- Inner Animated Asset -->
+<div class="absolute inset-4 overflow-hidden rounded-full flex items-center justify-center bg-surface-container-low/50">
+
+<div class="scanline"></div>
+</div>
+<!-- Percentage Center -->
+<div class="absolute flex flex-col items-center justify-center">
+<span class="font-display-lg text-display-lg text-primary tracking-tighter">65%</span>
+</div>
+</div>
+<!-- Progress Text -->
+<div class="space-y-sm">
+<h2 class="font-headline-lg text-headline-lg shimmer-text">Processing Analysis</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant min-h-[1.5rem] transition-all duration-500 opacity-100" id="status-text">
+                        Analyzing document structure...
+                    </p>
+</div>
+<!-- Linear Progress Sub-indicator -->
+<div class="w-full mt-xl space-y-md">
+<div class="flex justify-between items-center px-1">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-widest">Global Scan Status</span>
+<span class="font-label-caps text-label-caps text-secondary">Step 3 of 4</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-secondary w-[65%] rounded-full shadow-[0_0_8px_rgba(185,195,255,0.4)]"></div>
+</div>
+</div>
+<!-- Security Assurance -->
+<div class="mt-xl flex items-center gap-xs text-outline">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">encrypted</span>
+<span class="font-body-sm text-body-sm">Bank-grade encryption active. Data remains confidential.</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-lg px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto border-t border-outline-variant bg-surface dark:bg-inverse-surface">
+<p class="font-body-sm text-body-sm text-on-surface-variant">© 2024 Dogovor AI. Precision in every clause.</p>
+<div class="flex gap-lg mt-md md:mt-0">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Contact Support</a>
+</div>
+</footer>
+<script>
+        const statusMessages = [
+            "Analyzing document structure...",
+            "Identifying high-risk clauses...",
+            "Cross-referencing legal standards...",
+            "Generating recommendations...",
+            "Mapping party obligations...",
+            "Checking liability limits...",
+            "Validating jurisdiction terms..."
+        ];
+
+        let messageIndex = 0;
+        const statusElement = document.getElementById('status-text');
+
+        function updateStatus() {
+            statusElement.style.opacity = '0';
+            statusElement.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                messageIndex = (messageIndex + 1) % statusMessages.length;
+                statusElement.textContent = statusMessages[messageIndex];
+                statusElement.style.opacity = '1';
+                statusElement.style.transform = 'translateY(0px)';
+            }, 500);
+        }
+
+        setInterval(updateStatus, 3500);
+
+        // Subtle parallax movement for the central container
+        document.addEventListener('mousemove', (e) => {
+            const container = document.querySelector('.glass-panel');
+            const x = (window.innerWidth / 2 - e.pageX) / 50;
+            const y = (window.innerHeight / 2 - e.pageY) / 50;
+            container.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+        });
+    </script>
+
+</body></html>

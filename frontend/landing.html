@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dogovor AI - Legal Review Automated</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#2a2a2a",
+                      "surface-container-lowest": "#0e0e0e",
+                      "primary-container": "#808dd2",
+                      "on-surface-variant": "#c6c5d2",
+                      "outline-variant": "#454650",
+                      "on-background": "#e5e2e1",
+                      "secondary": "#5adace",
+                      "error": "#ffb4ab",
+                      "surface-tint": "#b9c3ff",
+                      "surface-container-low": "#1c1b1b",
+                      "primary-fixed-dim": "#b9c3ff",
+                      "on-primary-container": "#152363",
+                      "primary-fixed": "#dee1ff",
+                      "inverse-on-surface": "#313030",
+                      "on-surface": "#e5e2e1",
+                      "surface": "#131313",
+                      "tertiary-fixed-dim": "#e5c35e",
+                      "on-error": "#690005",
+                      "surface-variant": "#353534",
+                      "tertiary": "#e5c35e",
+                      "tertiary-container": "#c8a846",
+                      "surface-container": "#201f1f",
+                      "inverse-surface": "#e5e2e1",
+                      "tertiary-fixed": "#ffe089",
+                      "secondary-fixed": "#79f7ea",
+                      "on-secondary": "#003733",
+                      "on-secondary-fixed-variant": "#00504a",
+                      "error-container": "#93000a",
+                      "on-secondary-container": "#003531",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary-container": "#4e3d00",
+                      "background": "#131313",
+                      "secondary-fixed-dim": "#5adace",
+                      "surface-dim": "#131313",
+                      "surface-bright": "#393939",
+                      "secondary-container": "#01a89d",
+                      "on-tertiary-fixed": "#241a00",
+                      "on-secondary-fixed": "#00201d",
+                      "outline": "#90909b",
+                      "on-tertiary-fixed-variant": "#574500",
+                      "primary": "#b9c3ff",
+                      "on-primary-fixed": "#021355",
+                      "on-tertiary": "#3d2f00",
+                      "on-primary-fixed-variant": "#354282",
+                      "on-primary": "#1d2b6a",
+                      "inverse-primary": "#4d5a9c",
+                      "surface-container-highest": "#353534"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "base": "8px",
+                      "xl": "40px",
+                      "gutter": "24px",
+                      "container-max": "1440px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "body-sm": ["Manrope"],
+                      "label-caps": ["Manrope"],
+                      "headline-lg-mobile": ["Manrope"],
+                      "body-lg": ["Manrope"],
+                      "display-lg": ["Manrope"],
+                      "title-md": ["Manrope"],
+                      "headline-lg": ["Manrope"]
+              },
+              "fontSize": {
+                      "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                      "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                      "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                      "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                      "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                      "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                      "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+  <!-- Sentry SDK & Session Replay -->
+  <script src="https://js.sentry-cdn.com/64c33bc2f4f0702af076945c83a8df19.min.js" crossorigin="anonymous"></script>
+  <script>
+    Sentry.onLoad(function() {
+      Sentry.init({
+        integrations: [
+          Sentry.replayIntegration(),
+        ],
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
+    });
+  </script>
+  <!-- PostHog Analytics -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="xi Si init Ni Bi pr qi Ui $i capture calculateEventProperties Zi register register_once register_for_session unregister unregister_for_session Yi getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Ki identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Qi Wi createPersonProfile setInternalOrTestUser Ji Fi tn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing zi debug mr it getPageViewId captureTraceFeedback captureTraceMetric Ri".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_mLA4rhAW7aoH9iQMFUUrTHpigJKhTrRFG7C22uxwWRwV', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2026-05-30',
+        person_profiles: 'identified_only',
+    })
+  </script>
+  <!-- Google Tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K95D2D9DTK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-K95D2D9DTK');
+  </script>
+  <!-- Vercel Speed Insights -->
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+  <!-- Vercel Web Analytics -->
+  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+</head>
+<body class="min-h-screen flex flex-col font-body-lg text-body-lg bg-surface">
+<!-- TopNavBar -->
+<header class="sticky top-0 w-full z-50 flex justify-between items-center px-gutter py-sm max-w-container-max mx-auto bg-surface/90 backdrop-blur-md border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
+</div>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-sm text-body-sm" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-sm text-body-sm" href="#">History</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-sm text-body-sm" href="#">Pricing</a>
+</nav>
+<div class="flex items-center gap-sm">
+<button aria-label="notifications" class="p-2 rounded-full hover:bg-surface-container-low transition-all duration-200 text-on-surface-variant">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-outline-variant ml-2">
+<img alt="User profile avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLuDwdYERJoKlio35BzeIRMSRdYppwIodPIQ5o1Umf5DnRFCRufiPuTzFN_NhWeEM5omw9uHltwId1XM1M4IDdEPO6t5c1gsMOXcdxmlrbZ9DiLZLpuOAyv3PoPxVlXH_BF1okqBt2Dr9dQYtU6dQ-vaa6V7_m0JnBukTN7Z6XCt5ooErCXn6wZKtUhZzB9gNB90TQIjuODKoV6BNu3wfGqwJ2r-xPZ2m68EliT-Tom2-xLvI_PdaLaeloFX"/>
+</div>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center justify-start pt-xl pb-xl px-gutter max-w-container-max mx-auto w-full gap-xl">
+<!-- Hero Section -->
+<section class="text-center max-w-3xl flex flex-col items-center gap-md mt-lg">
+<h1 class="font-display-lg text-display-lg text-on-surface">Automate your legal review with confidence.</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">The Expert Companion that transforms complex contracts into clear, actionable insights in seconds.</p>
+<!-- 3-Step Guide -->
+<div class="flex flex-col md:flex-row items-center justify-center gap-lg mt-xl w-full">
+<div class="flex flex-col items-center gap-sm relative z-10">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center text-primary shadow-sm border border-outline-variant">
+<span class="material-symbols-outlined text-[32px]">upload_file</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">1. Upload</span>
+</div>
+<div class="hidden md:block w-24 h-px bg-outline-variant relative -top-4"></div>
+<div class="flex flex-col items-center gap-sm relative z-10">
+<div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shadow-sm border border-primary">
+<span class="material-symbols-outlined text-[32px]">psychology</span>
+</div>
+<span class="font-label-caps text-label-caps text-primary uppercase tracking-wider">2. AI Analysis</span>
+</div>
+<div class="hidden md:block w-24 h-px bg-outline-variant relative -top-4"></div>
+<div class="flex flex-col items-center gap-sm relative z-10">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center text-primary shadow-sm border border-outline-variant">
+<span class="material-symbols-outlined text-[32px]">download_done</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">3. Report</span>
+</div>
+</div>
+</section>
+<!-- Smart Input Interface -->
+<section class="w-full max-w-4xl bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant overflow-hidden mt-lg">
+<!-- Tabs -->
+<div class="flex border-b border-outline-variant bg-surface-container-low">
+<button class="flex-1 py-4 font-label-caps text-label-caps text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2" id="tab-drag">
+<span class="material-symbols-outlined text-[20px]">file_upload</span>
+                DRAG &amp; DROP FILE
+            </button>
+<button class="flex-1 py-4 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2" id="tab-cloud">
+<span class="material-symbols-outlined text-[20px]">cloud</span>
+                CLOUD LINK
+            </button>
+<button class="flex-1 py-4 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2" id="tab-text">
+<span class="material-symbols-outlined text-[20px]">notes</span>
+                PASTE TEXT
+            </button>
+</div>
+<!-- Content Area -->
+<div class="p-xl min-h-[400px] flex flex-col items-center justify-center bg-surface-container-lowest relative">
+<!-- Drag & Drop View (Active) -->
+<div class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-outline-variant rounded-lg p-lg hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group" id="view-drag">
+<div class="w-20 h-20 rounded-full bg-surface-container-low flex items-center justify-center text-primary mb-md group-hover:scale-110 transition-transform border border-outline-variant">
+<span class="material-symbols-outlined text-[40px]">document_scanner</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-2">Drag your contract here</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-lg text-center max-w-sm">Supports PDF, DOCX, TXT up to 50MB. AI will automatically structure and analyze the content.</p>
+<button class="bg-primary text-on-primary font-label-caps text-label-caps px-8 py-3 rounded-full hover:bg-primary-container hover:text-on-primary-container transition-all shadow-md active:scale-95">
+                    BROWSE FILES
+                </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-lg px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto border-t border-outline-variant bg-surface mt-xl">
+<div class="mb-4 md:mb-0">
+<span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">© 2024 Dogovor AI. Precision in every clause.</p>
+</div>
+<div class="flex gap-md font-body-sm text-body-sm">
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Contact Support</a>
+</div>
+</footer>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabs = ['tab-drag', 'tab-cloud', 'tab-text'];
+        
+        tabs.forEach(tabId => {
+            document.getElementById(tabId)?.addEventListener('click', (e) => {
+                // Reset all tabs
+                tabs.forEach(t => {
+                    const el = document.getElementById(t);
+                    el.className = "flex-1 py-4 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2";
+                });
+                
+                // Set active tab
+                e.currentTarget.className = "flex-1 py-4 font-label-caps text-label-caps text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2";
+            });
+        });
+    });
+</script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Fix nav links
+    document.querySelectorAll('header nav a').forEach(function(a) {
+      var t = a.textContent.trim();
+      if (t === 'Dashboard') a.href = '/app';
+      else if (t === 'History') a.href = '/app/history';
+      else if (t === 'Pricing') a.href = '/app/pricing';
+    });
+    // Browse button -> dashboard
+    var browseBtn = document.querySelector('#view-drag button');
+    if (browseBtn) {
+      browseBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = '/app';
+      });
+    }
+    var dragView = document.querySelector('#view-drag');
+    if (dragView) {
+      dragView.addEventListener('click', function(e) {
+        if (e.target !== browseBtn && !e.target.closest('button')) {
+          window.location.href = '/app';
+        }
+      });
+    }
+    // Tab switching
+    var tabs = ['tab-drag', 'tab-cloud', 'tab-text'];
+    tabs.forEach(function(tabId) {
+      var el = document.getElementById(tabId);
+      if (el) el.addEventListener('click', function(e) {
+        tabs.forEach(function(t) {
+          var el2 = document.getElementById(t);
+          if (el2) el2.className = "flex-1 py-4 font-label-caps text-label-caps text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2";
+        });
+        e.currentTarget.className = "flex-1 py-4 font-label-caps text-label-caps text-primary bg-surface-container-lowest border-t-2 border-primary transition-colors flex items-center justify-center gap-2";
+      });
+    });
+  });
+</script>
+</body></html>

@@ -14,11 +14,10 @@ class TestHealthEndpoints:
 
     def test_root_endpoint(self):
         """
-        Test root endpoint redirects to /app
+        Test root endpoint serves landing page
         """
         response = client.get("/", follow_redirects=False)
-        assert response.status_code == 307
-        assert response.headers["location"] == "/app"
+        assert response.status_code == 200
 
     def test_health_check_endpoint(self):
         """
