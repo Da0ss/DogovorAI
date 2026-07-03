@@ -205,6 +205,15 @@ class FileService:
             ValueError: Если файл повреждён или не является DOCX
         """
         try:
+            # Проверяем сигнатуру файла (магические байты)
+            if file_bytes.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
+                raise ValueError(
+                    "Формат .doc (Word 97-2003) не поддерживается. "
+                    "Пожалуйста, сохраните файл в формате .docx и попробуйте снова."
+                )
+            if not file_bytes.startswith(b"PK\x03\x04"):
+                raise ValueError("Файл не является корректным документом Word (.docx) или поврежден.")
+
             from docx import Document
 
             doc = Document(io.BytesIO(file_bytes))
@@ -233,8 +242,13 @@ class FileService:
             logger.error("❌ python-docx не установлен. Выполните: pip install python-docx")
             raise ValueError("Не удалось обработать DOCX")
         except Exception as e:
-            logger.error(f"❌ Ошибка при обработке DOCX: {str(e)}")
-            raise ValueError(f"Не удалось обработать DOCX: {str(e)}")
+            error_msg = str(e)
+            logger.error(f"❌ Ошибка при обработке DOCX: {error_msg}")
+            if "is not a Word file" in error_msg or "themeManager" in error_msg:
+                raise ValueError("Файл не является корректным документом Word (.docx) или поврежден.")
+            if isinstance(e, ValueError):
+                raise e
+            raise ValueError(f"Не удалось обработать DOCX: {error_msg}")
 
     @staticmethod
     def extract_text_from_image_ocr(file_bytes: bytes) -> tuple[str, int]:
@@ -255,8 +269,8 @@ class FileService:
 
         if _IS_SERVERLESS or settings.is_production:
             raise ValueError(
-                "OCR изображений недоступен в production без GOOGLE_CLOUD_VISION_API_KEY. "
-                "Загрузите PDF/DOCX/TXT или настройте Google Vision."
+                "Распознавание текста с картинок временно недоступно. "
+                "Пожалуйста, загрузите документ в формате PDF, DOCX или TXT, либо обратитесь в поддержку."
             )
 
         try:

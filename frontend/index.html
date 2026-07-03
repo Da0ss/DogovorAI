@@ -1,720 +1,318 @@
 <!DOCTYPE html>
-<html class="dark" lang="ru">
 
-<head>
-  <!-- Vercel Speed Insights -->
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dogovor AI - Analytical Dashboard</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary-container": "#808dd2",
+                        "on-surface-variant": "#c6c5d2",
+                        "outline-variant": "#454650",
+                        "on-background": "#e5e2e1",
+                        "secondary": "#5adace",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#b9c3ff",
+                        "surface-container-low": "#1c1b1b",
+                        "primary-fixed-dim": "#b9c3ff",
+                        "on-primary-container": "#152363",
+                        "primary-fixed": "#dee1ff",
+                        "inverse-on-surface": "#313030",
+                        "on-surface": "#e5e2e1",
+                        "surface": "#131313",
+                        "tertiary-fixed-dim": "#e5c35e",
+                        "on-error": "#690005",
+                        "surface-variant": "#353534",
+                        "tertiary": "#e5c35e",
+                        "tertiary-container": "#c8a846",
+                        "surface-container": "#201f1f",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-fixed": "#ffe089",
+                        "secondary-fixed": "#79f7ea",
+                        "on-secondary": "#003733",
+                        "on-secondary-fixed-variant": "#00504a",
+                        "error-container": "#93000a",
+                        "on-secondary-container": "#003531",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#4e3d00",
+                        "background": "#131313",
+                        "secondary-fixed-dim": "#5adace",
+                        "surface-dim": "#131313",
+                        "surface-bright": "#393939",
+                        "secondary-container": "#01a89d",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-secondary-fixed": "#00201d",
+                        "outline": "#90909b",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "primary": "#b9c3ff",
+                        "on-primary-fixed": "#021355",
+                        "on-tertiary": "#3d2f00",
+                        "on-primary-fixed-variant": "#354282",
+                        "on-primary": "#1d2b6a",
+                        "inverse-primary": "#4d5a9c",
+                        "surface-container-highest": "#353534"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "base": "8px",
+                        "xl": "40px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Manrope"],
+                        "label-caps": ["Manrope"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "display-lg": ["Manrope"],
+                        "title-md": ["Manrope"],
+                        "headline-lg": ["Manrope"],
+                        "body-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "title-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Luminous Shadow for Level 1 Surfaces in Dark Mode */
+        .shadow-luminous {
+            box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        /* Custom Scrollbar for Workspace */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #454650;
+            border-radius: 20px;
+        }
+        
+        /* Smooth scrolling for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+  <!-- Sentry SDK & Session Replay -->
+  <script src="https://js.sentry-cdn.com/64c33bc2f4f0702af076945c83a8df19.min.js" crossorigin="anonymous"></script>
   <script>
-    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+    Sentry.onLoad(function() {
+      Sentry.init({
+        integrations: [
+          Sentry.replayIntegration(),
+        ],
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
+    });
   </script>
-  <script defer src="/_vercel/speed-insights/script.js"></script>
-  
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-K95D2D9DTK"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-K95D2D9DTK');
-</script>
+  <!-- PostHog Analytics -->
   <script>
     !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="xi Si init Ni Bi pr qi Ui $i capture calculateEventProperties Zi register register_once register_for_session unregister unregister_for_session Yi getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Ki identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Qi Wi createPersonProfile setInternalOrTestUser Ji Fi tn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing zi debug mr it getPageViewId captureTraceFeedback captureTraceMetric Ri".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
     posthog.init('phc_mLA4rhAW7aoH9iQMFUUrTHpigJKhTrRFG7C22uxwWRwV', {
         api_host: 'https://us.i.posthog.com',
         defaults: '2026-05-30',
-        person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+        person_profiles: 'identified_only',
     })
-</script>
-  
-  <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>Dogovor AI — Умный анализ договоров</title>
-  <meta name="description" content="AI-сервис для анализа юридических рисков в договорах. Загрузите PDF, DOCX или фото договора — получите список рисков с ссылками на законодательство РК." />
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com" rel="preconnect" />
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet" />
-  <!-- Material Symbols -->
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
-
-  <!-- Tailwind CSS -->
-  <link rel="stylesheet" href="/static/css/tailwind-built.css?v=1.3">
-
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="/static/css/style.css?v=1.3">
-  <link rel="stylesheet" href="/static/css/design-system-ext.css?v=1.3">
-
-
-  <style>
-    /* Custom Luminous Shadow for Level 1 Surfaces */
-    .shadow-luminous {
-      box-shadow: 0px 4px 20px rgba(36, 56, 156, 0.08);
-    }
-
-    /* Custom Scrollbar for Workspace */
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background-color: rgba(79, 70, 229, 0.3);
-      border-radius: 20px;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    /* Error Toast */
-    .error-toast {
-      position: fixed;
-      bottom: 120px;
-      right: 24px;
-      background: #ba1a1a;
-      color: white;
-      padding: 16px 20px;
-      border-radius: 12px;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0px 8px 24px rgba(186, 26, 26, 0.35);
-      font-family: 'Work Sans', sans-serif;
-      animation: slideUp 0.3s ease;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(50px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    /* Paywall Modal */
-    .paywall-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(8, 11, 20, 0.6);
-      backdrop-filter: blur(8px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .paywall-card {
-      background: var(--bg-secondary, #0d1424);
-      border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-      border-radius: 24px;
-      padding: 32px;
-      max-width: 480px;
-      width: 90%;
-      position: relative;
-      box-shadow: var(--shadow-lg, 0 20px 60px rgba(0, 0, 0, 0.5));
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .paywall-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      font-size: 24px;
-      color: var(--text-secondary, #8892a4);
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
-  
+  </script>
+  <!-- Google Tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K95D2D9DTK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-K95D2D9DTK');
+  </script>
+  <!-- Vercel Speed Insights -->
+  <script>
+    window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
   <!-- Vercel Web Analytics -->
   <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 </head>
-
-<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[110px] pb-[100px]">
-
-
-  <!-- Nav rendered by nav.js -->
-  <div id="nav-root"></div>
-
-  <!-- ===== LANDING VIEW SECTION ===== -->
-  <div id="landingView">
-    <main class="landing-main flex-grow flex flex-col items-center justify-center pt-lg pb-xl px-gutter max-w-container-max mx-auto w-full gap-xl">
-      <!-- Hero Section -->
-      <section class="hero-section text-center max-w-3xl flex flex-col items-center gap-md mt-lg">
-        <h1 class="font-display-lg text-display-lg text-on-surface mb-2">Анализируйте договоры с юридической точностью</h1>
-        <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Автоматизированный разбор рисков, спорных пунктов и рекомендаций со ссылками на законодательство Республики Казахстан за секунды.</p>
-        
-        <!-- 3-Step Guide -->
-        <div class="flex flex-col md:flex-row items-center justify-center gap-lg mt-xl w-full">
-          <div class="flex flex-col items-center gap-sm relative z-10">
-            <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-primary shadow-sm">
-              <span class="material-symbols-outlined text-[32px]">upload_file</span>
-            </div>
-            <span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">1. Загрузите</span>
-          </div>
-          <div class="hidden md:block w-24 h-px bg-outline-variant relative -top-4"></div>
-          <div class="flex flex-col items-center gap-sm relative z-10">
-            <div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shadow-sm">
-              <span class="material-symbols-outlined text-[32px]">psychology</span>
-            </div>
-            <span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">2. AI-Анализ</span>
-          </div>
-          <div class="hidden md:block w-24 h-px bg-outline-variant relative -top-4"></div>
-          <div class="flex flex-col items-center gap-sm relative z-10">
-            <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-primary shadow-sm">
-              <span class="material-symbols-outlined text-[32px]">download_done</span>
-            </div>
-            <span class="font-label-md text-label-md text-on-surface uppercase tracking-wider">3. Результат</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Smart Input Interface -->
-      <section class="smart-input-section w-full max-w-4xl bg-surface-container-lowest rounded-[24px] shadow-[0_4px_20px_rgba(36,56,156,0.12)] border border-outline-variant overflow-hidden mt-lg">
-        
-        <!-- Usage Bar (quota indicator) -->
-        <div class="p-6 border-b border-outline-variant bg-surface-container-low" id="usageBarContainer" style="display:none;">
-          <div class="usage-bar-card">
-            <span class="text-2xl">📊</span>
-            <div class="flex-grow">
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-sm text-on-surface-variant">Анализы в этом месяце <span class="bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full text-xs font-bold" id="usagePlanBadge">Basic</span></span>
-                <span class="text-sm font-bold text-on-surface"><span id="usageUsed">0</span> / <span id="usageLimit">3</span></span>
-              </div>
-              <div class="w-full h-1 bg-surface-container rounded-full overflow-hidden">
-                <div class="usage-bar-fill" id="usageFill" style="width: 0%;"></div>
-              </div>
-              <p id="usageResetDate" class="text-xs text-on-surface-variant mt-1" style="display:none;"></p>
-            </div>
-            <div id="usageUpgradeWrap" style="display:none;">
-              <a href="/app/profile" class="usage-upgrade-btn">⚡ Подписка</a>
-            </div>
-          </div>
-        </div>
-
-        <form class="upload-card" id="uploadCard" enctype="multipart/form-data" onsubmit="return false;">
-          <!-- Tabs using design-system-ext.css classes -->
-          <div class="smart-input-tabs">
-            <button type="button" class="smart-tab active" id="tabFile" onclick="switchTab('file')">
-              <span class="material-symbols-outlined text-[20px]">file_upload</span>
-              Файл
-            </button>
-            <button type="button" class="smart-tab" id="tabText" onclick="switchTab('text')">
-              <span class="material-symbols-outlined text-[20px]">notes</span>
-              Текст договора
-            </button>
-            <button type="button" class="smart-tab" id="tabUrl" onclick="switchTab('url')">
-              <span class="material-symbols-outlined text-[20px]">link</span>
-              Ссылка на документ
-            </button>
-          </div>
-
-          <!-- Content Area (Clean glassmorphic look without white background) -->
-          <div class="min-h-[340px] flex flex-col justify-center relative">
-            
-            <!-- Panel: File Drag & Drop -->
-            <div class="smart-input-panel active" id="panelFile">
-              <div class="drop-zone" id="dropZone">
-                <div class="drop-zone-icon">
-                  <span class="material-symbols-outlined text-[48px]">document_scanner</span>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col pt-[80px] pb-[100px] transition-colors duration-300">
+<!-- TopNavBar Component -->
+<header class="bg-surface/80 backdrop-blur-md border-b border-outline-variant sticky top-0 w-full z-50 flex justify-between items-center px-gutter py-sm max-w-container-max mx-auto absolute">
+<div class="flex items-center gap-gutter">
+<div class="font-title-md text-title-md font-bold text-primary">Dogovor AI</div>
+<nav class="hidden md:flex items-center gap-md ml-lg">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-md text-body-md transition-transform duration-150 scale-95" href="/app">Dashboard</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="/app/history">History</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md" href="/app/pricing">Pricing</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-sm hover:bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">person</span>
+</div>
+</div>
+</header>
+<!-- Risk Progress Bar Top Section -->
+<section class="w-full bg-surface-container-low pt-md pb-lg border-b border-surface-container-high">
+<div class="max-w-container-max mx-auto px-gutter">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-sm gap-md">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Service Agreement Analysis</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Last updated today at 10:42 AM</p>
+</div>
+<div class="flex gap-md font-label-caps text-label-caps uppercase">
+<div class="flex items-center gap-xs text-error"><span class="w-2 h-2 rounded-full bg-error"></span> 2 Critical</div>
+<div class="flex items-center gap-xs text-tertiary"><span class="w-2 h-2 rounded-full bg-tertiary"></span> 3 Amber</div>
+<div class="flex items-center gap-xs text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-outline"></span> 12 Neutral</div>
+</div>
+</div>
+<!-- Linear Progress Bar -->
+<div class="w-full h-3 bg-surface-container-highest rounded-full overflow-hidden flex shadow-inner">
+<div class="h-full bg-error" style="width: 15%;" title="Critical Risks"></div>
+<div class="h-full bg-tertiary" style="width: 25%;" title="Non-critical Risks"></div>
+<div class="h-full bg-outline" style="width: 60%;" title="Standard Clauses"></div>
+</div>
+</div>
+</section>
+<!-- Main Workspace: Split Screen -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-gutter py-lg flex flex-col lg:flex-row gap-gutter relative">
+<!-- Left Side: Document Viewer -->
+<section class="w-full lg:w-7/12 flex flex-col bg-surface-container-lowest rounded-xl shadow-luminous border border-outline-variant overflow-hidden relative" style="height: calc(100vh - 280px); min-height: 500px;">
+<!-- Document Header -->
+<div class="bg-surface-container py-sm px-lg border-b border-outline-variant flex justify-between items-center z-10 sticky top-0">
+<div class="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">description</span> 
+                    MASTER_SERVICE_AGREEMENT_V2.DOCX
                 </div>
-                <h3 class="drop-zone-title">Перетащите договор сюда</h3>
-                <p class="drop-zone-subtitle">Поддерживаются форматы PDF, DOCX, JPG, PNG до 20 МБ. Текст будет автоматически распознан AI.</p>
-                <button type="button" class="px-6 py-2.5 rounded-lg font-semibold bg-white/10 hover:bg-white/20 text-white transition-all border border-white/10 shadow-sm">
-                  Выбрать файл
+<div class="flex gap-sm">
+<button class="p-xs hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined text-[20px]">zoom_out</span></button>
+<button class="p-xs hover:bg-surface-container-high rounded transition-colors text-on-surface-variant"><span class="material-symbols-outlined text-[20px]">zoom_in</span></button>
+</div>
+</div>
+<!-- Document Content (Scrollable) -->
+<div class="p-lg md:p-xl overflow-y-auto custom-scrollbar font-body-lg text-body-lg text-on-surface/90 leading-relaxed space-y-md relative bg-surface-container-lowest">
+<h2 class="font-title-md text-title-md font-bold mb-md text-center text-on-surface">MASTER SERVICE AGREEMENT</h2>
+<p>This Master Service Agreement ("Agreement") is entered into as of the Effective Date by and between the Provider and the Client.</p>
+<h3 class="font-bold mt-lg mb-sm text-primary">1. Services Provided</h3>
+<p>Provider agrees to perform the services described in applicable Statements of Work. Provider shall use commercially reasonable efforts to deliver the Services in a timely manner.</p>
+<h3 class="font-bold mt-lg mb-sm text-primary">2. Term and Termination</h3>
+<p>This Agreement shall commence on the Effective Date and continue until terminated. <span class="bg-error-container text-on-error-container px-1 rounded-sm border-b border-error cursor-pointer hover:bg-error-container/80 transition-colors" id="clause-termination">Either party may terminate this Agreement immediately upon written notice, without cause or penalty.</span></p>
+<h3 class="font-bold mt-lg mb-sm text-primary">3. Limitation of Liability</h3>
+<p>In no event shall either party be liable for any indirect, incidental, special, or consequential damages. <span class="bg-tertiary-container/30 text-on-tertiary-container px-1 rounded-sm border-b border-tertiary cursor-pointer hover:bg-tertiary-container/50 transition-colors" id="clause-liability">Provider's total aggregate liability arising out of or relating to this Agreement shall not exceed the total amount paid by Client to Provider during the twelve (12) months preceding the claim.</span></p>
+<h3 class="font-bold mt-lg mb-sm text-primary">4. Intellectual Property</h3>
+<p>All intellectual property rights developed during the course of the Services shall remain the exclusive property of the Provider, unless explicitly transferred in a Statement of Work.</p>
+<h3 class="font-bold mt-lg mb-sm text-primary">5. Confidentiality</h3>
+<p>Both parties agree to hold all Confidential Information in strict confidence and not to disclose it to any third party without prior written consent.</p>
+<div class="h-32"></div> <!-- Spacer for scrolling -->
+</div>
+</section>
+<!-- Right Side: Risk Cards -->
+<section class="w-full lg:w-5/12 flex flex-col gap-md overflow-y-auto custom-scrollbar pr-sm" style="height: calc(100vh - 280px); min-height: 500px;">
+<div class="font-label-caps text-label-caps text-on-surface-variant mb-xs px-xs uppercase tracking-wider">AI Risk Analysis (5 Findings)</div>
+<!-- Risk Card 1 (Critical) -->
+<div class="bg-surface-container rounded-xl p-md shadow-sm border border-outline-variant hover:border-error transition-all duration-200 cursor-pointer flex flex-col gap-sm relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-error"></div>
+<div class="flex justify-between items-start">
+<div class="bg-error-container text-on-error-container px-2 py-1 rounded-full font-label-caps text-label-caps uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span> Critical Risk
+                    </div>
+<span class="text-on-surface-variant text-xs font-bold">CLAUSE 2</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface">Unilateral Termination</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The contract allows the other party to cancel the agreement immediately without giving you any time to prepare or fix issues (no cure period).</p>
+<div class="mt-sm bg-secondary-container/10 rounded-lg p-sm border border-secondary-container/20">
+<div class="flex items-center gap-xs font-label-caps text-secondary mb-xs uppercase">
+<span class="material-symbols-outlined text-[16px]">lightbulb</span> Recommendation
+                    </div>
+<p class="font-body-sm text-body-sm text-on-secondary-container">Suggest requesting a 30-day notice period for termination without cause, and a 15-day cure period for breach of contract.</p>
+</div>
+</div>
+<!-- Risk Card 2 (Amber) -->
+<div class="bg-surface-container rounded-xl p-md shadow-sm border border-outline-variant hover:border-tertiary transition-all duration-200 cursor-pointer flex flex-col gap-sm relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-tertiary"></div>
+<div class="flex justify-between items-start">
+<div class="bg-tertiary-container/30 text-on-tertiary-container px-2 py-1 rounded-full font-label-caps text-label-caps uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">info</span> Unfavorable Terms
+                    </div>
+<span class="text-on-surface-variant text-xs font-bold">CLAUSE 3</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface">Low Liability Cap</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The provider's maximum responsibility if things go wrong is limited to what you paid them in the last year.</p>
+<div class="mt-sm bg-secondary-container/10 rounded-lg p-sm border border-secondary-container/20">
+<div class="flex items-center gap-xs font-label-caps text-secondary mb-xs uppercase">
+<span class="material-symbols-outlined text-[16px]">lightbulb</span> Recommendation
+                    </div>
+<p class="font-body-sm text-body-sm text-on-secondary-container">Negotiate an exception to the liability cap for gross negligence, willful misconduct, and breaches of confidentiality.</p>
+</div>
+</div>
+<!-- Risk Card 3 (Neutral/Insight) -->
+<div class="bg-surface-container rounded-xl p-md shadow-sm border border-outline-variant hover:border-outline transition-all duration-200 cursor-pointer flex flex-col gap-sm relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-outline"></div>
+<div class="flex justify-between items-start">
+<div class="bg-surface-container-highest text-on-surface px-2 py-1 rounded-full font-label-caps text-label-caps uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Standard Practice
+                    </div>
+<span class="text-on-surface-variant text-xs font-bold">CLAUSE 5</span>
+</div>
+<h4 class="font-title-md text-title-md text-on-surface">Standard Confidentiality</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The confidentiality terms are mutual and align with standard industry practices. No immediate action required.</p>
+</div>
+</section>
+</main>
+<!-- Fixed Bottom Action Bar -->
+<footer class="fixed bottom-0 w-full bg-surface-container/95 backdrop-blur-md border-t border-outline-variant shadow-lg z-50">
+<div class="w-full py-md px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto gap-md">
+<div class="flex gap-md font-body-sm text-body-sm text-on-surface-variant">
+<span class="hidden md:inline">© 2024 Dogovor AI</span>
+<a class="hover:text-primary transition-colors" href="/terms">Terms of Use</a>
+<a class="hover:text-primary transition-colors" href="/privacy">Privacy Policy</a>
+</div>
+<!-- Primary Actions -->
+<div class="flex items-center gap-md w-full md:w-auto justify-end">
+<button class="text-primary font-label-caps text-label-caps uppercase hover:bg-primary/10 px-4 py-2 rounded-lg transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">share</span> Share
                 </button>
-              </div>
-              <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png" style="display:none">
+<button class="bg-primary text-on-primary font-label-caps text-label-caps uppercase px-lg py-3 rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-sm flex items-center gap-sm w-full md:w-auto justify-center">
+<span class="material-symbols-outlined text-[20px]">download</span> Download PDF Report
+                </button>
+</div>
+</div>
+</footer>
 
-              <!-- File Preview (hidden by default) -->
-              <div class="file-preview" id="filePreview" style="display:none">
-                <div class="file-preview-icon" id="filePreviewIcon">📄</div>
-                <div class="file-preview-info">
-                  <h4 class="file-preview-name" id="fileName">document.pdf</h4>
-                  <p class="file-preview-size" id="fileSize">2.3 MB</p>
-                </div>
-                <button type="button" class="file-remove-btn" id="removeFile" title="Удалить файл">×</button>
-              </div>
-            </div>
-
-            <!-- Panel: Text Paste -->
-            <div class="smart-input-panel" id="panelText">
-              <textarea class="smart-text-input" id="textInput" placeholder="Вставьте текст договора сюда... Минимум 100 символов для AI-анализа." style="min-height: 250px;"></textarea>
-              <div id="textInputInfo" class="font-label-md text-xs text-right mt-2 text-outline-variant/60">0 / мин. 100 символов</div>
-            </div>
-
-            <!-- Panel: Cloud Link -->
-            <div class="smart-input-panel" id="panelUrl">
-              <div class="relative w-full">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-[24px]">link</span>
-                <input class="smart-url-input pl-12" id="urlInput" placeholder="Вставьте ссылку на файл (https://...)" type="url" />
-              </div>
-              <p class="font-body-sm text-xs text-on-surface-variant mt-3 ml-1 flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px]">info</span>
-                Поддерживаются прямые ссылки на PDF, DOCX или веб-страницы.
-              </p>
-            </div>
-
-            <!-- Analyze Action Button -->
-            <button type="submit" class="analyze-btn" id="analyzeBtn" disabled>
-              <span class="material-symbols-outlined">bolt</span>
-              Анализировать договор
-            </button>
-
-          </div>
-        </form>
-
-        <!-- Progress/Loading State -->
-        <div class="p-xl min-h-[400px] flex flex-col items-center justify-center bg-surface-container-lowest" id="progressContainer" style="display:none">
-          <div class="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-lg"></div>
-          <h3 class="font-title-md text-title-md text-on-surface mb-xs" id="progressTitle">Анализируем договор...</h3>
-          <p class="font-body-md text-body-md text-on-surface-variant mb-xl text-center max-w-sm" id="progressStep">Извлечени�� текста из документа</p>
-          
-          <div class="flex items-center gap-md mt-6" id="progressSteps">
-            <div class="flex items-center gap-2" id="step1">
-              <span class="w-3 h-3 rounded-full bg-outline-variant" id="step1Dot"></span>
-              <span class="font-label-md text-xs text-on-surface-variant">Чтение файла</span>
-            </div>
-            <div class="w-12 h-px bg-outline-variant"></div>
-            <div class="flex items-center gap-2" id="step2">
-              <span class="w-3 h-3 rounded-full bg-outline-variant" id="step2Dot"></span>
-              <span class="font-label-md text-xs text-on-surface-variant">AI-анализ</span>
-            </div>
-            <div class="w-12 h-px bg-outline-variant"></div>
-            <div class="flex items-center gap-2" id="step3">
-              <span class="w-3 h-3 rounded-full bg-outline-variant" id="step3Dot"></span>
-              <span class="font-label-md text-xs text-on-surface-variant">Законодательство РК</span>
-            </div>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- Features Section -->
-      <section class="w-full max-w-5xl py-12 mt-12 border-t border-outline-variant/30">
-        <div class="text-center mb-12">
-          <h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Возможности Dogovor AI</h2>
-          <p class="font-body-md text-body-md text-on-surface-variant max-w-xl mx-auto">Интеллектуальные инструменты для быстрой и безопасной юридической экспертизы.</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Feature 1 -->
-          <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center text-center gap-4 hover:shadow-md transition-all">
-            <div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <span class="material-symbols-outlined text-2xl">security</span>
-            </div>
-            <h3 class="font-title-md text-base text-on-surface font-bold">Выявление рисков с AI</h3>
-            <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">Мгновенный поиск скрытых обязательств, штрафных санкций и кабальных условий в тексте.</p>
-          </div>
-          <!-- Feature 2 -->
-          <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center text-center gap-4 hover:shadow-md transition-all">
-            <div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <span class="material-symbols-outlined text-2xl">picture_as_pdf</span>
-            </div>
-            <h3 class="font-title-md text-base text-on-surface font-bold">Отчеты в PDF формате</h3>
-            <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">Скачивание структурированного и наглядного отчета с готовыми рекомендациями по исправлению.</p>
-          </div>
-          <!-- Feature 3 -->
-          <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 shadow-sm flex flex-col items-center text-center gap-4 hover:shadow-md transition-all">
-            <div class="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <span class="material-symbols-outlined text-2xl">cloud_done</span>
-            </div>
-            <h3 class="font-title-md text-base text-on-surface font-bold">Безопасная интеграция</h3>
-            <p class="font-body-sm text-sm text-on-surface-variant leading-relaxed">Полная конфиденциальность. Загруженные файлы зашифрованы и не используются для обучения публичных моделей.</p>
-          </div>
-        </div>
-      </section>
-
-
-    </main>
-  </div>
-
-
-  <!-- ===== RESULTS VIEW SECTION (Analytical Dashboard style) ===== -->
-  <div id="resultsSection" style="display:none; scroll-margin-top: 110px;">
-    
-    <!-- Top Progress Summary Block -->
-    <section class="w-full bg-surface pt-md pb-lg border-b border-surface-container-high">
-      <div class="max-w-container-max mx-auto px-gutter">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-sm mb-sm">
-          <div>
-            <h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs" id="resultsTitle">Анализ договора завершён</h1>
-            <p class="font-body-sm text-body-sm text-on-surface-variant" id="resultsFilename">contract.pdf</p>
-          </div>
-          
-          <div class="flex items-center gap-md">
-            <!-- Verdict -->
-            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-error-container/30 border-error text-error" id="resultsVerdict">
-              <span class="text-lg" id="verdictIcon">🔴</span>
-              <span class="font-label-md text-label-md" id="verdictText">Высокий риск</span>
-            </div>
-            <!-- Counts -->
-            <div class="flex gap-md font-label-md text-label-md text-xs">
-              <div class="flex items-center gap-xs text-error">
-                <span class="w-2.5 h-2.5 rounded-full bg-error"></span>
-                <span id="highCount">0</span> Критических
-              </div>
-              <div class="flex items-center gap-xs text-tertiary">
-                <span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
-                <span id="mediumCount">0</span> Умеренных
-              </div>
-              <div class="flex items-center gap-xs text-outline">
-                <span class="w-2.5 h-2.5 rounded-full bg-outline"></span>
-                <span id="lowCount">0</span> Низких
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Linear Proportional Risk Progress Bar -->
-        <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden flex shadow-inner mt-4 risk-progress-bar" id="riskProgressBar">
-          <div class="h-full transition-all duration-500 risk-progress-segment seg-high" id="progressHigh" style="width: 0%;" title="Критические риски"></div>
-          <div class="h-full transition-all duration-500 risk-progress-segment seg-medium" id="progressMedium" style="width: 0%;" title="Умеренные риски"></div>
-          <div class="h-full transition-all duration-500 risk-progress-segment seg-low" id="progressLow" style="width: 0%;" title="Низкие риски"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Main analytical report block -->
-    <main class="w-full max-w-container-max mx-auto px-gutter py-lg">
-      
-      <!-- Summary / Document Type block -->
-      <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md mb-lg shadow-sm">
-        <div class="flex justify-between items-center mb-sm">
-          <span class="font-label-md text-xs text-on-surface-variant uppercase tracking-wider">Резюме документа</span>
-          <span class="bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-full text-xs font-bold" id="docTypeBadge">Тип договора</span>
-        </div>
-        <p class="font-body-md text-body-md text-on-surface leading-relaxed" id="summaryText">Резюме AI...</p>
-      </section>
-
-      <!-- Split Screen layout -->
-      <section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter relative mt-lg" id="resultsSplit" style="display:none;">
-        
-        <!-- Left Side: Original Document Viewer -->
-        <div class="lg:col-span-7 flex flex-col bg-surface-container-lowest rounded-[16px] shadow-luminous border-l-4 border-primary overflow-hidden relative" style="height: calc(100vh - 280px); min-height: 520px;">
-          <!-- Doc Viewer Header -->
-          <div class="bg-surface py-sm px-md border-b border-surface-container flex justify-between items-center z-10 sticky top-0">
-            <div class="font-label-md text-xs text-on-surface-variant flex items-center gap-xs">
-              <span class="material-symbols-outlined text-[18px]">description</span> 
-              Оригинал текста
-            </div>
-            <div class="flex gap-sm">
-              <button class="p-1 hover:bg-surface-container rounded transition-colors text-outline" onclick="zoomDoc(-1)"><span class="material-symbols-outlined text-[20px]">zoom_out</span></button>
-              <button class="p-1 hover:bg-surface-container rounded transition-colors text-outline" onclick="zoomDoc(1)"><span class="material-symbols-outlined text-[20px]">zoom_in</span></button>
-            </div>
-          </div>
-          <!-- Doc content scrollable -->
-          <div class="p-md md:p-lg overflow-y-auto custom-scrollbar font-body-md text-sm text-on-surface leading-relaxed space-y-md relative bg-transparent flex-grow" id="originalTextPane" style="font-size: 14px; white-space: pre-wrap; word-break: break-word;">
-            Текст договора...
-          </div>
-        </div>
-
-        <!-- Right Side: AI Risk Cards stack -->
-        <div class="lg:col-span-5 flex flex-col gap-sm overflow-y-auto custom-scrollbar pr-sm" style="height: calc(100vh - 280px); min-height: 520px;">
-          <div class="font-label-md text-xs text-on-surface-variant mb-xs px-xs uppercase tracking-wider">Выявленные риски AI</div>
-          <div class="flex flex-col gap-3" id="risksList"></div>
-        </div>
-
-      </section>
-
-      <!-- Fallback Single Column List (when no text preview) -->
-      <section class="flex flex-col gap-3 mt-lg" id="risksListFallback"></section>
-
-      <!-- General Recommendations -->
-      <section class="bg-surface-container-lowest border border-outline-variant rounded-[16px] p-md mt-lg shadow-sm" id="recommendationsCard" style="display:none;">
-        <h3 class="font-title-md text-title-md text-on-surface mb-md flex items-center gap-2">
-          <span class="material-symbols-outlined text-primary">lightbulb</span> Общие рекомендации
-        </h3>
-        <ul class="list-disc pl-5 space-y-2 font-body-md text-sm text-on-surface-variant" id="recList"></ul>
-      </section>
-
-      <!-- Reset / Analyze Another Document action -->
-      <div class="mt-xl mb-xl flex justify-center">
-        <button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md px-8 py-3 rounded-lg border border-outline-variant transition-colors flex items-center gap-2" id="newAnalysisBtn">
-          <span class="material-symbols-outlined">replay</span>
-          Проверить другой договор
-        </button>
-      </div>
-
-    </main>
-
-    <!-- Bottom Action Bar (Fixed Footer) -->
-    <footer class="fixed bottom-0 left-0 w-full bg-surface/95 backdrop-blur-md border-t border-outline-variant shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50">
-      <div class="max-w-container-max mx-auto py-md px-gutter flex flex-col md:flex-row justify-between items-center gap-md">
-        <div class="flex gap-md font-body-sm text-xs text-on-surface-variant">
-          <span class="hidden md:inline">© 2026 Dogovor AI</span>
-          <a class="hover:text-primary transition-colors" href="#">Условия</a>
-          <a class="hover:text-primary transition-colors" href="#">Конфиденциальность</a>
-        </div>
-        <div class="flex items-center gap-md w-full md:w-auto justify-end">
-          <button class="text-primary font-label-md text-sm hover:bg-primary/5 px-4 py-2.5 rounded-lg transition-colors flex items-center gap-xs" onclick="alert('Ссылка скопирована в буфер обмена!')">
-            <span class="material-symbols-outlined text-[18px]">share</span> Поделиться
-          </button>
-          <button class="bg-primary text-on-primary font-label-md text-sm px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-sm" onclick="alert('Скачивание PDF-отчета начнется в ближайшее время.')">
-            <span class="material-symbols-outlined text-[20px]">download</span> Скачать отчёт PDF
-          </button>
-        </div>
-      </div>
-    </footer>
-
-  </div>
-
-
-  <!-- ===== PAYWALL MODAL ===== -->
-  <div class="paywall-overlay" id="paywallModal" style="display:none;">
-    <div class="paywall-card">
-      <button class="paywall-close" id="paywallClose">×</button>
-      <span class="text-4xl mb-2">🔒</span>
-      <h2 class="font-title-md text-lg font-bold text-on-surface mb-2">Лимит анализов исчерпан</h2>
-      <p class="font-body-md text-sm text-on-surface-variant mb-6" id="paywallMessage">
-        Вы использовали все доступные анализы в рамках текущего тарифного плана.
-      </p>
-      <span id="paywallReset" class="text-xs text-outline mb-4" style="display:none;"></span>
-      
-      <div class="w-full bg-surface rounded-xl p-4 flex justify-around mb-6 border border-outline-variant/30">
-        <div class="flex flex-col items-center">
-          <span class="text-xl font-bold text-primary" id="paywallUsed">3</span>
-          <span class="font-label-md text-xs text-on-surface-variant uppercase tracking-wider">Использовано</span>
-        </div>
-        <div class="w-px h-8 bg-outline-variant/30"></div>
-        <div class="flex flex-col items-center">
-          <span class="text-xl font-bold text-on-surface" id="paywallLimit">3</span>
-          <span class="font-label-md text-xs text-on-surface-variant uppercase tracking-wider">Месячный Лимит</span>
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-3 w-full mb-6">
-        <div class="flex justify-between items-center p-3 border border-outline-variant rounded-xl hover:border-primary transition-colors cursor-pointer" onclick="window.location.href='/app/profile'">
-          <div class="flex items-center gap-3">
-            <span class="text-xl">⚡</span>
-            <div class="text-left">
-              <h4 class="font-label-md text-sm font-bold text-on-surface">Тариф Pro</h4>
-              <p class="font-body-sm text-xs text-on-surface-variant">30 анализов ежемесячно</p>
-            </div>
-          </div>
-          <span class="font-label-md text-sm font-bold text-primary">$9/мес</span>
-        </div>
-        <div class="flex justify-between items-center p-3 border-2 border-primary rounded-xl bg-primary/5 cursor-pointer" onclick="window.location.href='/app/profile'">
-          <div class="flex items-center gap-3">
-            <span class="text-xl">🚀</span>
-            <div class="text-left">
-              <h4 class="font-label-md text-sm font-bold text-primary">Тариф Max</h4>
-              <p class="font-body-sm text-xs text-on-surface-variant">Абсолютный безлимит</p>
-            </div>
-          </div>
-          <span class="font-label-md text-sm font-bold text-primary">$19/мес</span>
-        </div>
-      </div>
-
-      <button class="w-full bg-primary text-on-primary font-label-md py-3 rounded-lg hover:bg-primary/95 transition-colors shadow-sm mb-3" onclick="window.location.href='/app/profile'">Подключить тариф</button>
-      <button class="w-full bg-transparent hover:bg-surface text-on-surface-variant font-label-md py-2 rounded-lg transition-colors" id="paywallSkip">Закрыть</button>
-    </div>
-  </div>
-
-
-  <!-- ===== ERROR TOAST ===== -->
-  <div class="error-toast" id="errorToast" style="display:none">
-    <span class="material-symbols-outlined">warning</span>
-    <span id="toastMessage">Произошла ошибка</span>
-    <button class="text-white hover:text-outline-variant font-bold text-lg ml-auto p-1" onclick="closeToast()">×</button>
-  </div>
-
-
-  <!-- ===== STATIC FOOTER (Only visible on Landing view) ===== -->
-  <footer class="w-full bg-surface border-t border-outline-variant py-lg mt-xl" id="staticFooter">
-    <div class="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row justify-between items-center">
-      <div class="mb-4 md:mb-0 text-center md:text-left">
-        <span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
-        <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">© 2026 Dogovor AI. Автоматическая экспертиза договоров.</p>
-      </div>
-      <div class="flex gap-md font-body-sm text-body-sm mt-4 md:mt-0">
-        <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Условия пользования</a>
-        <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Конфиденциальность</a>
-        <a class="text-on-surface-variant hover:text-primary transition-colors" href="#">Поддержка</a>
-      </div>
-    </div>
-  </footer>
-
-
-  <!-- Scripts: nav first, then auth, then app logic -->
-  <script src="/static/js/analytics_helper.js?v=1.3"></script>
-  <script src="/static/js/nav.js?v=1.3"></script>
-  <script src="/static/js/auth-guard.js?v=1.3"></script>
-  <script src="/static/js/global_actions.js?v=1.3"></script>
-  <script src="/static/js/app.js?v=1.3"></script>
-  <script src="/static/js/paywall.js?v=1.3"></script>
-
-  <script>
-    // ============================================================
-    // Smart Input Tab Switching
-    // ============================================================
-    let activeTab = 'file';
-
-    function switchTab(tab) {
-      activeTab = tab;
-      
-      // Update tab buttons style
-      const btnFile = document.getElementById('tabFile');
-      const btnText = document.getElementById('tabText');
-      const btnUrl = document.getElementById('tabUrl');
-      
-      [btnFile, btnText, btnUrl].forEach(btn => {
-        if (btn) {
-          btn.classList.remove('active');
-        }
-      });
-      
-      const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
-      if (activeBtn) {
-        activeBtn.classList.add('active');
-      }
-
-      // Show/hide panels using 'active' class (matches design-system-ext.css)
-      document.getElementById('panelFile').classList.remove('active');
-      document.getElementById('panelText').classList.remove('active');
-      document.getElementById('panelUrl').classList.remove('active');
-
-      document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-
-      // Update analyze button state
-      updateAnalyzeBtn();
-    }
-
-    function updateAnalyzeBtn() {
-      const btn = document.getElementById('analyzeBtn');
-      if (!btn) return;
-      if (activeTab === 'file') {
-        // Check app.js selectedFile state first (primary), fallback to fileInput.files
-        if (typeof window._appHasFile === 'function') {
-          btn.disabled = !window._appHasFile();
-        } else {
-          const fileInput = document.getElementById('fileInput');
-          btn.disabled = !fileInput || !fileInput.files || fileInput.files.length === 0;
-        }
-      } else if (activeTab === 'text') {
-        const text = (document.getElementById('textInput') || {}).value || '';
-        btn.disabled = text.trim().length < 100;
-      } else if (activeTab === 'url') {
-        const url = (document.getElementById('urlInput') || {}).value || '';
-        btn.disabled = !url.startsWith('http');
-      }
-    }
-
-    // Text input character counter
-    const textInput = document.getElementById('textInput');
-    if (textInput) {
-      textInput.addEventListener('input', () => {
-        const len = textInput.value.length;
-        const info = document.getElementById('textInputInfo');
-        if (info) {
-          info.textContent = len < 100 ? `${len} / мин. 100 символов` : `${len} символов`;
-          info.style.color = len < 100 ? '#ba1a1a' : '#757684';
-        }
-        updateAnalyzeBtn();
-      });
-    }
-
-    // URL input watcher
-    const urlInput = document.getElementById('urlInput');
-    if (urlInput) {
-      urlInput.addEventListener('input', updateAnalyzeBtn);
-    }
-
-    // Risk Progress Bar updater (called from app.js after results load)
-    function updateRiskProgressBar(high, medium, low) {
-      const total = high + medium + low;
-      if (total === 0) return;
-      const bar = document.getElementById('riskProgressBar');
-      if (bar) bar.style.display = 'flex';
-      const pHigh = document.getElementById('progressHigh');
-      const pMed = document.getElementById('progressMedium');
-      const pLow = document.getElementById('progressLow');
-      if (pHigh) pHigh.style.width = (high / total * 100) + '%';
-      if (pMed) pMed.style.width = (medium / total * 100) + '%';
-      if (pLow) pLow.style.width = (low / total * 100) + '%';
-    }
-
-    // Document Viewer Zoom
-    let currentFontSize = 14;
-    function zoomDoc(dir) {
-      const pane = document.getElementById('originalTextPane');
-      if (!pane) return;
-      currentFontSize = Math.max(10, Math.min(24, currentFontSize + dir * 2));
-      pane.style.fontSize = currentFontSize + 'px';
-    }
-
-    // Split-screen view toggler
-    function showSplitScreen(originalText) {
-      const split = document.getElementById('resultsSplit');
-      const fallback = document.getElementById('risksListFallback');
-      const origPane = document.getElementById('originalTextPane');
-      const risksList = document.getElementById('risksList');
-      const risksListFb = document.getElementById('risksListFallback');
-
-      if (originalText && originalText.trim().length > 50) {
-        if (split) split.style.display = 'grid';
-        if (fallback) fallback.style.display = 'none';
-        if (origPane) origPane.textContent = originalText;
-        
-        // Move risk cards from fallback into split pane preserving event listeners
-        if (risksList && risksListFb && risksListFb.children.length > 0) {
-          risksList.innerHTML = '';
-          while (risksListFb.firstChild) {
-            risksList.appendChild(risksListFb.firstChild);
-          }
-        }
-      } else {
-        // No original text — fallback single column
-        if (split) split.style.display = 'none';
-        if (fallback) fallback.style.display = 'flex';
-      }
-    }
-
-    // Load user info from server
-    async function loadUserInfo() {
-      if (!isAuthenticated()) return;
-      try {
-        const resp = await fetch(`/api/auth/me/profile?t=${Date.now()}`, { headers: getAuthHeaders() });
-        if (resp.ok) {
-          const data = await resp.json();
-          localStorage.setItem('user', JSON.stringify(data));
-          if (window.NavComponent) window.NavComponent.updateAuthState();
-          return;
-        }
-        const resp2 = await fetch('/api/auth/me', { headers: getAuthHeaders() });
-        if (resp2.ok) {
-          const data2 = await resp2.json();
-          localStorage.setItem('user', JSON.stringify(data2));
-          if (window.NavComponent) window.NavComponent.updateAuthState();
-        }
-      } catch (e) { console.warn('Failed to load user info:', e); }
-    }
-
-    // Toast Messages
-    function showToast(message, type = 'error') {
-      const toast = document.getElementById('errorToast');
-      const msg = document.getElementById('toastMessage');
-      if (!toast || !msg) return;
-      msg.textContent = message;
-      toast.className = `error-toast ${type === 'error' ? 'bg-[#ba1a1a]' : 'bg-[#006d37]'}`;
-      toast.style.display = 'flex';
-      setTimeout(closeToast, 5000);
-    }
-
-    function closeToast() {
-      const toast = document.getElementById('errorToast');
-      if (toast) toast.style.display = 'none';
-    }
-
-    // Init on load
-    document.addEventListener('DOMContentLoaded', function() {
-      loadUserInfo();
-      updateAnalyzeBtn();
-      // Note: dropZone click/drag/drop handlers are in app.js — no duplicates needed
-    });
-  </script>
-</body>
-
-</html>
+  <script src="/static/js/auth-guard.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+</body></html>

@@ -158,10 +158,10 @@ async def analyze_contract_text(contract_text: str) -> AnalysisResult:
             error_message="Текст договора слишком короткий для анализа (менее 50 символов)"
         )
 
-    # Ограничиваем текст для API (первые 15000 символов)
-    text_to_analyze = contract_text[:15000]
-    if len(contract_text) > 15000:
-        logger.warning(f"⚠️ Текст договора обрезан с {len(contract_text)} до 15000 символов")
+    # Ограничиваем текст для API (первые 80000 символов)
+    text_to_analyze = contract_text[:80000]
+    if len(contract_text) > 80000:
+        logger.warning(f"⚠️ Текст договора обрезан с {len(contract_text)} до 80000 символов")
         text_to_analyze += "\n\n[... текст договора продолжается ...]"
 
     # Проверяем наличие HF токена

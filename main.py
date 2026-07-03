@@ -22,6 +22,8 @@ from app.api import auth
 from app.api import subscriptions
 from app.api import contracts
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
 from app.api import metrics
 from app.api import history
 from app.api import admin
@@ -88,6 +90,17 @@ async def lifespan(app: FastAPI):
     logger.info("🛑 Остановка приложения")
 
 
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://64c33bc2f4f0702af076945c83a8df19@o4511670616129536.ingest.us.sentry.io/4511670620913664",
+    send_default_pii=True,
+    enable_logs=True,
+    traces_sample_rate=1.0,
+    profile_session_sample_rate=1.0,
+    profile_lifecycle="trace",
+)
+
 # Создание FastAPI приложения
 app = FastAPI(
     title=settings.app_name,
@@ -96,6 +109,9 @@ app = FastAPI(
     debug=settings.debug,
     lifespan=lifespan
 )
+
+# Подключение Prometheus метрик
+Instrumentator().instrument(app).expose(app)
 
 def _allowed_cors_origins() -> list[str]:
     """Resolve CORS origins without wildcard credentials in production."""
@@ -188,11 +204,32 @@ async def security_headers_middleware(request: Request, call_next):
     # 7. Content-Security-Policy (CSP): Restrict script, stylesheet, and API request sources
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://*.posthog.com https://cdn.vercel-insights.com; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://fonts.cdnfonts.com; "
-        "font-src 'self' data: https://fonts.gstatic.com https://fonts.cdnfonts.com; "
-        "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.google-analytics.com https://*.googletagmanager.com; "
-        "connect-src 'self' https://*.supabase.co https://www.google.com https://*.supabase.net https://*.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://*.posthog.com https://*.i.posthog.com https://vitals.vercel-insights.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+        "https://cdn.tailwindcss.com "
+        "https://cdn.jsdelivr.net "
+        "https://www.google.com https://www.gstatic.com "
+        "https://www.googletagmanager.com "
+        "https://*.posthog.com https://cdn.vercel-insights.com "
+        "https://js.sentry-cdn.com https://browser.sentry-cdn.com; "
+        "style-src 'self' 'unsafe-inline' "
+        "https://fonts.googleapis.com "
+        "https://cdn.jsdelivr.net "
+        "https://fonts.cdnfonts.com; "
+        "font-src 'self' data: "
+        "https://fonts.gstatic.com "
+        "https://fonts.cdnfonts.com; "
+        "img-src 'self' data: blob: "
+        "https://*.supabase.co "
+        "https://lh3.googleusercontent.com "
+        "https://*.google-analytics.com "
+        "https://*.googletagmanager.com; "
+        "connect-src 'self' "
+        "https://*.supabase.co https://www.google.com https://*.supabase.net "
+        "https://*.google-analytics.com https://*.analytics.google.com "
+        "https://*.g.doubleclick.net "
+        "https://*.posthog.com https://*.i.posthog.com "
+        "https://vitals.vercel-insights.com "
+        "https://*.ingest.sentry.io https://*.sentry.io; "
         "frame-src 'self' https://www.google.com https://www.googletagmanager.com;"
     )
     response.headers["Content-Security-Policy"] = csp_policy
@@ -307,8 +344,7 @@ async def maintenance_middleware(request: Request, call_next):
 
 @app.get("/", include_in_schema=False)
 async def root():
-    """Redirect root path to /app for frontend serving."""
-    return RedirectResponse(url="/app")
+    return _frontend_response("landing.html", "Landing page")
 
 
 # Health check endpoint
@@ -336,8 +372,23 @@ async def get_analytics_config() -> dict:
         "posthog_api_key": settings.posthog_api_key,
         "posthog_host": settings.posthog_host,
         "ga_measurement_id": settings.ga_measurement_id,
-        "gtm_id": settings.gtm_id
+        "gtm_id": settings.gtm_id,
+        "recaptcha_site_key": settings.recaptcha_site_key or ""
     }
+
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
+
+
+@app.get("/sentry-metrics")
+async def trigger_metrics():
+    from sentry_sdk import metrics
+    metrics.count("checkout.failed", 1)
+    metrics.gauge("queue.depth", 42)
+    metrics.distribution("cart.amount_usd", 187.5)
+    return {"status": "metrics_emitted"}
 
 
 # Include routers from API modules
@@ -416,6 +467,11 @@ async def serve_metrics():
 @app.get("/app/history", include_in_schema=False)
 async def serve_history():
     return _frontend_response("history.html", "History page")
+
+
+@app.get("/app/pricing", include_in_schema=False)
+async def serve_pricing():
+    return _frontend_response("pricing.html", "Pricing page")
 
 # ============================================================
 # Vercel / AWS Lambda handler (через Mangum)

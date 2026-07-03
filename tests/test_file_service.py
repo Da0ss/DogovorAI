@@ -161,8 +161,14 @@ class TestTextExtraction:
 
     def test_extract_docx_raises_on_invalid_bytes(self):
         """Некорректные байты должны вызывать ValueError."""
-        with pytest.raises(ValueError, match="Не удалось обработать DOCX"):
+        with pytest.raises(ValueError, match="Файл не является корректным документом Word"):
             FileService.extract_text_from_docx(b"not_a_valid_docx_content_12345")
+
+    def test_extract_docx_raises_on_legacy_doc(self):
+        """Устаревший формат .doc должен вызывать информативное ValueError."""
+        legacy_doc_header = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"some_bytes"
+        with pytest.raises(ValueError, match="Формат .doc .* не поддерживается"):
+            FileService.extract_text_from_docx(legacy_doc_header)
 
     def test_google_vision_ocr_success(self):
         """Google Vision OCR should parse the first text annotation."""
@@ -189,7 +195,7 @@ class TestTextExtraction:
         with patch("app.services.file_service.settings") as mock_settings:
             mock_settings.google_cloud_vision_api_key = None
             mock_settings.is_production = True
-            with pytest.raises(ValueError, match="GOOGLE_CLOUD_VISION_API_KEY"):
+            with pytest.raises(ValueError, match="Распознавание текста с картинок временно недоступно"):
                 FileService.extract_text_from_image_ocr(b"image")
 
     def test_extract_pdf_scanned_ocr_fallback(self):

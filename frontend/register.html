@@ -1,471 +1,440 @@
 <!DOCTYPE html>
-<html class="dark" lang="ru">
-<head>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Register | Dogovor AI</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Manrope -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "surface-container-high": "#2a2a2a",
+                "surface-container-lowest": "#0e0e0e",
+                "primary-container": "#808dd2",
+                "on-surface-variant": "#c6c5d2",
+                "outline-variant": "#454650",
+                "on-background": "#e5e2e1",
+                "secondary": "#5adace",
+                "error": "#ffb4ab",
+                "surface-tint": "#b9c3ff",
+                "surface-container-low": "#1c1b1b",
+                "primary-fixed-dim": "#b9c3ff",
+                "on-primary-container": "#152363",
+                "primary-fixed": "#dee1ff",
+                "inverse-on-surface": "#313030",
+                "on-surface": "#e5e2e1",
+                "surface": "#131313",
+                "tertiary-fixed-dim": "#e5c35e",
+                "on-error": "#690005",
+                "surface-variant": "#353534",
+                "tertiary": "#e5c35e",
+                "tertiary-container": "#c8a846",
+                "surface-container": "#201f1f",
+                "inverse-surface": "#e5e2e1",
+                "tertiary-fixed": "#ffe089",
+                "secondary-fixed": "#79f7ea",
+                "on-secondary": "#003733",
+                "on-secondary-fixed-variant": "#00504a",
+                "error-container": "#93000a",
+                "on-secondary-container": "#003531",
+                "on-error-container": "#ffdad6",
+                "on-tertiary-container": "#4e3d00",
+                "background": "#131313",
+                "secondary-fixed-dim": "#5adace",
+                "surface-dim": "#131313",
+                "surface-bright": "#393939",
+                "secondary-container": "#01a89d",
+                "on-tertiary-fixed": "#241a00",
+                "on-secondary-fixed": "#00201d",
+                "outline": "#90909b",
+                "on-tertiary-fixed-variant": "#574500",
+                "primary": "#b9c3ff",
+                "on-primary-fixed": "#021355",
+                "on-tertiary": "#3d2f00",
+                "on-primary-fixed-variant": "#354282",
+                "on-primary": "#1d2b6a",
+                "inverse-primary": "#4d5a9c",
+                "surface-container-highest": "#353534"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "spacing": {
+                "md": "16px",
+                "xs": "4px",
+                "sm": "8px",
+                "base": "8px",
+                "xl": "40px",
+                "gutter": "24px",
+                "container-max": "1440px",
+                "lg": "24px"
+            },
+            "fontFamily": {
+                "body-sm": ["Manrope"],
+                "label-caps": ["Manrope"],
+                "headline-lg-mobile": ["Manrope"],
+                "body-lg": ["Manrope"],
+                "display-lg": ["Manrope"],
+                "title-md": ["Manrope"],
+                "headline-lg": ["Manrope"]
+            },
+            "fontSize": {
+                "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "title-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .auth-card-shadow {
+            box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.4);
+        }
+        /* reCAPTCHA dark mode overrides */
+        .g-recaptcha {
+            display: flex;
+            justify-content: center;
+        }
+        /* Disabled button style */
+        #registerBtn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            filter: none;
+        }
+        #registerBtn:not(:disabled) {
+            cursor: pointer;
+        }
+        /* Terms error shake animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
+        }
+        .shake { animation: shake 0.4s ease; }
+    </style>
+  <!-- Sentry SDK & Session Replay -->
+  <script src="https://js.sentry-cdn.com/64c33bc2f4f0702af076945c83a8df19.min.js" crossorigin="anonymous"></script>
+  <script>
+    Sentry.onLoad(function() {
+      Sentry.init({
+        integrations: [
+          Sentry.replayIntegration(),
+        ],
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
+    });
+  </script>
+  <!-- PostHog Analytics -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="xi Si init Ni Bi pr qi Ui $i capture calculateEventProperties Zi register register_once register_for_session unregister unregister_for_session Yi getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync Ki identify setPersonProperties unsetPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Qi Wi createPersonProfile setInternalOrTestUser Ji Fi tn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing zi debug mr it getPageViewId captureTraceFeedback captureTraceMetric Ri".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_mLA4rhAW7aoH9iQMFUUrTHpigJKhTrRFG7C22uxwWRwV', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2026-05-30',
+        person_profiles: 'identified_only',
+    })
+  </script>
+  <!-- Google Tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K95D2D9DTK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-K95D2D9DTK');
+  </script>
   <!-- Vercel Speed Insights -->
   <script>
     window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
   </script>
   <script defer src="/_vercel/speed-insights/script.js"></script>
-
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>DogovorAI — Регистрация</title>
-  <meta name="description" content="Создайте аккаунт DogovorAI — AI-сервис для анализа договоров">
-  <!-- Material Symbols and Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
-  <!-- Tailwind CSS -->
-  <link rel="stylesheet" href="/static/css/tailwind-built.css?v=1.3">
-  <!-- Google reCAPTCHA v2 -->
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-  <style>
-    .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      display: inline-block;
-      line-height: 1;
-    }
-    .glass-effect {
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-    .auth-card-shadow {
-      box-shadow: 0px 4px 20px rgba(63, 81, 181, 0.12);
-    }
-    /* Messages alerts */
-    .message:not(:empty) {
-      padding: 12px 14px;
-      margin-bottom: 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      text-align: left;
-    }
-    .message.success {
-      background-color: rgba(0, 191, 165, 0.12);
-      color: #00bfa5;
-      border: 1px solid rgba(0, 191, 165, 0.25);
-    }
-    .message.error {
-      background-color: rgba(239, 68, 68, 0.1);
-      color: #fca5a5;
-      border: 1px solid rgba(239, 68, 68, 0.25);
-    }
-    /* Spinner override for integration */
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid transparent;
-      border-top-color: currentColor;
-      border-radius: 50%;
-      animation: spin-anim 0.8s linear infinite;
-      display: none;
-    }
-    @keyframes spin-anim {
-      to { transform: rotate(360deg); }
-    }
-    button.loading .spinner {
-      display: inline-block;
-    }
-    /* Legal Modal Styles */
-    #legalModal.active {
-      display: flex;
-    }
-    #legalModal.active #legalModalCard {
-      transform: scale(1);
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(67, 85, 185, 0.3);
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: rgba(67, 85, 185, 0.6);
-    }
-    /* Consent shake animation */
-    @keyframes consent-shake {
-      0%, 100% { transform: translateX(0); }
-      10%, 50%, 90% { transform: translateX(-4px); }
-      30%, 70% { transform: translateX(4px); }
-    }
-    .consent-shake {
-      animation: consent-shake 0.5s ease-in-out;
-    }
-    /* Google button visual states */
-    #googleRegisterBtn {
-      transition: opacity 0.3s ease, filter 0.3s ease;
-    }
-    #googleRegisterBtn.btn-locked {
-      opacity: 0.5;
-      filter: grayscale(0.6);
-      cursor: not-allowed;
-    }
-  </style>
-  
   <!-- Vercel Web Analytics -->
   <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 </head>
-<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<body class="bg-background text-on-background font-body-lg min-h-screen flex flex-col">
+<!-- TopNavBar: Shared Component -->
+<header class="sticky top-0 w-full z-50 flex justify-between items-center px-gutter py-md max-w-container-max mx-auto bg-surface/80 backdrop-blur-md border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="font-title-md text-title-md font-bold text-primary">Dogovor AI</span>
+</div>
+<div class="flex items-center gap-sm">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/app/help">Help</a>
+</div>
+</header>
+<main class="flex-grow flex items-center justify-center px-gutter py-xl">
+<div class="relative w-full max-w-[480px]">
+<!-- Decorative Element: Dark mode glows -->
+<div class="absolute -top-16 -left-16 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-16 -right-16 w-64 h-64 bg-secondary/10 rounded-full blur-3xl"></div>
+<!-- Auth Card -->
+<div class="relative bg-surface-container auth-card-shadow rounded-xl p-lg border border-outline-variant">
+<div class="mb-lg text-center">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Create Account</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Precision in every clause begins here.</p>
+</div>
+<form class="space-y-md" id="registrationForm" novalidate="">
+<!-- Full Name -->
+<div class="group">
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors uppercase" for="fullName">Full Name</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-lg text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50" id="fullName" placeholder="Jane Doe" type="text"/>
+</div>
+<p class="hidden font-body-sm text-body-sm text-error mt-xs" id="error-fullName">Please enter your legal name.</p>
+</div>
+<!-- Email -->
+<div class="group">
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors uppercase" for="email">Email Address</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-lg text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50" id="email" placeholder="jane@example.com" type="email"/>
+</div>
+<p class="hidden font-body-sm text-body-sm text-error mt-xs" id="error-email">Please provide a valid business email.</p>
+</div>
+<!-- Password Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="group">
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors uppercase" for="password">Password</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-lg text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50" id="password" placeholder="••••••••" type="password"/>
+</div>
+<div class="group">
+<label class="block font-label-caps text-label-caps text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors uppercase" for="confirmPassword">Confirm</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm font-body-lg text-on-surface focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50" id="confirmPassword" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<p class="hidden font-body-sm text-body-sm text-error mt-xs" id="error-password">Passwords must match and be at least 8 characters.</p>
+<!-- Terms Checkbox -->
+<div class="flex items-start gap-sm pt-xs" id="terms-row">
+<div class="relative flex items-center h-5 mt-0.5">
+<input class="w-5 h-5 rounded border-outline-variant bg-surface-container-lowest text-primary focus:ring-primary transition-all cursor-pointer" id="terms" type="checkbox"/>
+</div>
+<label class="font-body-sm text-body-sm text-on-surface-variant" for="terms">
+  I agree to the <a class="text-primary hover:underline" href="/terms">Terms of Service</a> and <a class="text-primary hover:underline" href="/privacy">Privacy Policy</a>.
+</label>
+</div>
+<p class="hidden font-body-sm text-body-sm text-error" id="error-terms">You must accept the Terms of Service and Privacy Policy.</p>
+<!-- Google reCAPTCHA v2 Widget (site key loaded dynamically) -->
+<div class="g-recaptcha pt-xs flex justify-center" id="recaptcha-widget"></div>
+<p class="hidden font-body-sm text-body-sm text-error text-center" id="error-captcha">Please complete the reCAPTCHA check.</p>
+<!-- CTA Button (disabled until terms + captcha) -->
+<button class="w-full bg-primary text-on-primary font-title-md text-title-md py-sm rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md" disabled id="registerBtn" type="submit">
+  Create Account
+</button>
+</form>
+<div class="relative my-lg">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant"></div>
+</div>
+<div class="relative flex justify-center text-label-caps">
+<span class="bg-surface-container px-md text-on-surface-variant uppercase tracking-wider">Or continue with</span>
+</div>
+</div>
+<!-- Google Auth -->
+<button class="w-full flex items-center justify-center gap-sm bg-surface-container-low border border-outline-variant text-on-surface font-body-lg py-sm rounded-lg hover:bg-surface-container-high transition-colors active:scale-[0.98] transform" data-provider="google" id="google-register-btn">
+<svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+</svg>
+<span class="font-label-caps text-label-caps uppercase tracking-wider">Continue with Google</span>
+</button>
+<div class="mt-lg text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                        Already have an account? 
+                        <a class="text-primary font-bold hover:underline" href="/app/login">Sign in</a>
+</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer: Shared Component -->
+<footer class="w-full py-lg px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto border-t border-outline-variant bg-surface">
+<div class="mb-sm md:mb-0">
+<span class="font-body-sm text-body-sm text-on-surface-variant">© 2024 Dogovor AI. Precision in every clause.</span>
+</div>
+<div class="flex gap-md">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/terms">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="/privacy">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="mailto:support@dogovorai.com">Contact Support</a>
+</div>
+</footer>
+<script>
+  // ——— reCAPTCHA state ———
+  let recaptchaToken = null;
 
+  function onRecaptchaSuccess(token) {
+    recaptchaToken = token;
+    updateSubmitState();
+    document.getElementById('error-captcha').classList.add('hidden');
+  }
 
-  <!-- Header -->
-  <header class="sticky top-0 w-full z-50 flex justify-between items-center px-gutter py-sm max-w-container-max mx-auto bg-surface/80 backdrop-blur-md">
-    <a href="/app" class="flex items-center gap-2 no-underline group">
-      <span class="material-symbols-outlined text-[28px] text-primary transition-transform group-hover:scale-105" style="font-variation-settings: 'FILL' 1;">balance</span>
-      <span class="font-title-md text-title-md font-bold text-on-surface">Dogovor <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">AI</span></span>
-    </a>
-    <div class="flex items-center gap-sm">
-      <a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors no-underline" href="mailto:support@dogovorai.kz">Помощь</a>
-    </div>
-  </header>
+  function onRecaptchaExpired() {
+    recaptchaToken = null;
+    updateSubmitState();
+  }
 
-  <!-- Main Content: Register Canvas -->
-  <main class="flex-grow flex items-center justify-center px-gutter py-xl relative overflow-hidden">
-    <div class="relative w-full max-w-[480px]">
-      <!-- Decorative Element: Subtle glow behind the card -->
-      <div class="absolute -top-16 -left-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-16 -right-16 w-64 h-64 bg-secondary/5 rounded-full blur-3xl"></div>
-      
-      <!-- Auth Card -->
-      <div class="relative bg-surface-container-lowest auth-card-shadow rounded-lg p-lg border border-outline-variant/30 z-10">
-        <!-- Card Header -->
-        <div class="mb-lg text-center">
-          <h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Создать аккаунт</h1>
-          <p class="font-body-md text-body-md text-on-surface-variant">Точность в каждом пункте договора начинается здесь.</p>
-        </div>
+  function updateSubmitState() {
+    const termsChecked = document.getElementById('terms').checked;
+    const btn = document.getElementById('registerBtn');
+    btn.disabled = !(termsChecked && recaptchaToken);
+  }
 
-        <!-- Global Message Container -->
-        <div class="message" id="message" aria-live="polite"></div>
+  // ——— Динамическая загрузка site key из бэкенда ———
+  async function initRecaptcha() {
+    try {
+      const res = await fetch('/api/config/analytics');
+      const config = await res.json();
+      const siteKey = config.recaptcha_site_key;
 
-        <!-- Registration Form -->
-        <form class="space-y-md" id="registerForm" autocomplete="on" enctype="multipart/form-data">
-          <!-- Email Field -->
-          <div class="group">
-            <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="email">Электронная почта</label>
-            <div class="relative">
-              <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="email" name="email" placeholder="jane@example.com" required="" type="email" autocomplete="email"/>
-            </div>
-          </div>
+      if (!siteKey) {
+        // Если ключ не задан — скрываем капчу и разрешаем регистрацию без неё
+        document.getElementById('recaptcha-widget').style.display = 'none';
+        recaptchaToken = 'no-captcha';
+        return;
+      }
 
-          <!-- Password Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
-            <div class="group">
-              <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="password">Пароль</label>
-              <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="password" name="password" placeholder="••••••••" required="" type="password" minlength="6" autocomplete="new-password"/>
-            </div>
-            <div class="group">
-              <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="confirmPassword">Повторите пароль</label>
-              <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required="" type="password" minlength="6" autocomplete="new-password"/>
-            </div>
-          </div>
+      // Загружаем скрипт reCAPTCHA с нужным ключом
+      window.onRecaptchaLoaded = function() {
+        grecaptcha.render('recaptcha-widget', {
+          sitekey: siteKey,
+          theme: 'dark',
+          callback: onRecaptchaSuccess,
+          'expired-callback': onRecaptchaExpired
+        });
+      };
 
-          <!-- reCAPTCHA v2 Widget -->
-          <div class="flex justify-center mt-md">
-            <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="6LeSEBMtAAAAAEnrINLc2r5gMENlDrwFP4x_6b8a"></div>
-          </div>
+      const script = document.createElement('script');
+      script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    } catch (err) {
+      console.warn('reCAPTCHA init failed, skipping:', err);
+      document.getElementById('recaptcha-widget').style.display = 'none';
+      recaptchaToken = 'no-captcha';
+    }
+  }
 
-          <!-- CTA Button -->
-          <button class="w-full bg-primary text-white font-title-md text-title-md py-sm rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md flex justify-center items-center gap-2 btn-locked" id="registerButton" type="submit" disabled>
-            <span class="button-text">Создать аккаунт</span>
-            <span class="spinner" id="registerSpinner" aria-hidden="true"></span>
-          </button>
-        </form>
+  initRecaptcha();
 
-        <!-- Verification Form (Shown after registration) -->
-        <form class="space-y-md hidden" id="verifyForm" autocomplete="off" enctype="multipart/form-data">
-          <p class="font-body-sm text-body-sm text-on-surface-variant text-center">Код подтверждения отправлен на email. Введите 6 цифр.</p>
+  document.addEventListener('DOMContentLoaded', function () {
+    const termsCheckbox = document.getElementById('terms');
+    const registerBtn = document.getElementById('registerBtn');
+    const form = document.getElementById('registrationForm');
 
-          <!-- Verification Code Field -->
-          <div class="group">
-            <label class="block font-label-md text-label-md text-on-surface-variant mb-xs group-focus-within:text-primary transition-colors" for="verifyCode">Код подтверждения</label>
-            <div class="relative">
-              <input class="w-full bg-transparent border border-outline-variant rounded-lg px-md py-sm font-body-md text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline-variant text-center tracking-widest font-bold" id="verifyCode" name="code" placeholder="123456" required="" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code"/>
-            </div>
-          </div>
+    // Toggle button when terms change
+    termsCheckbox.addEventListener('change', function () {
+      updateSubmitState();
+      if (!this.checked) {
+        document.getElementById('error-terms').classList.remove('hidden');
+      } else {
+        document.getElementById('error-terms').classList.add('hidden');
+      }
+    });
 
-          <!-- Verify Button -->
-          <button class="w-full bg-primary text-white font-title-md text-title-md py-sm rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md mt-md flex justify-center items-center gap-2" id="verifyButton" type="submit">
-            <span class="button-text">Подтвердить</span>
-            <span class="spinner" id="verifySpinner" aria-hidden="true"></span>
-          </button>
-        </form>
+    // Form submit
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
 
-        <!-- Divider -->
-        <div class="relative my-lg divider">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-outline-variant"></div>
-          </div>
-          <div class="relative flex justify-center text-label-md">
-            <span class="bg-surface-container-lowest px-md text-on-surface-variant font-label-md uppercase tracking-wider">Или с помощью</span>
-          </div>
-        </div>
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const terms = document.getElementById('terms').checked;
 
-        <!-- Consent Checkbox (shared: applies to BOTH email and Google registration) -->
-        <div class="flex items-start gap-sm pt-xs mb-md" id="consentBlock">
-          <div class="relative flex items-center h-5">
-            <input type="checkbox" id="termsConsent" name="consent" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-background bg-transparent transition-all cursor-pointer">
-          </div>
-          <label for="termsConsent" class="font-body-sm text-body-sm text-on-surface-variant cursor-pointer select-none">
-            Я соглашаюсь с <a href="#" id="openTermsBtn" class="text-primary hover:underline font-semibold">Условиями использования</a> и <a href="#" id="openPrivacyBtn" class="text-primary hover:underline font-semibold">Политикой конфиденциальности</a>.
-          </label>
-        </div>
+      let hasError = false;
 
-        <!-- Google Auth -->
-        <button class="w-full flex items-center justify-center gap-sm bg-surface-container-low border border-outline-variant text-on-surface font-body-md py-sm rounded-lg hover:bg-surface-container-high transition-colors btn-locked" id="googleRegisterBtn" type="button" disabled>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="flex-shrink-0">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.77.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          <span class="button-text">Продолжить с Google</span>
-        </button>
+      // Reset all errors
+      document.querySelectorAll('[id^="error-"]').forEach(el => el.classList.add('hidden'));
 
-        <!-- Redirect Link -->
-        <div class="mt-lg text-center">
-          <p class="font-body-md text-body-md text-on-surface-variant">
-            Уже есть аккаунт? 
-            <a class="text-primary font-bold hover:underline" href="/app/login">Войти</a>
-          </p>
-        </div>
-      </div>
-    </div>
-  </main>
+      if (!fullName) {
+        document.getElementById('error-fullName').classList.remove('hidden');
+        hasError = true;
+      }
+      if (!email || !email.includes('@')) {
+        document.getElementById('error-email').classList.remove('hidden');
+        hasError = true;
+      }
+      if (!password || password !== confirmPassword || password.length < 8) {
+        document.getElementById('error-password').classList.remove('hidden');
+        hasError = true;
+      }
+      if (!terms) {
+        const termsRow = document.getElementById('terms-row');
+        termsRow.classList.add('shake');
+        setTimeout(() => termsRow.classList.remove('shake'), 450);
+        document.getElementById('error-terms').classList.remove('hidden');
+        hasError = true;
+      }
+      if (!recaptchaToken) {
+        document.getElementById('error-captcha').classList.remove('hidden');
+        hasError = true;
+      }
 
-  <!-- Footer -->
-  <footer class="w-full py-lg px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto border-t border-outline-variant bg-surface">
-    <div class="mb-sm md:mb-0">
-      <span class="font-body-sm text-body-sm text-on-surface-variant">© 2026 Dogovor AI. Точность в каждом пункте.</span>
-    </div>
-    <div class="flex gap-md">
-      <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#" onclick="document.getElementById('openTermsBtn').click(); return false;">Условия использования</a>
-      <a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#" onclick="document.getElementById('openPrivacyBtn').click(); return false;">Конфиденциальность</a>
-    </div>
-  </footer>
+      if (hasError) return;
 
-  <!-- Modal Window (overlay) for Terms of Service and Privacy Policy -->
-  <div id="legalModal" class="fixed inset-0 z-[2000] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300" role="dialog" aria-modal="true">
-    <div class="relative bg-surface-container-lowest border border-outline-variant/30 rounded-xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden scale-95 transition-transform duration-300" id="legalModalCard">
-      
-      <!-- Modal Header -->
-      <div class="flex justify-between items-center px-md py-sm border-b border-outline-variant/20 bg-surface-container-low">
-        <div class="flex items-center gap-sm">
-          <span class="material-symbols-outlined text-primary text-2xl" id="legalModalIcon">description</span>
-          <h2 class="font-title-md text-title-md text-on-surface font-bold" id="legalModalTitle">Документ</h2>
-        </div>
-        <button type="button" id="closeModalBtn" class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 p-2 rounded-full transition-colors flex items-center justify-center outline-none">
-          <span class="material-symbols-outlined text-xl">close</span>
-        </button>
-      </div>
+      // Submit
+      registerBtn.disabled = true;
+      registerBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>&nbsp;Processing...';
 
-      <!-- Scrollable Document Content -->
-      <div class="flex-grow overflow-y-auto px-md py-md text-body-sm text-on-surface-variant leading-relaxed custom-scrollbar pp-content" id="legalModalContent">
-        <!-- Content will be injected here dynamically -->
-      </div>
+      try {
+        // Call auth.js registerWithPassword with reCAPTCHA token
+        await window.registerWithPassword(email, password, true, recaptchaToken);
+        registerBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">check_circle</span>&nbsp;Account Created!';
+        registerBtn.classList.replace('bg-primary', 'bg-secondary');
+        registerBtn.classList.replace('text-on-primary', 'text-on-secondary');
+      } catch (err) {
+        registerBtn.disabled = false;
+        registerBtn.innerHTML = 'Create Account';
+        // Reset captcha on error
+        if (window.grecaptcha) grecaptcha.reset();
+        recaptchaToken = null;
+        updateSubmitState();
+      }
+    });
 
-      <!-- Modal Footer -->
-      <div class="px-md py-sm border-t border-outline-variant/20 bg-surface-container-low flex justify-end">
-        <button type="button" id="acceptLegalBtn" class="bg-primary text-white font-title-md text-sm px-lg py-2 rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-md">
-          Понятно
-        </button>
-      </div>
-    </div>
-  </div>
+    // Focus micro-interactions
+    document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]').forEach(function (input) {
+      input.addEventListener('focus', () => input.parentElement.closest('.group')?.classList.add('scale-[1.01]'));
+      input.addEventListener('blur', () => input.parentElement.closest('.group')?.classList.remove('scale-[1.01]'));
+    });
+  });
+</script>
 
-  <!-- Scripts -->
-  <script src="/static/js/analytics_helper.js?v=1.3"></script>
-  <script src="/static/js/global_actions.js?v=1.3"></script>
-  <script src="/static/js/register.js?v=1.3"></script>
-  <script src="/static/js/privacy.js?v=1.3"></script>
+  <script src="/static/js/auth.js"></script>
   <script>
-    // Micro-interactions for inputs
-    document.querySelectorAll('input').forEach(input => {
-      input.addEventListener('focus', () => {
-        const group = input.closest('.group');
-        if (group) group.classList.add('scale-[1.01]', 'duration-200');
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a').forEach(function(a) {
+      if (a.textContent.trim() === 'Sign in') a.href = '/app/login';
+    });
+    // Focus interactions
+    document.querySelectorAll('input').forEach(function(input) {
+      input.addEventListener('focus', function() {
+        var g = input.parentElement.closest('.group');
+        if (g) g.classList.add('scale-[1.01]');
       });
-      input.addEventListener('blur', () => {
-        const group = input.closest('.group');
-        if (group) group.classList.remove('scale-[1.01]');
+      input.addEventListener('blur', function() {
+        var g = input.parentElement.closest('.group');
+        if (g) g.classList.remove('scale-[1.01]');
       });
     });
-
-    // Document Texts
-    const termsHTML = `
-      <h2>УСЛОВИЯ ИСПОЛЬЗОВАНИЯ СЕРВИСА «DOGOVOR AI»</h2>
-      <p><strong>ВНИМАНИЕ:</strong> Использование данного веб-сайта и сервиса означает ваше полное и безоговорочное согласие с настоящими Условиями. Если вы не согласны с любым из положений, немедленно прекратите использование сервиса.</p>
-      <hr>
-      <h2>1. Характер Сервиса и Отказ от юридических гарантий</h2>
-      <ul>
-        <li>Сервис «Dogovor AI» является исключительно инструментом автоматизированного анализа текстов, основанным на технологиях искусственного интеллекта.</li>
-        <li>Сервис НЕ ЯВЛЯЕТСЯ юридической фирмой, адвокатским кабинетом или заменой квалифицированной юридической консультации.</li>
-        <li>Вы признаете, что программное обеспечение может допускать ошибки, неточности, галлюцинации (генерация неверной информации) или пропускать критические юридические риски.</li>
-        <li>Администрация не гарантирует полноту, точность или применимость результатов анализа к вашей конкретной ситуации.</li>
-      </ul>
-      <hr>
-      <h2>2. Роль Пользователя и принятие решений</h2>
-      <ul>
-        <li>Вы подтверждаете, что любое решение, принятое на основе отчета «Dogovor AI» (подписание, расторжение или изменение договора), является исключительно вашим самостоятельным решением.</li>
-        <li>Мы настоятельно рекомендуем привлечение профессионального юриста для проверки всех документов перед их подписанием.</li>
-        <li>Владелец сервиса не несет ответственности за любые последствия, возникшие в результате ваших действий или бездействия на основе данных, полученных через «Dogovor AI».</li>
-      </ul>
-      <hr>
-      <h2>3. Ограничение ответственности (Liability Disclaimer)</h2>
-      <ul>
-        <li><strong>Полное освобождение от ответственности:</strong> Насколько это позволяет применимое законодательство, «Dogovor AI» и его владельцы не несут ответственности за любые прямые, косвенные, случайные или штрафные убытки, включая, но не ограничиваясь: потерей прибыли, данных, репутации или иным имущественным ущербом, возникшим из-за использования сервиса.</li>
-        <li>Сервис предоставляется на условиях «как есть» (as is) и «как доступно» (as available), без каких-либо гарантий любого ��ода.</li>
-      </ul>
-      <hr>
-      <h2>4. Конфиденциальность и обработка данных</h2>
-      <ul>
-        <li>Вы соглашаетесь с тем, что загружаемые вами документы передаются на серверы и обрабатываются с использованием сторонних API (например, моделей Google Gemini).</li>
-        <li>Администрация прилагает усилия для защиты данных, однако не гарантирует абсолютную безопасность передачи или хранения информации.</li>
-        <li>Использование сервиса подразумевает ваше согласие на хранение и анонимизированную обработку данных в целях совершенствования алгоритмов работы ИИ.</li>
-      </ul>
-      <hr>
-      <h2>5. Интеллектуальная собственность</h2>
-      <p>Весь интерфейс, дизайн, логотип и алгоритмы обработки являются исключительной собственностью разработчиков. Копирование, декомпиляция или использование исходного кода запрещено.</p>
-      <hr>
-      <h2>6. Изменения и прекращение доступа</h2>
-      <p>Администрация оставляет за собой право в любое время и без предварительного уведомления изменить, приостановить или прекратить предоставление доступа к сервису любому пользователю.</p>
-    `;
-
-    const privacyHTML = `
-      <h2>1. Общие положения</h2>
-      <p>Настоящая Политика конфиденциальности регулирует порядок обработки и защиты персональных данных пользователей сервиса по анализу договоров, выявлению рисков и созданию договоров с учетом предложенных исправлений (далее — «Сервис»).</p>
-      <p>Используя Сервис, пользователь подтверждает согласие с данной Политикой.</p>
-      <hr>
-      <h2>2. Собираемые данные</h2>
-      <h3>2.1. Данные, предоставляемые пользователем</h3>
-      <ul>
-        <li>Загружаемые документы (договоры, соглашения и иные файлы)</li>
-        <li>Текстовые данные, вводимые пользователем</li>
-        <li>Контактные данные (при регистрации): email, имя</li>
-      </ul>
-      <h3>2.2. Автоматически собираемые данные</h3>
-      <ul>
-        <li>IP-адрес</li>
-        <li>Тип устройства и браузера</li>
-        <li>Логи действий в Сервисе</li>
-        <li>Cookies и аналогичные технологии</li>
-      </ul>
-      <hr>
-      <h2>3. Цели обработки данных</h2>
-      <p>Персональные данные используются для:</p>
-      <ul>
-        <li>Анализа документов и выявления юридических рисков</li>
-        <li>Генерации рекомендаций по улучшению договоров</li>
-        <li>Создания новых договоров на основе пользовательских данных</li>
-        <li>Улучшения качества работы Сервиса</li>
-        <li>Обеспечения безопасности и предотвращения злоупотреблений</li>
-      </ul>
-      <hr>
-      <h2>4. Обработка документов</h2>
-      <ul>
-        <li>Загруженные документы обрабатываются автоматически с использованием алгоритмов анализа текста и искусственного интеллекта</li>
-        <li>Сервис не использует документы для иных целей без согласия пользователя</li>
-        <li>Документы могут временно храниться для обеспечения работы функций Сервиса</li>
-      </ul>
-      <hr>
-      <h2>5. Хранение и защита данных</h2>
-      <ul>
-        <li>Данные хранятся в защищенных инфраструктурах</li>
-        <li>Применяются меры защиты: шифрование, контроль доступа, аудит действий</li>
-        <li>Срок хранения данных определяется необходимостью оказания услуг либо требованиями законодательства</li>
-      </ul>
-      <hr>
-      <h2>6. Передача данных третьим лицам</h2>
-      <p>Сервис не передает персональные данные третьим лицам, за исключением случаев:</p>
-      <ul>
-        <li>Требований законодательства</li>
-        <li>Необходимости выполнения функций Сервиса (например, облачные провайдеры)</li>
-        <li>Получения явного согласия пользователя</li>
-      </ul>
-      <hr>
-      <h2>7. Права пользователя</h2>
-      <p>Пользователь имеет право:</p>
-      <ul>
-        <li>Запросить доступ к своим данным</li>
-        <li>Требовать исправления или удаления данных</li>
-        <li>Отозвать согласие на обработку</li>
-        <li>Ограничить обработку данных</li>
-      </ul>
-      <hr>
-      <h2>8. Использование cookies</h2>
-      <p>Сервис может использовать cookies для:</p>
-      <ul>
-        <li>Аутентификации пользователей</li>
-        <li>Сохранения пользовательских настроек</li>
-        <li>Аналитики и улучшения работы</li>
-      </ul>
-      <p>Пользователь может отключить cookies в настройках браузера.</p>
-      <hr>
-      <h2>9. Ограничение ответственности</h2>
-      <p>Сервис предоставляет результаты анализа в информационных целях и не является заменой юридической консультации. Пользователь самостоятельно принимает решения на основе предоставленных рекомендаций.</p>
-      <hr>
-      <h2>10. Изменения политики</h2>
-      <p>Сервис оставляет за собой право изменять настоящую Политику. Обновленная версия вступает в силу с момента публикации.</p>
-      <hr>
-      <h2>11. Контактная информация</h2>
-      <p>По вопросам обработки данных пользователь может обратиться:</p>
-      <p>Email: <a href="mailto:damikserik@gmail.com">damikserik@gmail.com</a></p>
-    `;
-
-    // Modal logic
-    const legalModal = document.getElementById('legalModal');
-    const legalModalCard = document.getElementById('legalModalCard');
-    const legalModalTitle = document.getElementById('legalModalTitle');
-    const legalModalIcon = document.getElementById('legalModalIcon');
-    const legalModalContent = document.getElementById('legalModalContent');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const acceptLegalBtn = document.getElementById('acceptLegalBtn');
-    const openTermsBtn = document.getElementById('openTermsBtn');
-    const openPrivacyBtn = document.getElementById('openPrivacyBtn');
-
-    function openModal(title, iconName, htmlContent) {
-      legalModalTitle.textContent = title;
-      legalModalIcon.textContent = iconName;
-      legalModalContent.innerHTML = htmlContent;
-      legalModal.classList.remove('hidden');
-      legalModal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      // Reset scroll position of content
-      legalModalContent.scrollTop = 0;
-    }
-
-    function closeModal() {
-      legalModal.classList.add('hidden');
-      legalModal.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-
-    openTermsBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      openModal('Условия использования', 'description', termsHTML);
-    });
-
-    openPrivacyBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      openModal('Политика конфиденциальности', 'shield', privacyHTML);
-    });
-
-    closeModalBtn.addEventListener('click', closeModal);
-    acceptLegalBtn.addEventListener('click', closeModal);
-
-    legalModal.addEventListener('click', (e) => {
-      if (e.target === legalModal) {
-        closeModal();
-      }
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !legalModal.classList.contains('hidden')) {
-        closeModal();
-      }
-    });
-  </script>
-</body>
-</html>
+  });
+</script>
+</body></html>
