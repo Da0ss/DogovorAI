@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html class="dark" lang="ru">
 <head>
+  <!-- Sentry SDK & Session Replay -->
+  <script src="https://js.sentry-cdn.com/64c33bc2f4f0702af076945c83a8df19.min.js" crossorigin="anonymous"></script>
+  <script>
+    Sentry.onLoad(function() {
+      Sentry.init({
+        integrations: [
+          Sentry.replayIntegration(),
+        ],
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
+    });
+  </script>
+
   <!-- Vercel Speed Insights -->
   <script>
     window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };

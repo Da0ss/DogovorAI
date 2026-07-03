@@ -2,6 +2,20 @@
 <html class="dark" lang="ru">
 
 <head>
+  <!-- Sentry SDK & Session Replay -->
+  <script src="https://js.sentry-cdn.com/64c33bc2f4f0702af076945c83a8df19.min.js" crossorigin="anonymous"></script>
+  <script>
+    Sentry.onLoad(function() {
+      Sentry.init({
+        integrations: [
+          Sentry.replayIntegration(),
+        ],
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
+    });
+  </script>
+
   <!-- Vercel Speed Insights -->
   <script>
     window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
@@ -713,6 +727,14 @@
       loadUserInfo();
       updateAnalyzeBtn();
       // Note: dropZone click/drag/drop handlers are in app.js — no duplicates needed
+      
+      // Sentry verification query param check
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('trigger_sentry_error') === '1') {
+          setTimeout(() => {
+              throw new Error('This is a client-side test error to verify Sentry Replay');
+          }, 1000);
+      }
     });
   </script>
 </body>
