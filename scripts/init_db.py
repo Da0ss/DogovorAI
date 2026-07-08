@@ -15,7 +15,11 @@ if __name__ == "__main__":
     try:
         create_tables()
         print("✅ Database tables created successfully!")
-        print(f"📊 Connected to: {settings.database_url.split('@')[1].split('/')[0]}")
+        if "@" in settings.database_url:
+            db_host = settings.database_url.split('@')[1].split('/')[0]
+        else:
+            db_host = settings.database_url.split('//')[1].split('/')[0]
+        print(f"📊 Connected to: {db_host}")
     except Exception as e:
         print(f"❌ Failed to create tables: {str(e)}")
         sys.exit(1)

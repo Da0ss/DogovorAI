@@ -34,7 +34,11 @@ from app.services.contract_generator import (
 )
 from app.services.contract_suggest import suggest_contract_text
 from app.services.file_service import FileService
-from app.services.ai_service import analyze_contract_text
+from app.services.ai_service import (
+    analyze_contract_text,
+    is_ai_unavailable,
+    public_ai_error_message,
+)
 from app.services.usage_limiter import usage_limiter, UsageLimitError
 
 logger = logging.getLogger(__name__)
@@ -274,7 +278,10 @@ async def analyze_contract(
     # Step 2: AI analysis
     analysis = await analyze_contract_text(file_result.extracted_text)
     if not analysis.analysis_success:
-        raise HTTPException(status_code=500, detail=analysis.error_message)
+        raise HTTPException(
+            status_code=503 if is_ai_unavailable(analysis) else 500,
+            detail=public_ai_error_message(analysis),
+        )
 
     # Step 3: transform into issues format for frontend
     issues = []
@@ -302,4 +309,5 @@ async def analyze_contract(
         "overall_risk_level": analysis.overall_risk_level.value,
         "total_risks": analysis.total_risks,
         "high_risk_count": analysis.high_risk_count,
+        "medium_risk_count": analysis.medium_risk_count,
     }

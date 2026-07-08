@@ -229,6 +229,15 @@ function showPaywall(used, limit, message, resetAt) {
 
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+
+    // GA4: трекинг начала платежного флоу
+    if (typeof trackEvent === 'function') {
+      trackEvent('payment_started', {
+        transaction_id: 'paywall_' + Date.now(),
+        value: 0,
+        currency: 'KZT'
+      });
+    }
 }
 
 function hidePaywall() {

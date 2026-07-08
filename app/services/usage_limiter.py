@@ -25,6 +25,7 @@ from typing import Optional, Dict, Any
 
 from app.models.database import SessionLocal
 from app.models.models import User
+from app.services.auth_context import get_supabase_profile, is_debug_or_test
 
 logger = logging.getLogger(__name__)
 
@@ -130,25 +131,38 @@ class UsageLimiter:
                 f"was={old}, next_reset={user.analyses_reset_at}"
             )
 
-    def _get_or_create_user_by_email(self, db, email: str, plan: str = "basic") -> Optional[User]:
+    def _get_or_create_user_by_email(
+        self,
+        db,
+        email: str,
+        plan: str = "basic",
+        user_id: Optional[str] = None,
+    ) -> Optional[User]:
         """
         Найти или создать запись пользователя в profiles по email (для OAuth-юзеров).
         hashed_password = None (НЕ '__oauth__' — совместимо с nullable полем).
         """
-        user = db.query(User).filter(User.email == email).first()
+        user = None
+        if user_id:
+            user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            user = db.query(User).filter(User.email.ilike(email)).first()
         if user:
             return user
         # Создаём stub-запись для OAuth-пользователя
         try:
-            user = User(
+            kwargs = dict(
                 email=email,
                 hashed_password=None,       # OAuth — пароля нет
                 is_verified=True,
-                auth_provider="google",
+                auth_provider="supabase",
                 plan_type=plan,
                 subscription_status="inactive",
                 analyses_used=0,
             )
+            if user_id:
+                kwargs["id"] = user_id
+            user = User(**kwargs)
             db.add(user)
             db.commit()
             db.refresh(user)
@@ -257,26 +271,27 @@ class UsageLimiter:
 
     # ─── SUPABASE / GOOGLE OAUTH (mapped via email in local DB) ─────────────
 
-    def _resolve_supabase_email(self, token: str) -> Optional[str]:
+    def _resolve_supabase_user(self, token: str) -> Optional[dict[str, Optional[str]]]:
         """
-        Извлекаем email из Supabase/Google JWT-токена.
-        1. Сначала пробуем через auth_service (с проверкой подписи).
-        2. Если токен истёк/невалиден — читаем payload без проверки (fallback).
+        Resolve Supabase user data from a token.
+        Production requires Supabase validation. Unsigned payload fallback is
+        allowed only in debug/tests for local fixtures.
         """
-        # Попытка 1: через Supabase auth (Google OAuth, валидный токен)
         try:
-            from app.services.auth_service import auth_service
-            profile = auth_service.get_user_profile(token)
+            profile = get_supabase_profile(token)
             if profile and profile.get("email"):
-                return profile["email"]
+                return {
+                    "id": str(profile.get("id")) if profile.get("id") else None,
+                    "email": profile["email"],
+                }
         except Exception as e:
             logger.debug(f"auth_service.get_user_profile failed: {e}")
 
-        # Попытка 2: читаем JWT payload без проверки (работает даже для истёкшего токена)
-        email = _decode_jwt_email(token)
-        if email:
-            logger.info(f"ℹ️ JWT fallback email resolved: {email}")
-            return email
+        if is_debug_or_test():
+            email = _decode_jwt_email(token)
+            if email:
+                logger.info(f"ℹ️ Debug JWT fallback email resolved: {email}")
+                return {"id": None, "email": email}
 
         logger.warning("⚠️ Could not resolve Supabase user email from token")
         return None
@@ -286,15 +301,19 @@ class UsageLimiter:
         Check limit for a Supabase/Google OAuth user.
         Looks up (or creates) a local User record by email.
         """
-        email = self._resolve_supabase_email(token)
-        if not email:
-            logger.warning("⚠️ Could not resolve Supabase user email — allowing with basic limits")
+        resolved = self._resolve_supabase_user(token)
+        if not resolved or not resolved.get("email"):
+            logger.warning("⚠️ Could not resolve Supabase user email — using anonymous basic limits")
             return {"allowed": True, "used": 0, "limit": PLAN_LIMITS["basic"],
                     "plan": "basic", "plan_name": "Basic", "reset_at": None}
 
         db = SessionLocal()
         try:
-            user = self._get_or_create_user_by_email(db, email)
+            user = self._get_or_create_user_by_email(
+                db,
+                resolved["email"],
+                user_id=resolved.get("id"),
+            )
             if not user:
                 return {"allowed": True, "used": 0, "limit": PLAN_LIMITS["basic"],
                         "plan": "basic", "plan_name": "Basic", "reset_at": None}
@@ -304,29 +323,37 @@ class UsageLimiter:
 
     def increment_supabase(self, token: str) -> None:
         """Increment usage for a Supabase/Google OAuth user."""
-        email = self._resolve_supabase_email(token)
-        if not email:
+        resolved = self._resolve_supabase_user(token)
+        if not resolved or not resolved.get("email"):
             return
         db = SessionLocal()
         try:
-            user = self._get_or_create_user_by_email(db, email)
+            user = self._get_or_create_user_by_email(
+                db,
+                resolved["email"],
+                user_id=resolved.get("id"),
+            )
             if user:
                 self._increment_by_user(user, db)
         except Exception as e:
             db.rollback()
-            logger.error(f"❌ Failed to increment Supabase usage for {email}: {e}")
+            logger.error(f"❌ Failed to increment Supabase usage for {resolved.get('email')}: {e}")
         finally:
             db.close()
 
     def get_usage_supabase(self, token: str) -> Dict[str, Any]:
         """Get usage info for a Supabase/Google OAuth user."""
-        email = self._resolve_supabase_email(token)
-        if not email:
+        resolved = self._resolve_supabase_user(token)
+        if not resolved or not resolved.get("email"):
             return {"used": 0, "limit": PLAN_LIMITS["basic"],
                     "plan": "basic", "plan_name": "Basic", "reset_at": None}
         db = SessionLocal()
         try:
-            user = self._get_or_create_user_by_email(db, email)
+            user = self._get_or_create_user_by_email(
+                db,
+                resolved["email"],
+                user_id=resolved.get("id"),
+            )
             if not user:
                 return {"used": 0, "limit": PLAN_LIMITS["basic"],
                         "plan": "basic", "plan_name": "Basic", "reset_at": None}

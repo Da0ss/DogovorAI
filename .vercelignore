@@ -1,0 +1,66 @@
+# Exclude from Vercel deployment (reduce bundle size)
+
+# Documentation
+*.md
+!README.md
+
+# Development files
+.venv/
+.pytest_cache/
+__pycache__/
+tests/
+*.pyc
+
+# Local configs
+.env
+.env.local
+.env.production
+setup.cfg
+pytest.ini
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+server.log
+log_history.txt
+
+# Backups
+backups/
+pyproject.toml
+pyproject.toml.bak
+
+# Scratch & processed
+scratch/
+processed_documents/
+
+# SQL files
+*.sql
+
+# Media (generated files)
+media/generated/
+
+# Netlify (not needed on Vercel)
+netlify/
+netlify.toml
+
+# Development requirements
+requirements-dev.txt
+requirements_minimal.txt
+
+# Alembic (migrations run separately)
+alembic/
+
+# Development scripts
+scripts/
+
+# Agents config
+.agents/
